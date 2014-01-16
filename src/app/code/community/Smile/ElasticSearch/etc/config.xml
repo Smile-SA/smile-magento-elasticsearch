@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<!-- 
+/**
+ * Module configuration
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * This work is a fork of Johann Reinke <johann@bubblecode.net> previous module
+ * available at https://github.com/jreinke/magento-elasticsearch
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */ 
+ -->
+<config>
+    <modules>
+        <Smile_ElasticSearch>
+            <version>1.0.0</version>
+        </Smile_ElasticSearch>
+    </modules>
+    <global>
+        <models>
+            <smile_elasticsearch>
+                <class>Smile_ElasticSearch_Model</class>
+                <resourceModel>smile_elasticsearch_resource</resourceModel>
+            </smile_elasticsearch>
+            <smile_elasticsearch_resource>
+                <class>Smile_ElasticSearch_Model_Resource</class>
+            </smile_elasticsearch_resource>
+        </models>
+        <helpers>
+            <smile_elasticsearch>
+                <class>Smile_ElasticSearch_Helper</class>
+            </smile_elasticsearch>
+        </helpers>
+        <blocks>
+            <smile_elasticsearch>
+                <class>Smile_ElasticSearch_Block</class>
+            </smile_elasticsearch>
+        </blocks>
+        <resources>
+            <smile_elasticsearch_setup>
+                <setup>
+                    <module>Smile_ElasticSearch</module>
+                    <class>Mage_Core_Model_Resource_Setup</class>
+                </setup>
+            </smile_elasticsearch_setup>
+        </resources>
+        <events>
+            <catalogsearch_index_process_start>
+                <observers>
+                    <smile_elasticsearch>
+                        <class>smile_elasticsearch/observer</class>
+                        <method>beforeIndexProcessStart</method>
+                    </smile_elasticsearch>
+                </observers>
+            </catalogsearch_index_process_start>
+            <catalogsearch_index_process_complete>
+                <observers>
+                    <smile_elasticsearch>
+                        <class>smile_elasticsearch/observer</class>
+                        <method>installIndex</method>
+                    </smile_elasticsearch>
+                </observers>
+            </catalogsearch_index_process_complete>
+        </events>
+        <index>
+            <indexer>
+                <catalogsearch_fulltext>
+                    <model>smile_elasticsearch/indexer_fulltext</model>
+                </catalogsearch_fulltext>
+            </indexer>
+        </index>
+    </global>
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <smile_elasticsearch before="Mage_Adminhtml">Smile_ElasticSearch_Adminhtml</smile_elasticsearch>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+    <adminhtml>
+        <events>
+            <adminhtml_catalog_product_attribute_edit_prepare_form>
+                <observers>
+                    <smile_elasticsearch>
+                        <class>smile_elasticsearch/observer</class>
+                        <method>eavAttributeEditFormInit</method>
+                    </smile_elasticsearch>
+                </observers>
+            </adminhtml_catalog_product_attribute_edit_prepare_form>
+            <catalog_entity_attribute_save_after>
+                <observers>
+                    <smile_elasticsearch>
+                        <class>smile_elasticsearch/observer</class>
+                        <method>requireCatalogsearchReindex</method>
+                    </smile_elasticsearch>
+                </observers>
+            </catalog_entity_attribute_save_after>
+        </events>
+        <translate>
+            <modules>
+                <Smile_ElasticSearch>
+                    <files>
+                        <default>Smile_ElasticSearch.csv</default>
+                    </files>
+                </Smile_ElasticSearch>
+            </modules>
+        </translate>
+    </adminhtml>
+    <frontend>
+        <layout>
+            <updates>
+                <smile_elasticsearch>
+                    <file>smile/elasticsearch.xml</file>
+                </smile_elasticsearch>
+            </updates>
+        </layout>
+        <events>
+            <controller_action_predispatch_catalog_category_view>
+                <observers>
+                    <smile_elasticsearch>
+                        <class>smile_elasticsearch/observer</class>
+                        <method>resetCurrentCatalogLayer</method>
+                    </smile_elasticsearch>
+                </observers>
+            </controller_action_predispatch_catalog_category_view>
+
+            <controller_action_predispatch_catalogsearch_result_index>
+                <observers>
+                    <smile_elasticsearch>
+                        <class>smile_elasticsearch/observer</class>
+                        <method>resetCurrentSearchLayer</method>
+                    </smile_elasticsearch>
+                </observers>
+            </controller_action_predispatch_catalogsearch_result_index>
+
+            <controller_action_predispatch_catalogsearch_advanced_result>
+                <observers>
+                    <smile_elasticsearch>
+                        <class>smile_elasticsearch/observer</class>
+                        <method>resetCurrentSearchLayer</method>
+                    </smile_elasticsearch>
+                </observers>
+            </controller_action_predispatch_catalogsearch_advanced_result>
+        </events>
+    </frontend>
+    <default>
+        <catalog>
+            <search>
+                <elasticsearch_enable_debug_mode>0</elasticsearch_enable_debug_mode>
+                <elasticsearch_servers>127.0.0.1:9200</elasticsearch_servers>
+                <elasticsearch_timeout>30</elasticsearch_timeout>
+                <elasticsearch_alias>magento</elasticsearch_alias>
+                <elasticsearch_indices_pattern>magento-{{YYYYMMDD}}-{{HHmmss}}</elasticsearch_indices_pattern>
+                <elasticsearch_number_of_shards>1</elasticsearch_number_of_shards>
+                <elasticsearch_number_of_replicas>0</elasticsearch_number_of_replicas>
+                <elasticsearch_facets_max_size>50</elasticsearch_facets_max_size>
+                <elasticsearch_enable_options_search>1</elasticsearch_enable_options_search>
+                <elasticsearch_enable_icu_folding>0</elasticsearch_enable_icu_folding>
+                <elasticsearch_enable_fuzzy_query>1</elasticsearch_enable_fuzzy_query>
+                <elasticsearch_fuzzy_min_similarity>0.7</elasticsearch_fuzzy_min_similarity>
+                <elasticsearch_fuzzy_prefix_length>0</elasticsearch_fuzzy_prefix_length>
+                <elasticsearch_fuzzy_max_query_terms>10</elasticsearch_fuzzy_max_query_terms>
+                <elasticsearch_fuzzy_query_boost>1.0</elasticsearch_fuzzy_query_boost>
+            </search>
+        </catalog>
+    </default>
+</config>

@@ -1,0 +1,219 @@
+<?xml version="1.0"?>
+<!-- 
+/**
+ * Module specific editable configguration
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * This work is a fork of Johann Reinke <johann@bubblecode.net> previous module
+ * available at https://github.com/jreinke/magento-elasticsearch
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */ 
+ -->
+<config>
+   <sections>
+        <catalog>
+            <groups>
+                <search>
+                    <fields>
+                        <engine translate="label" module="smile_elasticsearch">
+                            <label>Search Engine</label>
+                            <frontend_type>select</frontend_type>
+                            <backend_model>smile_elasticsearch/adminhtml_system_config_backend_engine</backend_model>
+                            <source_model>smile_elasticsearch/adminhtml_system_config_source_engine</source_model>
+                            <sort_order>19</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </engine>
+                        <elasticsearch_enable_debug_mode translate="label comment" module="smile_elasticsearch">
+                            <label>Enable Debug Mode</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>If set yo yes, will display potential error messages in frontend.</comment>
+                            <sort_order>50</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><engine>smile_elasticsearch/engine_elasticsearch</engine></depends>
+                        </elasticsearch_enable_debug_mode>
+                        <elasticsearch_servers translate="label" module="smile_elasticsearch">
+                            <label>Servers</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>host:port separated by comma.</comment>
+                            <sort_order>51</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry</validate>
+                            <depends><engine>smile_elasticsearch/engine_elasticsearch</engine></depends>
+                        </elasticsearch_servers>
+                        <elasticsearch_timeout translate="label" module="smile_elasticsearch">
+                            <label>Server Timeout</label>
+                            <comment>Number of seconds after a timeout occurs for every request. If using indexing of file, large value necessary.</comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>55</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <validate>required-entry validate-greater-than-zero validate-number</validate>
+                            <depends><engine>smile_elasticsearch/engine_elasticsearch</engine></depends>
+                        </elasticsearch_timeout>
+                        <elasticsearch_alias translate="label comment" module="smile_elasticsearch">
+                            <label>Alias Name</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>Without starting and trailing slashes.</comment>
+                            <sort_order>56</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-code</validate>
+                            <depends><engine>smile_elasticsearch/engine_elasticsearch</engine></depends>
+                        </elasticsearch_alias>
+                        <elasticsearch_number_of_shards translate="label comment" module="smile_elasticsearch">
+                            <label>Number of Shards</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>Having more shards enhances the indexing performance and allows to distribute a big index across machines.</comment>
+                            <sort_order>57</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <validate>required-entry validate-greater-than-zero validate-digits</validate>
+                            <depends><engine>smile_elasticsearch/engine_elasticsearch</engine></depends>
+                        </elasticsearch_number_of_shards>
+                        <elasticsearch_number_of_replicas translate="label comment" module="smile_elasticsearch">
+                            <label>Number of Replicas</label>
+                            <frontend_type>text</frontend_type>
+                            <comment><![CDATA[The number of replicas each shard has. Having more replicas enhances the search performance and improves the cluster availability.
+                            <br /><strong><span style="color: red;">Be careful</span></strong> when modifying this parameter.
+                            Write consistency (one, quorum or all) must be considered in order to avoid timeout write action.
+                            More info here: http://www.elasticsearch.org/guide/reference/api/bulk.html and https://github.com/elasticsearch/elasticsearch/issues/444]]></comment>
+                            <tooltip><![CDATA[<strong>Default write consistency is quorum</strong> (active shards > replicas / 2 + 1).<br />
+For example, in a N shards with 2 replicas index, there will have to be at least 2 active shards within the relevant partition (quorum) for the operation to succeed. In a N shards with 1 replica scenario, there will need to be a single shard active (in this case, one and quorum is the same).]]></tooltip>
+                            <sort_order>58</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <validate>required-entry validate-digits</validate>
+                            <depends><engine>smile_elasticsearch/engine_elasticsearch</engine></depends>
+                        </elasticsearch_number_of_replicas>
+                        <elasticsearch_facets_max_size translate="label comment" module="smile_elasticsearch">
+                            <label>Facets Max Size</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>Max number of values returned by a facet query.</comment>
+                            <sort_order>59</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-greater-than-zero validate-digits</validate>
+                            <depends><engine>smile_elasticsearch/engine_elasticsearch</engine></depends>
+                        </elasticsearch_facets_max_size>
+                        <elasticsearch_enable_options_search translate="label comment" module="smile_elasticsearch">
+                            <label>Enable Search on Options Labels</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>If enabled, will also search on product options labels.</comment>
+                            <sort_order>60</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><engine>smile_elasticsearch/engine_elasticsearch</engine></depends>
+                        </elasticsearch_enable_options_search>
+                        <elasticsearch_enable_icu_folding translate="label comment" module="smile_elasticsearch">
+                            <label>Enable ICU Folding Token Filter</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>Needs ICU plugin installation: https://github.com/elasticsearch/elasticsearch-analysis-icu</comment>
+                            <sort_order>70</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends><engine>smile_elasticsearch/engine_elasticsearch</engine></depends>
+                        </elasticsearch_enable_icu_folding>
+                        <elasticsearch_enable_fuzzy_query translate="label comment" module="smile_elasticsearch">
+                            <label>Enable Fuzzy Query</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <comment>Enables approximative search: http://www.elasticsearch.org/guide/reference/query-dsl/flt-query.html</comment>
+                            <sort_order>71</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><engine>smile_elasticsearch/engine_elasticsearch</engine></depends>
+                        </elasticsearch_enable_fuzzy_query>
+                        <elasticsearch_fuzzy_min_similarity translate="label comment" module="smile_elasticsearch">
+                            <label>Fuzzy Min Similarity</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>0 to 1 (1 excluded). Low value affects query performance. Default value in Elasticsearch: 0.5.</comment>
+                            <sort_order>72</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-number validate-number-range number-range-0-0.99</validate>
+                            <depends>
+                                <engine>smile_elasticsearch/engine_elasticsearch</engine>
+                                <elasticsearch_enable_fuzzy_query>1</elasticsearch_enable_fuzzy_query>
+                            </depends>
+                        </elasticsearch_fuzzy_min_similarity>
+                        <elasticsearch_fuzzy_prefix_length translate="label comment" module="smile_elasticsearch">
+                            <label>Fuzzy Prefix Length</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>Length of required common prefix on variant terms. Default value in Elasticsearch: 0.</comment>
+                            <sort_order>73</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-digits</validate>
+                            <depends>
+                                <engine>smile_elasticsearch/engine_elasticsearch</engine>
+                                <elasticsearch_enable_fuzzy_query>1</elasticsearch_enable_fuzzy_query>
+                            </depends>
+                        </elasticsearch_fuzzy_prefix_length>
+                        <elasticsearch_fuzzy_max_query_terms translate="label comment" module="smile_elasticsearch">
+                            <label>Fuzzy Max Expansions</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>High value affects query performance. Default value in Elasticsearch: 25.</comment>
+                            <sort_order>74</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-greater-than-zero validate-digits</validate>
+                            <depends>
+                                <engine>smile_elasticsearch/engine_elasticsearch</engine>
+                                <elasticsearch_enable_fuzzy_query>1</elasticsearch_enable_fuzzy_query>
+                            </depends>
+                        </elasticsearch_fuzzy_max_query_terms>
+                        <elasticsearch_fuzzy_query_boost translate="label comment" module="smile_elasticsearch">
+                            <label>Fuzzy Query Boost</label>
+                            <frontend_type>text</frontend_type>
+                            <comment>Sets the boost value of the query. Default value in Elasticsearch: 1.</comment>
+                            <sort_order>75</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry validate-greater-than-zero validate-number</validate>
+                            <depends>
+                                <engine>smile_elasticsearch/engine_elasticsearch</engine>
+                                <elasticsearch_enable_fuzzy_query>1</elasticsearch_enable_fuzzy_query>
+                            </depends>
+                        </elasticsearch_fuzzy_query_boost>
+                        <search_type>
+                            <depends><engine>catalogsearch/fulltext_engine</engine></depends>
+                        </search_type>
+                        <use_layered_navigation_count>
+                            <depends><engine>catalogsearch/fulltext_engine</engine></depends>
+                        </use_layered_navigation_count>
+                    </fields>
+                </search>
+            </groups>
+        </catalog>
+    </sections>
+</config>

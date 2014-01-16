@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!-- 
+/**
+ * Layout for smile tracking
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_Tracker
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   OSL 3.0
+ */
+ -->
+<layout version="0.1.0">
+
+    <default>
+        <reference name="head">
+            <action method="addItem"><type>js</type><name>smile/tracker/boomerang/boomerang.js</name><params/><if/><condition>is_smile_tracker_enabled</condition></action>
+            <action method="addItem"><type>js</type><name>smile/tracker/tracking.js</name><params/><if/><condition>is_smile_tracker_enabled</condition></action>
+            <block type="smile_tracker/config" name="smile.tracker.config" template="smile/tracker/config.phtml" />
+        </reference>
+        <reference name="before_body_end">
+            <block type="smile_tracker/variables_page_base" name="smile.tracker.page.base" />
+            <block type="smile_tracker/variables_page_catalog" name="smile.tracker.page.catalog" />
+        </reference>
+    </default>
+    
+    <customer_logged_in>
+        <reference name="before_body_end">
+            <block type="smile_tracker/variables_session_customer" name="smile.tracker.page.customer" />
+        </reference>
+    </customer_logged_in>
+    
+    <catalogsearch_result_index>
+        <reference name="before_body_end">
+            <block type="smile_tracker/variables_page_search" name="smile.tracker.page.search" />
+        </reference>
+    </catalogsearch_result_index>
+    
+    <cms_page>
+        <reference name="before_body_end">
+            <block type="smile_tracker/variables_page_cms" name="smile.tracker.page.cms" />
+        </reference>
+    </cms_page>
+    
+    <checkout_onepage_index>
+        <reference name="before_body_end">
+            <block type="core/template" name="smile.tracker.page.opc" template="smile/tracker/variables/checkout.phtml" />
+        </reference>
+    </checkout_onepage_index>
+    
+    <checkout_onepage_success>
+        <reference name="before_body_end">
+            <block type="smile_tracker/variables_page_order" name="smile.tracker.page.order" />
+        </reference>
+    </checkout_onepage_success>
+    
+    <catalog_category_view translate="label">
+        <label>Catalog Category</label>
+    </catalog_category_view>
+
+</layout>

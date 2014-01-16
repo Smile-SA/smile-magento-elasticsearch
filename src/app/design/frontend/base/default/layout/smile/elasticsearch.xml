@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!-- 
+/**
+ * Layout for smile tracking
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   OSL 3.0
+ */
+ -->
+<layout version="0.1.0">
+
+    <catalogsearch_result_index>
+        <reference name="left">
+            <remove name="catalogsearch.leftnav"/>
+            <block type="smile_elasticsearch/catalogsearch_layer" name="smile.elaticsearch.leftnav" before="-" template="catalog/layer/view.phtml"/>
+        </reference>
+        <reference name="additional">
+            <remove name="search_suggestions"/>
+            <remove name="search_recommendations" />
+        </reference>
+    </catalogsearch_result_index>
+
+    <catalog_category_layered>
+        <reference name="left">
+            <remove name="catalog.leftnav"/>
+            <block type="smile_elasticsearch/catalog_layer_view" name="smile.elaticsearch.leftnav" before="-" template="catalog/layer/view.phtml"/>
+        </reference>
+    </catalog_category_layered>
+
+</layout>
