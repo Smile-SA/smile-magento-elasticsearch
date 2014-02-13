@@ -39,6 +39,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         $prefix = $this->_engine->getFieldsPrefix();
         $categoryData = $this->_getCatalogCategoryData($storeId, $productIds);
         $priceData = $this->_getCatalogProductPriceData($productIds);
+        $ratingData = $this->_getRatingData($storeId, $productIds);
+        
         foreach ($index as $productId => &$productData) {
             if (isset($categoryData[$productId]) && isset($priceData[$productId])) {
                 $productData += $categoryData[$productId];
@@ -50,6 +52,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
                     $prefix . 'visibility' => 0
                 );
             }
+            
+            if (isset($ratingData[$productId])) {
+                $productData += $ratingData[$productId];
+            }
         }
 
         unset($productData);
@@ -58,7 +64,36 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
 
         return $index;
     }
-
+    
+    /**
+     * Retrieve product ratings per store for the product list
+     * 
+     * @param int   $storeId    Store id
+     * @param array $productIds Product ids
+     * 
+     * @return array 
+     */
+    function _getRatingData($storeId, $productIds)
+    {
+        $prefix = $this->_engine->getFieldsPrefix();
+        $adapter = $this->_getWriteAdapter();
+        $result = array();
+        $select = $adapter->select()
+            ->from(array('r' => $this->getTable('rating/rating_vote_aggregated')))
+            ->where('r.entity_pk_value IN (?)', $productIds)
+            ->where('store_id = ?', $storeId);
+        
+        foreach ($adapter->fetchAll($select) as $row) {
+            $productId = $row['entity_pk_value'];
+            if (!isset($result[$productId])) {
+                $result[$productId] = array();
+            }
+            $result[$productId][$prefix . 'rating_' . $row['rating_id']] = (float) $row['percent'];
+        }
+        
+        return $result;
+    }
+    
     /**
      * Retrieves category data for advanced index.
      *
