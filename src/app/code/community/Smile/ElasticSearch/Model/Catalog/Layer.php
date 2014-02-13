@@ -35,6 +35,8 @@ class Smile_ElasticSearch_Model_Catalog_Layer extends Mage_Catalog_Model_Layer
                 ->getEngine()
                 ->getResultCollection()
                 ->setStoreId($category->getStoreId())
+                ->addCategoryFilter($category)
+                ->addFqFilter(array('categories' => $category->getId()))
                 ->addFqFilter(array('store_id' => $category->getStoreId()));
             $this->prepareProductCollection($collection);
             $this->_productCollections[$category->getId()] = $collection;
