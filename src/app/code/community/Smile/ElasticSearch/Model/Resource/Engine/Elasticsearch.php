@@ -660,7 +660,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
                 "text" => $text, 
                 "completion" => array(
                     "field" => Mage::helper('smile_elasticsearch')->getSuggestFieldName(),
-                    "fuzzy" => array("fuzziness" => 2, 'unicode_aware' => true)
+                    "fuzzy" => array("fuzziness" => 1, 'unicode_aware' => true)
                 )
             )
         );
