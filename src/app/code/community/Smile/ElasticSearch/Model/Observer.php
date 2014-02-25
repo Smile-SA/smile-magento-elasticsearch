@@ -106,14 +106,9 @@ class Smile_ElasticSearch_Model_Observer
      */
     public function installIndex(Varien_Event_Observer $observer)
     {
-        $storeId = $observer->getEvent()->getStoreId();
-        $productIds = $observer->getEvent()->getProductIds();
-
-        if (null === $storeId && null === $productIds) {
-            $engine = Mage::helper('catalogsearch')->getEngine();
-            if ($engine instanceof Smile_ElasticSearch_Model_Resource_Engine_Abstract) {
-                $engine->installNewIndex();
-            }
+        $engine = Mage::helper('catalogsearch')->getEngine();
+        if ($engine instanceof Smile_ElasticSearch_Model_Resource_Engine_Abstract) {
+            $engine->installNewIndex();
         }
 
         return $this;

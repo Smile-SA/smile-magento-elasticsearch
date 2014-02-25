@@ -1,0 +1,42 @@
+/**
+ * ElasticSearch stylesheet
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   OSL 3.0
+ */
+#search_autocomplete dl {
+    background: #FFF;
+    border: 1px solid #999;
+    overflow: hidden;
+    width: 100%;
+}
+
+#search_autocomplete dl dt {
+    background: #d12c01;
+    color: #FFF;
+    font-weight: bold;
+    padding: 3px 3px;
+    font-size: 110%;
+}
+
+#search_autocomplete dl dd {
+    background: #FFF;
+    cursor: pointer;
+    padding: 3px 5px;
+    font-size: 110%;
+    text-overflow: ellipsis;
+    white-space: nowrap; 
+    width: 100%;
+}
+
+#search_autocomplete dl dd.selected {
+    background: rgb(253, 233, 229);
+}

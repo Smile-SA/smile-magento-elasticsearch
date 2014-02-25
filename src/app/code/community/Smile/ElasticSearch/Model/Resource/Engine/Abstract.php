@@ -440,10 +440,12 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Abstract
         }
 
         $docs = array();
+        
         foreach ($docsData as $entityId => $index) {
             $index[self::UNIQUE_KEY] = $entityId . '|' . $index['store_id'];
             $index['id'] = $entityId;
-            $index['suggest'] = array(
+            $suggestFieldName = $this->_getHelper()->getSuggestFieldNameByLocaleCode($localeCode);
+            $index[$suggestFieldName] = array(
                 'input' => array($index['name']),
                 'payload' => array('product_id' => $entityId)
             );

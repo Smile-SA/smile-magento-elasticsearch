@@ -547,8 +547,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Client extends \El
             Mage::app()->saveCache(serialize($properties), $cacheId, array('config'), $lifetime);
         }
 
+        foreach (Mage::app()->getStores() as $store) {
+            $properties[$helper->getSuggestFieldName($store)] = array(
+                'type'     => 'completion',
+                'payloads' => true
+            );
+        }
+        
         return $properties;
     }
+    
 
     /**
      * Returns indexation analyzers and filters configuration.
@@ -778,6 +786,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Client extends \El
         // Set the new index name
         $this->setIndexName($pattern);
 
+        // Indicates an old index exits
+        $this->_oldIndex = true;
+        
         return $this;
     }
 
@@ -788,15 +799,17 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Client extends \El
      */
     public function installNewIndex()
     {
-        $config = $this->_getHelper()->getEngineConfigData();
-
-        $alias = $config['alias'];
-        $this->getIndex($this->_indexName)->addAlias($alias, false);
-
-        $status = new \Elastica\Status($this);
-        foreach ($status->getIndicesWithAlias($alias) as $index) {
-            if ($index->getName() != $this->_indexName) {
-                $index->delete();
+        if ($this->_oldIndex) {
+            $config = $this->_getHelper()->getEngineConfigData();
+    
+            $alias = $config['alias'];
+            $this->getIndex($this->_indexName)->addAlias($alias, false);
+    
+            $status = new \Elastica\Status($this);
+            foreach ($status->getIndicesWithAlias($alias) as $index) {
+                if ($index->getName() != $this->_indexName) {
+                    $index->delete();
+                }
             }
         }
 

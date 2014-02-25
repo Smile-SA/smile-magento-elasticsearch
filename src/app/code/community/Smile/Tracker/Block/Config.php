@@ -23,7 +23,7 @@ class Smile_Tracker_Block_Config extends Mage_Core_Block_Template
      */
     public function _prepareLayout()
     {
-        if ($this->isEnabled()) {
+        if ($this->isEnabled() && $this->getLayout()->getBlock('head')) {
             $this->getLayout()->getBlock('head')->setIsSmileTrackerEnabled(true);
         }
         return $this;

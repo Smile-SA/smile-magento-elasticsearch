@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- 
 /**
- * Layout for smile tracking
+ * Layout for elasticsearch features
  *
  * DISCLAIMER
  *
@@ -17,6 +17,23 @@
  -->
 <layout version="0.1.0">
 
+    <default>
+        <reference name="head">
+            <action method="addJs"><script>smile/elasticsearch/search.js</script></action>
+            <action method="addCss"><stylesheet>css/smile/elasticsearch.css</stylesheet></action>
+        </reference>
+        <reference name="top.search">
+            <action method="setTemplate"><template>smile/elasticsearch/autocomplete/form.mini.phtml</template></action>
+        </reference>
+    </default>
+
+    <catalog_category_layered>
+        <reference name="left">
+            <remove name="catalog.leftnav"/>
+            <block type="smile_elasticsearch/catalog_layer_view" name="smile.elaticsearch.leftnav" before="-" template="catalog/layer/view.phtml"/>
+        </reference>
+    </catalog_category_layered>
+    
     <catalogsearch_result_index>
         <reference name="left">
             <remove name="catalogsearch.leftnav"/>
@@ -28,11 +45,23 @@
         </reference>
     </catalogsearch_result_index>
 
-    <catalog_category_layered>
-        <reference name="left">
-            <remove name="catalog.leftnav"/>
-            <block type="smile_elasticsearch/catalog_layer_view" name="smile.elaticsearch.leftnav" before="-" template="catalog/layer/view.phtml"/>
-        </reference>
-    </catalog_category_layered>
+    <catalogsearch_ajax_suggest>
+        <remove name="root" />
+        <remove name="core_profiler" />
 
+        <block name="autocomplete" type="core/template" template="smile/elasticsearch/autocomplete/autocomplete.phtml" output="toHtml">
+            
+            <block type="core/text_list" name="complete_list">
+                
+                <block type="smile_elasticsearch/catalogsearch_autocomplete_suggest_terms" 
+                       name="autocomplete.popular.searches"
+                       template="smile/elasticsearch/autocomplete/suggest/terms.phtml" />
+                
+                <block type="smile_elasticsearch/catalogsearch_autocomplete_suggest_product" 
+                       name="autocomplete.popular.product" 
+                       template="smile/elasticsearch/autocomplete/suggest/product.phtml" />
+            </block>    
+        </block>
+    </catalogsearch_ajax_suggest>
+    
 </layout>

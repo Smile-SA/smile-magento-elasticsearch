@@ -52,4 +52,3 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
         return $this;
     }
 }
-

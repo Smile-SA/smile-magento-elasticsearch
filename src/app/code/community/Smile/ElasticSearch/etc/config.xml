@@ -154,6 +154,15 @@
                 </observers>
             </controller_action_predispatch_catalogsearch_advanced_result>
         </events>
+        <routers>
+            <catalogsearch>
+                <args>
+                    <modules>
+                        <widget before="Mage_CatalogSearch">Smile_ElasticSearch</widget>
+                    </modules>
+                </args>
+            </catalogsearch>
+        </routers>
     </frontend>
     <default>
         <catalog>

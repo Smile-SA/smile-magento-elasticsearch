@@ -635,7 +635,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
         if (!isset($params['params']['stats']) || $params['params']['stats'] != 'true') {
             $result = array(
                 'ids' => $this->_prepareQueryResponse($data),
-                'total_count' => $data->getTotalHits()
+                'total_count' => $data->getTotalHits(),
             );
             if ($useFacetSearch) {
                 $result['facets'] = $this->_prepareFacetsQueryResponse($data->getFacets());
@@ -645,6 +645,40 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
         return $result;
     }
 
+    public function suggest($text)
+    {
+        $data  = array();
+        
+        $params = array(\Elastica\Search::OPTION_SEARCH_TYPE_SUGGEST => true);
+        
+        $search = new \Elastica\Search($this->getClient());
+        $suggest = new \Elastica\Suggest\Term();
+
+        $suggest->addTerm(
+            'suggestions', 
+            array(
+                "text" => $text, 
+                "completion" => array(
+                    "field" => Mage::helper('smile_elasticsearch')->getSuggestFieldName(),
+                    "fuzzy" => array("fuzziness" => 2, 'unicode_aware' => true)
+                )
+            )
+        );
+        
+        $search->addIndex($this->getClient()->getIndex());
+        $search->addSuggest($suggest);
+        $result = $search->search();
+        
+        if ($result->countSuggests()) {
+            foreach ($result->getSuggests()['suggestions']['options'] as $suggestion) {
+                $data[] = $suggestion;
+            }
+        }
+        
+        return $data;
+    }
+    
+    
     /**
      * Prepare a new empty index for full reindex
      *

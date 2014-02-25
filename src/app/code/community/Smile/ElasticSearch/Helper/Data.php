@@ -192,6 +192,47 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
     {
         return Mage::getStoreConfig(Mage_Core_Model_Locale::XML_PATH_DEFAULT_LOCALE, $store);
     }
+    
+    /**
+     * Get suggest field name for a store
+     * 
+     * @param string|int|Mage_Core_Model_Store $store The store (current store is used if null)
+     * 
+     * @return string
+     */
+    public function getSuggestFieldName($store = null)
+    {
+        $languageCode = $this->getLanguageCodeByStore($store);
+        return $this->getSuggestFieldNameByLanguageCode($languageCode);
+    }
+    
+    /**
+     * Get suggest field name for a locale
+     *
+     * @param string $localeCode The locale code (current store locale is used if null)
+     *
+     * @return string
+     */
+    public function getSuggestFieldNameByLocaleCode($localeCode = null)
+    {
+        $languageCode = $this->getLanguageCodeByLocaleCode($localeCode);
+        return $this->getSuggestFieldNameByLanguageCode($languageCode);
+        
+    }
+    
+    /**
+     * Get suggest field name for a language code
+     * 
+     * @param string $languageCode The language code
+     * 
+     * @return string
+     */
+    public function getSuggestFieldNameByLanguageCode($languageCode = null) 
+    {
+        $languageCode = $languageCode !== null ? $languageCode : $this->getLanguageCodeByStore(); 
+        $languageSuffix = $languageCode ? '_' . $languageCode : '';
+        return 'suggest' . $languageSuffix;
+    }
 
     /**
      * Retrieves all searchable product attributes.
