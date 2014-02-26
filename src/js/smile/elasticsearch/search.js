@@ -11,7 +11,7 @@
  * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
  * @copyright 2013 Smile
  * @license   OSL 3.0
- */?>
+ */
  
 Es = {};
 
