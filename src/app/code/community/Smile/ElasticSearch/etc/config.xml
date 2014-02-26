@@ -70,13 +70,6 @@
                 </observers>
             </catalogsearch_index_process_complete>
         </events>
-        <index>
-            <indexer>
-                <catalogsearch_fulltext>
-                    <model>smile_elasticsearch/indexer_fulltext</model>
-                </catalogsearch_fulltext>
-            </indexer>
-        </index>
     </global>
     <admin>
         <routers>
@@ -107,6 +100,14 @@
                     </smile_elasticsearch>
                 </observers>
             </catalog_entity_attribute_save_after>
+            <catalog_category_save_commit_after>
+                <observers>
+                    <smile_elasticsearch>
+                        <class>smile_elasticsearch/observer</class>
+                        <method>reindexCategoryProduct</method>
+                    </smile_elasticsearch>
+                </observers>
+            </catalog_category_save_commit_after>
         </events>
         <translate>
             <modules>

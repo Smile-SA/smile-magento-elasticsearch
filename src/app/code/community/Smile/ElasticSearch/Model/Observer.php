@@ -145,6 +145,31 @@ class Smile_ElasticSearch_Model_Observer
 
         return $this;
     }
-
+    
+    /**
+      * Retrieve Fulltext Search instance
+      *
+      * @return Mage_CatalogSearch_Model_Fulltext
+      */
+    protected function _getIndexer()
+    {
+        return Mage::getSingleton('catalogsearch/fulltext');
+    }
+    
+    /**
+      * Fix category product indexing when product list changes for a category
+      * 
+      * @param Varien_Event_Observer $observer Event data
+      * 
+      * @return Smile_ElasticSearch_Model_Observer
+      */
+    public function reindexCategoryProduct(Varien_Event_Observer $observer)
+    {
+        $category = $observer->getEvent()->getCategory();
+        $productIds = $category->getAffectedProductIds();
+        $this->_getIndexer()->rebuildIndex(null, $observer->getEvent()->getProductIds())->resetSearchResults();
+        return $this;
+    }
+    
 }
 
