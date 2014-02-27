@@ -23,11 +23,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
     /**
      * Initializes search engine.
      *
-     * @see Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Client
+     * @see Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
      */
     public function __construct()
     {
-        $this->_defaultClient = Mage::getResourceSingleton('smile_elasticsearch/engine_elasticsearch_client');
+        $this->_defaultAdapter = Mage::getResourceSingleton('smile_elasticsearch/engine_elasticsearch_adapter');
     }
 
     /**
@@ -53,7 +53,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
      */
     public function cleanIndex($storeId = null, $id = null, $type = 'product')
     {
-        $this->getClient()->cleanIndex($storeId, $id, $type);
+        //$this->getClient()->cleanIndex($storeId, $id, $type);
 
         return $this;
     }
@@ -65,7 +65,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
      */
     public function deleteIndex()
     {
-        return $this->getClient()->deleteIndex();
+        return $this->getAdapter()->deleteIndex();
     }
 
     /**
@@ -166,16 +166,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
         if (null !== $this->_test) {
             return $this->_test;
         }
-
+        
         try {
-            $this->getClient()->getStatus();
-            $this->_test = true;
+            $this->_test = $this->getAdapter()->getStatus();
         } catch (Exception $e) {
-            if ($this->_getHelper()->isDebugEnabled()) {
-                $this->_getHelper()->showError('Elasticsearch engine is not available');
-            }
             Mage::logException($e);
             $this->_test = false;
+        }
+        
+        if ($this->_test === false && $this->_getHelper()->isDebugEnabled()) {
+            $this->_getHelper()->showError('Elasticsearch engine is not available');
         }
 
         return $this->_test;
@@ -196,13 +196,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
 
 
             if (!empty($docs)) {
-                $this->getClient()->addDocuments($docs);
+                $this->getAdapter()->addDocuments($docs);
             }
 
         } catch (Exception $e) {
             throw($e);
         }
-        $this->getClient()->refreshIndex();
+        $this->getAdapter()->refreshIndex();
 
         return $this;
     }
@@ -218,7 +218,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
      */
     protected function _createDoc($entityId, $index, $type = 'product')
     {
-        return $this->getClient()->createDoc($index[self::UNIQUE_KEY], $index, $type);
+        return $this->getAdapter()->createDoc($index[self::UNIQUE_KEY], $index, $type);
     }
 
     /**
@@ -325,7 +325,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
     /**
      * Prepares facets query response.
      *
-     * @param mixed $response Response to be parsed
+     * @param array $response Response to be parsed
      *
      * @return array
      */
@@ -435,22 +435,17 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
     /**
      * Prepares query response.
      *
-     * @param \Elastica\ResultSet $response Response to parsed
+     * @param array $response Response to parsed
      *
      * @return array
      */
     protected function _prepareQueryResponse($response)
     {
-        /* @var $response \Elastica\ResultSet */
-        if (!$response instanceof \Elastica\ResultSet || $response->getResponse()->hasError() || !$response->count()) {
-            return array();
-        }
-        $this->_lastNumFound = (int) $response->getTotalHits();
+        $this->_lastNumFound = (int) $response['hits']['total'];
         $result = array();
-        foreach ($response->getResults() as $doc) {
-            $result[] = $this->_objectToArray($doc->getSource());
+        foreach ($response['hits']['hits'] as $doc) {
+            $result[] = $doc['_source'];
         }
-
         return $result;
     }
 
@@ -625,55 +620,43 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
             $searchParams['stats'] = $params['stats'];
         }
 
-        $data = $this->getClient()->search($searchConditions, $searchParams, $type);
-
-        if (!$data instanceof \Elastica\ResultSet) {
-            return array();
-        }
-
-        /* @var $data \Elastica\ResultSet */
-        if (!isset($params['params']['stats']) || $params['params']['stats'] != 'true') {
-            $result = array(
-                'ids' => $this->_prepareQueryResponse($data),
-                'total_count' => $data->getTotalHits(),
-            );
-            if ($useFacetSearch) {
-                $result['facets'] = $this->_prepareFacetsQueryResponse($data->getFacets());
+        $data = $this->getAdapter()->search($searchConditions, $searchParams, $type);
+    
+        $result = array();
+        
+        if (!isset($data['error'])) {
+            if (!isset($params['params']['stats']) || $params['params']['stats'] != 'true') {
+                $result = array(
+                    'docs' => $this->_prepareQueryResponse($data),
+                    'total_count' => $data['hits']['total'],
+                );
+                if ($useFacetSearch && isset($data['facets'])) {
+                    $result['facets'] = $this->_prepareFacetsQueryResponse($data['facets']);
+                }
             }
         }
 
         return $result;
     }
 
-    public function suggest($text)
+    /**
+     * Run autocomplete for products on the search engigne
+     * 
+     * @param string $text Text to be autocompleted
+     * 
+     * @return array
+     */
+    public function suggestProduct($text)
     {
         $data  = array();
+        $response = $this->getAdapter()->autocompleteProducts($text);
         
-        $params = array(\Elastica\Search::OPTION_SEARCH_TYPE_SUGGEST => true);
-        
-        $search = new \Elastica\Search($this->getClient());
-        $suggest = new \Elastica\Suggest\Term();
-
-        $suggest->addTerm(
-            'suggestions', 
-            array(
-                "text" => $text, 
-                "completion" => array(
-                    "field" => Mage::helper('smile_elasticsearch')->getSuggestFieldName(),
-                    "fuzzy" => array("fuzziness" => 1, 'unicode_aware' => true)
-                )
-            )
-        );
-        
-        $search->addIndex($this->getClient()->getIndex());
-        $search->addSuggest($suggest);
-        $result = $search->search();
-        
-        if ($result->countSuggests()) {
-            foreach ($result->getSuggests()['suggestions']['options'] as $suggestion) {
+        if (!isset($response['error']) && isset($response['suggestions'])) {
+            $suggestions = current($response['suggestions']);
+            foreach ($suggestions['options'] as $suggestion) {
                 $data[] = $suggestion;
             }
-        }
+        } 
         
         return $data;
     }
@@ -687,7 +670,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
     public function prepareNewIndex()
     {
         $this->cleanCache();
-        $this->getClient()->prepareNewIndex();
+        $this->getAdapter()->prepareNewIndex();
     }
 
     /**
@@ -697,27 +680,17 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
      */
     public function installNewIndex()
     {
-        $this->getClient()->installNewIndex();
+        $this->getAdapter()->installNewIndex();
     }
 
     /**
-     * Return Elastica Raw Client
-     *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Client
+     * Get the adapter used to connect ElasticSearch
+     * 
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
      */
-    public function getClient()
+    public function getAdapter()
     {
-        return $this->_defaultClient;
+        return $this->_defaultAdapter;
     }
-
-    /**
-     * Returns Elastica raw index
-     *
-     * @return \Elastica\Index
-     */
-    public function getIndex()
-    {
-        return $this->getClient()->getIndex();
-    }
-
+    
 }
