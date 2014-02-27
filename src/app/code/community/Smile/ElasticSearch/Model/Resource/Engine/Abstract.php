@@ -16,20 +16,6 @@
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
  */
-
-
-// Include the Elastica library used by the client
-require_once 'Elastica/autoload.php';
-
-/**
- * Elastic search engine abstract.
- *
- * @category  Smile
- * @package   Smile_ElasticSearch
- * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
- * @copyright 2013 Smile
- * @license   Apache License Version 2.0
- */
 abstract class Smile_ElasticSearch_Model_Resource_Engine_Abstract
 {
     const DEFAULT_ROWS_LIMIT = 9999;
@@ -199,9 +185,9 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Abstract
         $ids = array();
         $params['fields'] = array('id');
         $resultTmp = $this->search($query, $params, $type);
-        if (!empty($resultTmp['ids'])) {
-            foreach ($resultTmp['ids'] as $id) {
-                $ids[] = $id['id'];
+        if (!empty($resultTmp['docs'])) {
+            foreach ($resultTmp['docs'] as $doc) {
+                $ids[] = $doc['id'];
             }
         }
         $result = array(
@@ -303,10 +289,9 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Abstract
     public function search($query, $params = array(), $type = 'product')
     {
         try {
-            Varien_Profiler::start('ELASTICA_SEARCH');
+            Varien_Profiler::start('ELASTICSEARCH');
             $result = $this->_search($query, $params, $type);
-            Varien_Profiler::stop('ELASTICA_SEARCH');
-
+            Varien_Profiler::stop('ELASTICSEARCH');
             return $result;
         } catch (Exception $e) {
             Mage::logException($e);

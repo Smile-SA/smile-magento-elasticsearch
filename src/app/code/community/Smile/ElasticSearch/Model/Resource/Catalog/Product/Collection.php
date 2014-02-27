@@ -1,6 +1,6 @@
 <?php
 /**
- * Custom catalog product collection model handling filtering and facetting through Elastica.
+ * Custom catalog product collection model handling filtering and facetting through ElasticSearch.
  *
  * DISCLAIMER
  *

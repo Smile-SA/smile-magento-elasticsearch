@@ -1,6 +1,6 @@
 <?php
 /**
- * Custom catalog product collection model product suggest through Elastica.
+ * Custom catalog product collection model product suggest through ElasticSearch.
  *
  * DISCLAIMER
  *
@@ -83,7 +83,7 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
     public function getSuggestionIds()
     {
         if (is_null($this->_suggestionsIds) && !is_null($this->_suggestQuery)) {
-            $suggestions = $this->_engine->suggest($this->_suggestQuery);
+            $suggestions = $this->_engine->suggestProduct($this->_suggestQuery);
             $idsFilter = array();
             
             foreach ($suggestions as $suggestion) {

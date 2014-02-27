@@ -31,12 +31,9 @@ class Smile_ElasticSearch_Helper_Elasticsearch extends Smile_ElasticSearch_Helpe
         $config = parent::getEngineConfigData('elasticsearch_', $store);
         $servers = array();
         foreach (explode(',', $config['servers']) as $server) {
-            $pieces = explode(':', $server);
-            $host = trim($pieces[0]);
-            $port = (int) trim($pieces[1]);
-            $servers[] = array('host' => $host, 'port' => $port);
+            $servers[] = $server;
         }
-        $config['servers'] = $servers;
+        $config['hosts'] = $servers;
 
         return $config;
     }
