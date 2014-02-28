@@ -34,8 +34,8 @@ Es.searchForm = Class.create(Varien.searchForm, {
                 Effect.Appear(update, {
                     duration : 0
                 });
-            }
-
+            },
+            autoSelect : false
         });
     },
     _selectAutocompleteItem : function(element) {
@@ -70,8 +70,6 @@ MultipleAutoCompleter = Class.create(Ajax.Autocompleter, {
             } else {
                 this.entryCount = 0;
             }
-
-            console.log(this.entryCount);
 
             this.stopIndicator();
             this.index = 0;
