@@ -39,9 +39,28 @@
             <remove name="catalogsearch.leftnav"/>
             <block type="smile_elasticsearch/catalogsearch_layer" name="smile.elaticsearch.leftnav" before="-" template="catalog/layer/view.phtml"/>
         </reference>
-        <reference name="additional">
-            <remove name="search_suggestions"/>
-            <remove name="search_recommendations" />
+        <reference name="content">
+            <remove name="search.result" />
+            <block type="smile_elasticsearch/catalogsearch_result" name="smile.elaticsearch.search.result" template="catalogsearch/result.phtml">
+                <block type="catalog/product_list" name="search_result_list" template="catalog/product/list.phtml">
+                    <block type="catalog/product_list_toolbar" name="product_list_toolbar" template="catalog/product/list/toolbar.phtml">
+                        <block type="page/html_pager" name="product_list_toolbar_pager"/>
+                    </block>
+                    <block type="core/text_list" name="additional" translate="label">
+                        <label>Additional Info</label>
+                    </block>
+                    <action method="addColumnCountLayoutDepend"><layout>empty</layout><count>6</count></action>
+                    <action method="addColumnCountLayoutDepend"><layout>one_column</layout><count>5</count></action>
+                    <action method="addColumnCountLayoutDepend"><layout>two_columns_left</layout><count>4</count></action>
+                    <action method="addColumnCountLayoutDepend"><layout>two_columns_right</layout><count>4</count></action>
+                    <action method="addColumnCountLayoutDepend"><layout>three_columns</layout><count>3</count></action>
+                    <action method="setToolbarBlockName"><name>product_list_toolbar</name></action>
+                    <action method="setPageLayout"><layout>three_columns</layout></action>
+                </block>
+                <action method="setListOrders"/>
+                <action method="setListModes"/>
+                <action method="setListCollection"/>
+            </block>
         </reference>
     </catalogsearch_result_index>
 

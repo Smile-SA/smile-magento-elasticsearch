@@ -192,8 +192,9 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Abstract
         }
         $result = array(
             'ids' => $ids,
-            'total_count' => (isset($resultTmp['total_count'])) ? $resultTmp['total_count'] : null,
-            'faceted_data' => (isset($resultTmp['facets'])) ? $resultTmp['facets'] : array(),
+            'total_count'     => (isset($resultTmp['total_count'])) ? $resultTmp['total_count'] : null,
+            'faceted_data'    => (isset($resultTmp['facets'])) ? $resultTmp['facets'] : array(),
+            'is_spellchecked' => (isset($resultTmp['is_spellchecked'])) ? $resultTmp['is_spellchecked'] : false,
         );
 
         return $result;

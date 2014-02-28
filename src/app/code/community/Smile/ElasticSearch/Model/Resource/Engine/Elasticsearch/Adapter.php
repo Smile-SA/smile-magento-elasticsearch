@@ -511,63 +511,63 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         $indexSettings = array();
         $indexSettings['number_of_replicas'] = (int) $this->getConfig('number_of_replicas');
         $indexSettings['analysis']['analyzer'] = array(
-                'whitespace' => array(
-                        'tokenizer' => 'standard',
-                        'filter' => array('lowercase'),
-                ),
-                'edge_ngram_front' => array(
-                        'tokenizer' => 'standard',
-                        'filter' => array('length', 'edge_ngram_front', 'lowercase'),
-                ),
-                'edge_ngram_back' => array(
-                        'tokenizer' => 'standard',
-                        'filter' => array('length', 'edge_ngram_back', 'lowercase'),
-                ),
-                'shingle' => array(
-                        'tokenizer' => 'standard',
-                        'filter' => array('shingle', 'length', 'lowercase'),
-                ),
-                'shingle_strip_ws' => array(
-                        'tokenizer' => 'standard',
-                        'filter' => array('shingle', 'strip_whitespaces', 'length', 'lowercase'),
-                ),
-                'shingle_strip_apos_and_ws' => array(
-                        'tokenizer' => 'standard',
-                        'filter' => array('shingle', 'strip_apostrophes', 'strip_whitespaces', 'length', 'lowercase'),
-                ),
+            'whitespace' => array(
+                'tokenizer' => 'standard',
+                'filter' => array('lowercase'),
+            ),
+            'edge_ngram_front' => array(
+                'tokenizer' => 'standard',
+                'filter' => array('length', 'edge_ngram_front', 'lowercase'),
+            ),
+            'edge_ngram_back' => array(
+                'tokenizer' => 'standard',
+                'filter' => array('length', 'edge_ngram_back', 'lowercase'),
+            ),
+            'shingle' => array(
+                'tokenizer' => 'standard',
+                'filter' => array('shingle', 'length', 'lowercase'),
+            ),
+            'shingle_strip_ws' => array(
+                'tokenizer' => 'standard',
+                'filter' => array('shingle', 'strip_whitespaces', 'length', 'lowercase'),
+            ),
+            'shingle_strip_apos_and_ws' => array(
+                'tokenizer' => 'standard',
+                'filter' => array('shingle', 'strip_apostrophes', 'strip_whitespaces', 'length', 'lowercase'),
+            ),
         );
         $indexSettings['analysis']['filter'] = array(
-                'shingle' => array(
-                        'type' => 'shingle',
-                        'max_shingle_size' => 20,
-                        'output_unigrams' => true,
-                ),
-                'strip_whitespaces' => array(
-                        'type' => 'pattern_replace',
-                        'pattern' => '\s',
-                        'replacement' => '',
-                ),
-                'strip_apostrophes' => array(
-                        'type' => 'pattern_replace',
-                        'pattern' => "'",
-                        'replacement' => '',
-                ),
-                'edge_ngram_front' => array(
-                        'type' => 'edgeNGram',
-                        'min_gram' => 3,
-                        'max_gram' => 10,
-                        'side' => 'front',
-                ),
-                'edge_ngram_back' => array(
-                        'type' => 'edgeNGram',
-                        'min_gram' => 3,
-                        'max_gram' => 10,
-                        'side' => 'back',
-                ),
-                'length' => array(
-                        'type' => 'length',
-                        'min' => 2,
-                ),
+            'shingle' => array(
+                'type' => 'shingle',
+                'max_shingle_size' => 20,
+                'output_unigrams' => true,
+            ),
+            'strip_whitespaces' => array(
+                'type' => 'pattern_replace',
+                'pattern' => '\s',
+                'replacement' => '',
+            ),
+            'strip_apostrophes' => array(
+                'type' => 'pattern_replace',
+                'pattern' => "'",
+                'replacement' => '',
+            ),
+            'edge_ngram_front' => array(
+                'type' => 'edgeNGram',
+                'min_gram' => 3,
+                'max_gram' => 10,
+                'side' => 'front',
+            ),
+            'edge_ngram_back' => array(
+                'type' => 'edgeNGram',
+                'min_gram' => 3,
+                'max_gram' => 10,
+                'side' => 'back',
+            ),
+            'length' => array(
+                'type' => 'length',
+                'min' => 2,
+            ),
         );
         /** @var $helper Smile_ElasticSearch_Helper_Data */
         $helper = $this->_getHelper();
@@ -847,6 +847,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
                 // Append fulltext query if relevant
                 $textQuery = $this->_buildFullTextQuery($q);
                 $searchParams['body']['query']['filtered']['query']  = $textQuery;
+                
+                $searchParams['body']['suggest'] = array(
+                    "text" => $q,
+                    "spellcheck" => array(
+                        "term" => array(
+                            "field"    => "name_fr.whitespace",
+                            "size" => 3
+                        )
+                    )
+                );
             }
             
             // Facet management
@@ -867,7 +877,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
             }
             
             $results = $this->_client->search($searchParams);
-
+            
             Varien_Profiler::stop('ELASTICSEARCH');
         }
         

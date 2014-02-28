@@ -64,6 +64,11 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
     protected $_sortBy = array();
 
     /**
+     * @var bool Indicates if the collection has been spellchecked or not
+     */
+    protected $_isSpellChecked = false;
+    
+    /**
      * Adds facet condition to current collection.
      *
      * @param string $field     Field to be build facet for
@@ -213,13 +218,24 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
             $query = $this->_getQuery();
             $params = $this->_getParams();
             $params['limit'] = 1;
-            $this->_engine->getIdsByQuery($query, $params);
+            $result = $this->_engine->getIdsByQuery($query, $params);
             $this->_totalRecords = $this->_engine->getLastNumFound();
+            $this->_isSpellChecked = isset($result['is_spellchecked']) ? $result['is_spellchecked'] : false;
         }
 
         return $this->_totalRecords;
     }
 
+    /**
+     * Indicates if the spellchecker has been used to process the query
+     * 
+     * @return boolean
+     */
+    public function isSpellchecked()
+    {
+        return $this->_isSpellChecked;
+    }
+    
     /**
      * Retrieves current collection stats.
      * Used for max price.
@@ -310,6 +326,7 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
             $ids = isset($result['ids']) ? $result['ids'] : array();
             $this->_facetedData = isset($result['faceted_data']) ? $result['faceted_data'] : array();
             $this->_totalRecords = isset($result['total_count']) ? $result['total_count'] : null;
+            $this->_isSpellChecked = isset($result['is_spellchecked']) ? $result['is_spellchecked'] : false;
         }
 
         if (empty($ids)) {

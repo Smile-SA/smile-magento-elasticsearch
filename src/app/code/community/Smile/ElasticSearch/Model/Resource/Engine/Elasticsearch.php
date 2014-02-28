@@ -633,6 +633,15 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
                 if ($useFacetSearch && isset($data['facets'])) {
                     $result['facets'] = $this->_prepareFacetsQueryResponse($data['facets']);
                 }
+                
+                if (isset($data['suggest']) && isset($data['suggest']['spellcheck'])) {
+                    $result['is_spellchecked'] = false;
+                    foreach ($data['suggest']['spellcheck'] as $term) {
+                        if (!empty($term['options'])) {
+                            $result['is_spellchecked'] = true; 
+                        }
+                    }
+                }
             }
         }
 
