@@ -111,4 +111,18 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
 
         return parent::getLayer();
     }
+    
+    /**
+     * Indicates if the block should be shown or not.
+     * Append forced category loading to make the system more resistant to layout changes 
+     * 
+     * @return bool
+     */
+    public function canShowBlock()
+    {
+        if (!$this->getLayer()->getProductCollection()->isLoaded()) {
+            $this->getLayer()->getProductCollection()->load();
+        }
+        return parent::canShowBlock();
+    }
 }
