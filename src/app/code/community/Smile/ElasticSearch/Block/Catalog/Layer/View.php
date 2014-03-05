@@ -18,6 +18,17 @@
  */
 class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_Layer_View
 {
+    
+    /**
+     * Templates of the filters.
+     * If no template found using the default one (catalog/layer/filter.phtml)
+     * 
+     * See the smile/elaticssearch.xml layout file for a complete example
+     * 
+     * @var array
+     */
+    protected $_filterTemplates = array();
+    
     /**
      * Boolean block name.
      *
@@ -124,5 +135,35 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
             $this->getLayer()->getProductCollection()->load();
         }
         return parent::canShowBlock();
+    }
+    
+    /**
+     * Assign a custom template for a given filter
+     * 
+     * @param string $filterName Name of the filter
+     * @param string $template   Template
+     * 
+     * @return Smile_ElasticSearch_Model_Catalog_Layer Self reference
+     */
+    public function addFilterTemplate($filterName, $template) {
+        $this->_filterTemplates[$filterName] = $template;
+        return $this;
+    }
+    
+    /**
+     * Custom template handling for children blocks (filters) before to display theme
+     * 
+     * @return Smile_ElasticSearch_Model_Catalog_Layer Self reference
+     */
+    protected function _beforeToHtml()
+    {
+        foreach ($this->_filterTemplates as $filterName => $template) {
+            $block = $this->getChild($filterName . '_filter');
+            if ($block) {
+                $block->setTemplate($template);
+            }
+        }
+        
+        return parent::_beforeToHtml();
     }
 }

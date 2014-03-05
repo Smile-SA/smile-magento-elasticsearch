@@ -30,14 +30,24 @@
     <catalog_category_layered>
         <reference name="left">
             <remove name="catalog.leftnav"/>
-            <block type="smile_elasticsearch/catalog_layer_view" name="smile.elaticsearch.leftnav" before="-" template="catalog/layer/view.phtml"/>
+            <block type="smile_elasticsearch/catalog_layer_view" name="smile.elaticsearch.leftnav" before="-" template="catalog/layer/view.phtml">
+                <!--
+                Example of custom template for a filter :  
+                <action method="addFilterTemplate"><filterName>price</filterName><template>catalog/layer/filter/price.phtml</template></action>
+                -->
+            </block>
         </reference>
     </catalog_category_layered>
     
     <catalogsearch_result_index>
         <reference name="left">
             <remove name="catalogsearch.leftnav"/>
-            <block type="smile_elasticsearch/catalogsearch_layer" name="smile.elaticsearch.leftnav" before="-" template="catalog/layer/view.phtml"/>
+            <block type="smile_elasticsearch/catalogsearch_layer" name="smile.elaticsearch.leftnav" before="-" template="catalog/layer/view.phtml">
+                <!--
+                Example of custom template for a filter :  
+                <action method="addFilterTemplate"><filterName>price</filterName><template>catalog/layer/filter/price.phtml</template></action>
+                -->
+            </block>
         </reference>
         <reference name="content">
             <remove name="search.result" />
