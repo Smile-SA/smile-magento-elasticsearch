@@ -100,7 +100,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
             foreach ($filters as $filterName => $block) {
                 $this->setChild($filterName, $block->addFacetCondition());
             }
-
+            
             $this->getLayer()->apply();
         }
 
@@ -145,7 +145,8 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
      * 
      * @return Smile_ElasticSearch_Model_Catalog_Layer Self reference
      */
-    public function addFilterTemplate($filterName, $template) {
+    public function addFilterTemplate($filterName, $template) 
+    {
         $this->_filterTemplates[$filterName] = $template;
         return $this;
     }

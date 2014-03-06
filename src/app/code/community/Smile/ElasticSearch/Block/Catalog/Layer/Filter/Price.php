@@ -16,7 +16,7 @@
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
  */
-class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Mage_Catalog_Block_Layer_Filter_Abstract
+class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_ElasticSearch_Block_Catalog_Layer_Filter_Abstract
 {
     /**
      * Defines specific filter model name.
@@ -54,5 +54,85 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Mage_Catalog_
         }
 
         return $this;
+    }
+    
+    /**
+     * Return the lowest price avaiblable for filtering.
+     * 
+     * @param bool $rounding Enable rounding feature according price range
+     * 
+     * @return int
+     */
+    public function getMinPriceInt($rounding = false) 
+    {
+        $minPrice = $this->_filter->getMinPriceInt();
+        if ($rounding === true) {
+            $range = $this->getPriceRange();
+            $minPrice = max(0, ((int) ($minPrice / $range) - 1) * $range);
+        }
+        return $minPrice;
+    }
+    
+    /**
+     * Return the highest price avaiblable for filtering.
+     *
+     * @param bool $rounding Enable rounding feature according price range
+     *
+     * @return int
+     */
+    public function getMaxPriceInt($rounding = false) 
+    {
+        $maxPrice = $this->_filter->getMaxPriceInt();
+        if ($rounding === true) {
+            $range = $this->getPriceRange();
+            $maxPrice = ((int) ($maxPrice / $range) + 1) * $range;
+        }
+        return $maxPrice;
+    }
+    
+    /**
+     * Return the size of the filtering interval
+     *
+     * @return int
+     */
+    public function getPriceRange()
+    {
+        return $this->_filter->getPriceRange();
+    }
+    
+    /**
+     * JS template of the get var filter
+     * 
+     * @return string
+     */
+    public function getFilterJsTemplate()
+    {
+        $requestVar = $this->getRequestVar();
+        return "$requestVar=#{minValue}-#{maxValue}";
+    }
+    
+    /**
+     * Array of the interval containing products (used to build sliders)
+     * 
+     * @return array
+     */
+    public function getAllowedIntervals()
+    {
+        $minPriceInt = $this->getMinPriceInt(true);
+        $maxPriceInt = $this->getMaxPriceInt(true);
+        
+        foreach ($this->getItems() as $currentItem) {
+            list($minValue, $maxValue) = explode('-', $currentItem->getValue());
+            $minValue = $minValue == '' ? $minValue = $minPriceInt : $minValue;
+            $maxValue = $maxValue == '' ? $maxValue = $maxPriceInt : $maxValue;
+            $lastPosition = $allowedIntervals[count($allowedIntervals) - 1];
+            if (!empty($allowedIntervals) && $minValue <= $allowedIntervals[$lastPosition]) {
+                $allowedIntervals[$lastPosition][2] = $maxValue;
+            } else {
+                $allowedIntervals[] = array((int) $minValue, (int) $maxValue);
+            }
+        }
+        
+        return $allowedIntervals;
     }
 }

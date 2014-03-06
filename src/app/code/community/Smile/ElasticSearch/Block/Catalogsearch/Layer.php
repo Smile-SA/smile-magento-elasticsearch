@@ -144,7 +144,8 @@ class Smile_ElasticSearch_Block_Catalogsearch_Layer extends Mage_CatalogSearch_B
      *
      * @return Smile_ElasticSearch_Model_Catalog_Layer Self reference
      */
-    public function addFilterTemplate($filterName, $template) {
+    public function addFilterTemplate($filterName, $template) 
+    {
         $this->_filterTemplates[$filterName] = $template;
         return $this;
     }

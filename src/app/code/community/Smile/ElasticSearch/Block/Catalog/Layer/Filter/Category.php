@@ -16,7 +16,7 @@
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
  */
-class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Category extends Mage_Catalog_Block_Layer_Filter_Abstract
+class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Category extends Smile_ElasticSearch_Block_Catalog_Layer_Filter_Abstract
 {
     /**
      * Defines specific filter model name.
