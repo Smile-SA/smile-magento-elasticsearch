@@ -477,15 +477,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         }
 
         // Custom attributes indexation
-        $properties['visibility'] = array(
-                'type' => 'integer',
-        );
-        $properties['store_id'] = array(
-                'type' => 'integer',
-        );
-        $properties['in_stock'] = array(
-                'type' => 'boolean',
-        );
+        $properties['visibility'] = array('type' => 'integer');
+        $properties['store_id']   = array('type' => 'integer');
+        $properties['in_stock']   = array('type' => 'boolean');
 
         if (Mage::app()->useCache('config')) {
             $lifetime = $this->_getHelper()->getCacheLifetime();
@@ -493,9 +487,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         }
 
         foreach (Mage::app()->getStores() as $store) {
+            $languageCode = $helper->getLanguageCodeByStore($store);
             $properties[$helper->getSuggestFieldName($store)] = array(
-                    'type'     => 'completion',
-                    'payloads' => true
+                'type'     => 'completion',
+                'payloads' => true,
+                'max_input_length' => 500,
+                'index_analyzer' => 'analyzer_' . $languageCode,
+                'search_analyzer' => 'analyzer_' . $languageCode
             );
         }
 
@@ -899,13 +897,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         $params = array('index' => $this->_currentIndexName);
         $params['body']['suggestions'] = array(
             'text'       => $suggestQuery,
-            'completion' => array('field' => $suggestFieldName)
+            'completion' => array('field' => $suggestFieldName),
         );
 
         if ($this->isFuzzyQueryEnabled()) {
             $params['body']['suggestions']['completion']['fuzzy'] = array('fuzziness' => 1, 'unicode_aware' => true);
         }
 
-        return $this->_client->suggest($params);
+        Mage::log($params);
+        $response = $this->_client->suggest($params);
+        Mage::log($response);
+        return $response;
     }
 }
