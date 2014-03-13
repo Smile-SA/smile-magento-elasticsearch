@@ -83,6 +83,13 @@
         </routers>
     </admin>
     <adminhtml>
+        <layout>
+            <updates>
+                <smile_elasticsearch>
+                    <file>smile/elasticsearch.xml</file>
+                </smile_elasticsearch>
+            </updates>
+        </layout>
         <events>
             <adminhtml_catalog_product_attribute_edit_prepare_form>
                 <observers>
