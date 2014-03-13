@@ -166,14 +166,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
         if (null !== $this->_test) {
             return $this->_test;
         }
-        
+
         try {
             $this->_test = $this->getAdapter()->getStatus();
         } catch (Exception $e) {
             Mage::logException($e);
             $this->_test = false;
         }
-        
+
         if ($this->_test === false && $this->_getHelper()->isDebugEnabled()) {
             $this->_getHelper()->showError('Elasticsearch engine is not available');
         }
@@ -366,7 +366,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
         if ($field == 'categories') {
             $fieldCondition = "(categories:{$value} OR show_in_categories:{$value})";
         } else {
-            $fieldCondition = $field . ':' . $value;
+            $fieldCondition = $field . ': "' . $value . '"';
         }
 
         return $fieldCondition;
@@ -621,9 +621,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
         }
 
         $data = $this->getAdapter()->search($searchConditions, $searchParams, $type);
-    
+
         $result = array();
-        
+
         if (!isset($data['error'])) {
             if (!isset($params['params']['stats']) || $params['params']['stats'] != 'true') {
                 $result = array(
@@ -633,12 +633,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
                 if ($useFacetSearch && isset($data['facets'])) {
                     $result['facets'] = $this->_prepareFacetsQueryResponse($data['facets']);
                 }
-                
+
                 if (isset($data['suggest']) && isset($data['suggest']['spellcheck'])) {
                     $result['is_spellchecked'] = false;
                     foreach ($data['suggest']['spellcheck'] as $term) {
                         if (!empty($term['options'])) {
-                            $result['is_spellchecked'] = true; 
+                            $result['is_spellchecked'] = true;
                         }
                     }
                 }
@@ -650,27 +650,27 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
 
     /**
      * Run autocomplete for products on the search engigne
-     * 
+     *
      * @param string $text Text to be autocompleted
-     * 
+     *
      * @return array
      */
     public function suggestProduct($text)
     {
         $data  = array();
         $response = $this->getAdapter()->autocompleteProducts($text);
-        
+
         if (!isset($response['error']) && isset($response['suggestions'])) {
             $suggestions = current($response['suggestions']);
             foreach ($suggestions['options'] as $suggestion) {
                 $data[] = $suggestion;
             }
-        } 
-        
+        }
+
         return $data;
     }
-    
-    
+
+
     /**
      * Prepare a new empty index for full reindex
      *
@@ -694,12 +694,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
 
     /**
      * Get the adapter used to connect ElasticSearch
-     * 
+     *
      * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
      */
     public function getAdapter()
     {
         return $this->_defaultAdapter;
     }
-    
+
 }
