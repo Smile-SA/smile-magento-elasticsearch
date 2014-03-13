@@ -35,28 +35,28 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
      * @var Varien_Object
      */
     protected $_config;
-    
+
     /**
      * @var Elasticsearch\Client
      */
     protected $_client = null;
-    
+
     /**
      * @var string
      */
     protected $_currentIndexName = null;
-    
+
     /**
      * @var bool
      */
     protected $_indexNeedInstall = false;
-    
+
     /**
      * @var string Date format.
      * @link http://www.elasticsearch.org/guide/reference/mapping/date-format.html
      */
     protected $_dateFormat = 'date';
-    
+
     /**
      * @var array Stop languages for token filter.
      * @link http://www.elasticsearch.org/guide/reference/index-modules/analysis/stop-tokenfilter.html
@@ -67,7 +67,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
             'hindi', 'hungarian', 'indonesian', 'italian', 'norwegian', 'persian', 'portuguese',
             'romanian', 'russian', 'spanish', 'swedish', 'turkish',
     );
-    
+
     /**
      * @var array Snowball languages.
      * @link http://www.elasticsearch.org/guide/reference/index-modules/analysis/snowball-tokenfilter.html
@@ -77,8 +77,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
             'German', 'Hungarian', 'Italian', 'Kp', 'Lovins', 'Norwegian', 'Porter', 'Portuguese',
             'Romanian', 'Russian', 'Spanish', 'Swedish', 'Turkish',
     );
-    
-    
+
+
     /**
      * Initializes search engine config and index name.
      *
@@ -87,9 +87,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
     public function __construct($params = false)
     {
         $config = $this->_getHelper()->getEngineConfigData();
-        
+
         $this->_config = new Varien_Object($config);
-        
+
         $this->_client = new \Elasticsearch\Client(
             array(
                 'hosts'   => $config['hosts'],
@@ -102,17 +102,17 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         }
         $this->_currentIndexName = $config['alias'];
     }
-    
+
     /**
      * Indicates if connection to the search engine is up or not
-     * 
+     *
      * @return bool
      */
     public function getStatus()
     {
         return $this->_client->ping();
     }
-    
+
     /**
      * Deletes index.
      *
@@ -127,7 +127,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         }
         return true;
     }
-    
+
     /**
      * Refreshes index
      *
@@ -142,7 +142,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         }
         return $this;
     }
-    
+
     /**
      * Prepare a new index for full reindex
      *
@@ -152,35 +152,37 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
     {
         // Current date use to compute the index name
         $currentDate = new Zend_Date();
-    
+
         // Default pattern if nothing set into the config
-        $pattern = 'magento-{{YYYYMMDD}}-{{HHmmss}}';
-    
+        $pattern = '{{YYYYMMDD}}-{{HHmmss}}';
+
         // Try to get the pattern from config
         $config = $this->_getHelper()->getEngineConfigData();
         if (isset($config['indices_pattern'])) {
             $pattern = $config['indices_pattern'];
         }
-    
+
         // Parse pattern to extract datetime tokens
         $matches = array();
         preg_match_all('/{{([\w]*)}}/', $pattern, $matches);
-    
+
         foreach (array_combine($matches[0], $matches[1]) as $k => $v) {
             // Replace tokens (UTC date used)
             $pattern = str_replace($k, $currentDate->toString($v), $pattern);
         }
-    
+
+        $indexName = $config['alias'] . '-' . $pattern;
+
         // Set the new index name
-        $this->_currentIndexName = $pattern;
-    
+        $this->_currentIndexName = $indexName;
+
         // Indicates an old index exits
         $this->_indexNeedInstall = true;
         $this->_prepareIndex();
-    
+
         return $this;
     }
-    
+
     /**
      * Create document to index.
      *
@@ -205,12 +207,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         $result = array($headerRow, $dataRow);
         return implode("\n", $result);
     }
-    
+
     /**
-     * Bulk document insert 
-     * 
+     * Bulk document insert
+     *
      * @param array $docs Document prepared with createDoc methods
-     * 
+     *
      * @return  Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter Self reference
      */
     public function addDocuments(array $docs)
@@ -222,7 +224,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         }
         return $this;
     }
-    
+
     /**
      * Install the new index after full reindex
      *
@@ -241,10 +243,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
                 }
             }
         }
-    
+
         return $this;
     }
-    
+
     /**
      * Returns facets max size parameter.
      *
@@ -254,7 +256,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
     {
         return (int) $this->getConfig('facets_max_size');
     }
-    
+
     /**
      * Returns fuzzy max query terms parameter.
      *
@@ -265,7 +267,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
     {
         return (int) $this->getConfig('fuzzy_max_query_terms');
     }
-    
+
     /**
      * Returns fuzzy min similarity parameter.
      *
@@ -277,7 +279,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         // 0 to 1 (1 excluded)
         return min(0.99, max(0, $this->getConfig('fuzzy_min_similarity')));
     }
-    
+
     /**
      * Returns fuzzy prefix length.
      *
@@ -288,7 +290,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
     {
         return (int) $this->getConfig('fuzzy_prefix_length');
     }
-    
+
     /**
      * Returns fuzzy query boost parameter.
      *
@@ -299,7 +301,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
     {
         return (float) $this->getConfig('fuzzy_query_boost');
     }
-    
+
     /**
      * Checks if fuzzy query is enabled.
      *
@@ -310,7 +312,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
     {
         return (bool) $this->getConfig('enable_fuzzy_query');
     }
-    
+
     /**
      * Checks if ICU folding is enabled.
      *
@@ -321,19 +323,19 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
     {
         return (bool) $this->getConfig('enable_icu_folding');
     }
-    
+
     /**
      * Read configuration from key
-     * 
+     *
      * @param string $key Name of the config param to retrieve
-     * 
+     *
      * @return mixed
      */
     public function getConfig($key)
     {
         return $this->_config->getData($key);
     }
-    
+
     /**
      * Returns attribute type for indexation.
      *
@@ -353,10 +355,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         } elseif ($attribute->usesSource() || $attribute->getFrontendClass() == 'validate-digits') {
             $type = 'string';
         }
-    
+
         return $type;
     }
-    
+
     /**
      * Builds index properties for indexation according to available attributes and stores.
      *
@@ -368,12 +370,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         if ($properties = Mage::app()->loadCache($cacheId)) {
             return unserialize($properties);
         }
-    
+
         /** @var $helper Smile_ElasticSearch_Helper_Data */
         $helper = $this->_getHelper();
         $indexSettings = $this->_getIndexSettings();
         $properties = array();
-    
+
         $attributes = $helper->getSearchableAttributes(array('varchar', 'int'));
         foreach ($attributes as $attribute) {
             /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
@@ -413,7 +415,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
                 }
             }
         }
-    
+
         $attributes = $helper->getSearchableAttributes('text');
         foreach ($attributes as $attribute) {
             /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
@@ -430,7 +432,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
                 );
             }
         }
-    
+
         $attributes = $helper->getSearchableAttributes(array('static', 'varchar', 'decimal', 'datetime'));
         foreach ($attributes as $attribute) {
             /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
@@ -446,7 +448,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
                 }
             }
         }
-    
+
         // Handle sortable attributes
         $attributes = $helper->getSortableAttributes();
         foreach ($attributes as $attribute) {
@@ -473,7 +475,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
                 }
             }
         }
-    
+
         // Custom attributes indexation
         $properties['visibility'] = array(
                 'type' => 'integer',
@@ -484,23 +486,23 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         $properties['in_stock'] = array(
                 'type' => 'boolean',
         );
-    
+
         if (Mage::app()->useCache('config')) {
             $lifetime = $this->_getHelper()->getCacheLifetime();
             Mage::app()->saveCache(serialize($properties), $cacheId, array('config'), $lifetime);
         }
-    
+
         foreach (Mage::app()->getStores() as $store) {
             $properties[$helper->getSuggestFieldName($store)] = array(
                     'type'     => 'completion',
                     'payloads' => true
             );
         }
-    
+
         return $properties;
     }
-    
-    
+
+
     /**
      * Returns indexation analyzers and filters configuration.
      *
@@ -588,17 +590,17 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
                     'language' => $lang,
             );
         }
-    
+
         if ($this->isIcuFoldingEnabled()) {
             foreach ($indexSettings['analysis']['analyzer'] as &$analyzer) {
                 array_unshift($analyzer['filter'], 'icu_folding');
             }
             unset($analyzer);
         }
-    
+
         return $indexSettings;
     }
-    
+
     /**
      * Retrieves searchable fields according to text query.
      *
@@ -641,15 +643,15 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
                 $fields[] = $key;
             }
         }
-    
+
         if ($this->_getHelper()->shouldSearchOnOptions()) {
             // Search on options labels too
             $fields[] = '_options';
         }
-    
+
         return $fields;
     }
-    
+
     /**
      * Checks if attribute is indexable.
      *
@@ -661,7 +663,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
     {
         return $this->_getHelper()->isAttributeIndexable($attribute);
     }
-    
+
     /**
      * Returns search helper.
      *
@@ -671,7 +673,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
     {
         return Mage::helper('smile_elasticsearch/elasticsearch');
     }
-    
+
     /**
      * Creates or updates Elasticsearch index.
      *
@@ -688,19 +690,19 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
             $indexSettings = $this->_getIndexSettings();
             $indices = $this->_client->indices();
             $params = array('index' => $this->_currentIndexName);
-            
+
             if ($indices->exists($params)) {
-                
+
                 $indices->close($params);
-                
+
                 $settingsParams = $params;
                 $settingsParams['body']['settings'] = $this->_getIndexSettings();
                 $indices->putSettings($settingsParams);
-                
+
                 $mapping = $params;
                 $mapping['body']['mappings']['product']['properties'] = $this->_getIndexProperties();
                 $indices->putMapping($mapping);
-                
+
                 $indices->open();
             } else {
                 $params['body']['settings'] = $this->_getIndexSettings();
@@ -713,18 +715,18 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
             Mage::getSingleton('adminhtml/session')->addError($e->getMessage());
             throw $e;
         }
-    
+
         return $this;
     }
-    
+
     /**
      * Build a fulltext query with optionnal fuzzy params read from config
-     * 
+     *
      * @param string $text The text searched
-     * 
+     *
      * @return array
      */
-    protected function _buildFullTextQuery($text) 
+    protected function _buildFullTextQuery($text)
     {
         $result = array('query_string' => array('query' => $text, 'fields' => $this->_getSearchFields(false, $text)));
         if ($this->isFuzzyQueryEnabled()) {
@@ -741,25 +743,25 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         }
         return $result;
     }
-    
+
     /**
      * Build the facet part of the query
-     * 
+     *
      * @param array $params Query parameters
-     * 
+     *
      * @return array
      */
-    protected function _buildFacets($params) 
+    protected function _buildFacets($params)
     {
         $result = array();
-        
+
         if (isset($params['facets']['queries']) && !empty($params['facets']['queries'])) {
             foreach ($params['facets']['queries'] as $facetQuery) {
                 $facet = array('query' => array('query_string' => array('query' => $facetQuery)));
                 $result[$facetQuery] = $facet;
             }
         }
-        
+
         if (isset($params['stats']['fields']) && !empty($params['stats']['fields'])) {
             foreach ($params['stats']['fields'] as $field) {
                 $facet = array('statistical' => array('field' => $field));
@@ -781,7 +783,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
                     }
                 }
             }
-            
+
             if (isset($params['facets']['ranges']) && !empty($params['facets']['ranges'])) {
                 foreach ($params['facets']['ranges'] as $field => $ranges) {
                     $facet = array('range' => array('field' => $field, 'ranges' => $ranges));
@@ -789,10 +791,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
                 }
             }
         }
-        
+
         return $result;
     }
-    
+
     /**
      * Build the query filter part of the query
      *
@@ -800,25 +802,25 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
      *
      * @return array
      */
-    protected function _buildQueryFilters($params) 
+    protected function _buildQueryFilters($params)
     {
-        
+
         $filters = array('bool' => array('must' => array()));
-        
+
         if (empty($params['filters'])) {
             $params['filters'] = '*';
         }
         $filters['bool']['must'][] = array('query' => array('query_string' => array('query' => $params['filters'])));
-        
+
         if (isset($params['range_filters']) && !empty($params['range_filters'])) {
             foreach ($params['range_filters'] as $field => $rangeFilter) {
                 $filters['bool']['must'][] = array('range' => array($field => $rangeFilter));
             }
         }
-        
+
         return $filters;
     }
-    
+
     /**
      * Handles search and facets.
      *
@@ -834,20 +836,20 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
     {
         $indices = $this->_client->indices();
         $results = array();
-        
+
         if ($indices->exists(array('index' => $this->_currentIndexName))) {
             Varien_Profiler::start('ELASTICSEARCH');
             $searchParams = array('index' => $this->_currentIndexName, 'type'  => $type);
-            
+
             // Filter management
             $filters = $this->_buildQueryFilters($params);
             $searchParams['body']['query']['filtered']['filter'] = $filters;
-            
+
             if (!empty($q)) {
                 // Append fulltext query if relevant
                 $textQuery = $this->_buildFullTextQuery($q);
                 $searchParams['body']['query']['filtered']['query']  = $textQuery;
-                
+
                 $searchParams['body']['suggest'] = array(
                     "text" => $q,
                     "spellcheck" => array(
@@ -858,7 +860,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
                     )
                 );
             }
-            
+
             // Facet management
             $facets = $this->_buildFacets($params);
             if (!empty($facets)) {
@@ -866,32 +868,32 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
             }
 
             // Set Pagination
-            $searchParams['body']['from'] = $params['offset']; 
+            $searchParams['body']['from'] = $params['offset'];
             $searchParams['body']['size'] = $params['limit'];
-            
+
             // Set sorting
             if (isset($params['sort']) && !empty($params['sort'])) {
                 foreach ($params['sort'] as $sort) {
                     $searchParams['body']['sort'][] = $sort;
                 }
             }
-            
+
             $results = $this->_client->search($searchParams);
-            
+
             Varien_Profiler::stop('ELASTICSEARCH');
         }
-        
+
         return $results;
     }
-    
+
     /**
      * Launch an autocomplete query for products
-     * 
+     *
      * @param string $suggestQuery Text to be autocompleted
-     * 
+     *
      * @return array
      */
-    public function autocompleteProducts($suggestQuery) 
+    public function autocompleteProducts($suggestQuery)
     {
         $suggestFieldName = $this->_getHelper()->getSuggestFieldName();
         $params = array('index' => $this->_currentIndexName);
@@ -899,11 +901,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
             'text'       => $suggestQuery,
             'completion' => array('field' => $suggestFieldName)
         );
-        
+
         if ($this->isFuzzyQueryEnabled()) {
-            $params['body']['suggestions']['completion']['fuzzy'] = array('fuzziness' => 1, 'unicode_aware' => true);    
+            $params['body']['suggestions']['completion']['fuzzy'] = array('fuzziness' => 1, 'unicode_aware' => true);
         }
-        
+
         return $this->_client->suggest($params);
     }
 }
