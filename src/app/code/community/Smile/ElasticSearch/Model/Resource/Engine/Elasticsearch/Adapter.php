@@ -904,9 +904,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
             $params['body']['suggestions']['completion']['fuzzy'] = array('fuzziness' => 1, 'unicode_aware' => true);
         }
 
-        Mage::log($params);
         $response = $this->_client->suggest($params);
-        Mage::log($response);
+
         return $response;
     }
 }
