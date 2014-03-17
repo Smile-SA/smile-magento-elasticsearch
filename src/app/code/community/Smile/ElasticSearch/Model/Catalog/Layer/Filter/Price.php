@@ -20,6 +20,8 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
 {
     const CACHE_TAG = 'MAXPRICE';
 
+    protected $_stats = null;
+
     /**
      * Adds facet condition to product collection.
      *
@@ -61,31 +63,38 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
         return self::CACHE_TAG;
     }
 
-    
+
     /**
      * Return stats (min, max, avg, ...) for the field
-     * 
+     *
      * @return array
      */
     protected function _getFieldStats()
     {
-        $searchParams = $this->getLayer()->getProductCollection()->getExtendedSearchParams();
-        $uniquePart = strtoupper(md5(serialize($searchParams)));
-        $cacheKey = 'PRICE_STATS_' . $this->getLayer()->getStateKey() . '_' . $uniquePart;
-        
-        $cachedData = Mage::app()->loadCache($cacheKey);
-        
-        if (!$cachedData) {
-            $cachedData = $this->getLayer()->getProductCollection()->getStats($this->_getFilterField());
-            $tags = $this->getLayer()->getStateTags();
-            $tags[] = self::CACHE_TAG;
-            Mage::app()->saveCache($stats, $cacheKey, $tags);
-            
+
+        if (is_null($this->_stats)) {
+            $searchParams = $this->getLayer()->getProductCollection()->getExtendedSearchParams();
+            $uniquePart = strtoupper(md5(serialize($searchParams)));
+            $cacheKey = 'PRICE_STATS_' . $this->getLayer()->getStateKey() . '_' . $uniquePart;
+
+            $stats = Mage::app()->loadCache($cacheKey);
+
+            if (!$stats) {
+                $stats = $this->getLayer()->getProductCollection()->getStats($this->_getFilterField());
+                $tags = $this->getLayer()->getStateTags();
+                $tags[] = self::CACHE_TAG;
+                $cachedData = serialize($stats);
+                Mage::app()->saveCache($cachedData, $cacheKey, $tags);
+            } else {
+                $stats = unserialize($stats);
+            }
+
+            $this->_stats = $stats;
         }
-        
-        return $cachedData;
+
+        return $this->_stats;
     }
-    
+
     /**
      * Retrieves max price for ranges definition.
      *
@@ -115,7 +124,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
         }
         return $min;
     }
-    
+
     /**
      * Apply price range filter to product collection.
      *
@@ -188,7 +197,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
 
         $data = array();
         $facets = $this->getLayer()->getProductCollection()->getFacetedData($this->_getFilterField());
-        
+
         if (!empty($facets)) {
             foreach ($facets as $key => $count) {
                 if (!$count) {

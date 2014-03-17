@@ -18,17 +18,17 @@
  */
 class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_Layer_View
 {
-    
+
     /**
      * Templates of the filters.
      * If no template found using the default one (catalog/layer/filter.phtml)
-     * 
+     *
      * See the smile/elaticssearch.xml layout file for a complete example
-     * 
+     *
      * @var array
      */
     protected $_filterTemplates = array();
-    
+
     /**
      * Boolean block name.
      *
@@ -79,8 +79,14 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
             $this->setChild('category_filter', $categoryBlock->addFacetCondition());
 
             $filterableAttributes = $this->_getFilterableAttributes();
+            //var_dump($filterableAttributes); die;
             $filters = array();
             foreach ($filterableAttributes as $attribute) {
+
+                if ($attribute->getAttributeCode() == 'rating_filter') {
+                    continue;
+                }
+
                 if ($attribute->getAttributeCode() == 'price') {
                     $filterBlockName = $this->_priceFilterBlockName;
                 } elseif ($attribute->getBackendType() == 'decimal') {
@@ -96,11 +102,11 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
                     ->setAttributeModel($attribute)
                     ->init();
             }
-
+            //die;
             foreach ($filters as $filterName => $block) {
                 $this->setChild($filterName, $block->addFacetCondition());
             }
-            
+
             $this->getLayer()->apply();
         }
 
@@ -122,11 +128,11 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
 
         return parent::getLayer();
     }
-    
+
     /**
      * Indicates if the block should be shown or not.
-     * Append forced category loading to make the system more resistant to layout changes 
-     * 
+     * Append forced category loading to make the system more resistant to layout changes
+     *
      * @return bool
      */
     public function canShowBlock()
@@ -136,24 +142,24 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
         }
         return parent::canShowBlock();
     }
-    
+
     /**
      * Assign a custom template for a given filter
-     * 
+     *
      * @param string $filterName Name of the filter
      * @param string $template   Template
-     * 
+     *
      * @return Smile_ElasticSearch_Model_Catalog_Layer Self reference
      */
-    public function addFilterTemplate($filterName, $template) 
+    public function addFilterTemplate($filterName, $template)
     {
         $this->_filterTemplates[$filterName] = $template;
         return $this;
     }
-    
+
     /**
      * Custom template handling for children blocks (filters) before to display theme
-     * 
+     *
      * @return Smile_ElasticSearch_Model_Catalog_Layer Self reference
      */
     protected function _beforeToHtml()
@@ -164,7 +170,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
                 $block->setTemplate($template);
             }
         }
-        
+
         return parent::_beforeToHtml();
     }
 }

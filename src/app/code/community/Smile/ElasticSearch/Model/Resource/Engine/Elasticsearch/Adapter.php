@@ -493,7 +493,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
                 'payloads' => true,
                 'max_input_length' => 500,
                 'index_analyzer' => 'analyzer_' . $languageCode,
-                'search_analyzer' => 'analyzer_' . $languageCode
+                'search_analyzer' => 'analyzer_' . $languageCode,
+                'preserve_separators' => false
             );
         }
 
@@ -901,7 +902,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         );
 
         if ($this->isFuzzyQueryEnabled()) {
-            $params['body']['suggestions']['completion']['fuzzy'] = array('fuzziness' => 1, 'unicode_aware' => true);
+            // $params['body']['suggestions']['completion']['fuzzy'] = array('fuzziness' => 1, 'unicode_aware' => true);
         }
 
         $response = $this->_client->suggest($params);

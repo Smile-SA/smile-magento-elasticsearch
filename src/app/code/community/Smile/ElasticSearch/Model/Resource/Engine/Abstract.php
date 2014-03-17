@@ -432,7 +432,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Abstract
             $index['id'] = $entityId;
             $suggestFieldName = $this->_getHelper()->getSuggestFieldNameByLocaleCode($localeCode);
             $index[$suggestFieldName] = array(
-                'input' => array($index['name'], $index['sku']),
+                'input' => array_merge($index['name'], array("sku" . $index['sku'])),
                 'payload' => array('product_id' => $entityId)
             );
             $index = $this->_prepareIndexData($index, $localeCode);

@@ -21,7 +21,7 @@
 <config>
     <modules>
         <Smile_ElasticSearch>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
         </Smile_ElasticSearch>
     </modules>
     <global>
@@ -48,7 +48,7 @@
             <smile_elasticsearch_setup>
                 <setup>
                     <module>Smile_ElasticSearch</module>
-                    <class>Mage_Core_Model_Resource_Setup</class>
+                    <class>Mage_Catalog_Model_Resource_Setup</class>
                 </setup>
             </smile_elasticsearch_setup>
         </resources>

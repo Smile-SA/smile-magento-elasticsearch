@@ -72,7 +72,8 @@ MultipleAutoCompleter = Class.create(Ajax.Autocompleter, {
             }
 
             this.stopIndicator();
-            // Avoid first suggestion autoselect
+
+            // Avoid automatic first suggestion selection
             this.index = -1;
 
             if (this.entryCount == 1 && this.options.autoSelect) {

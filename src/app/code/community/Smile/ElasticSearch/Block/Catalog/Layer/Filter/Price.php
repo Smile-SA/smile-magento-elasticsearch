@@ -55,15 +55,15 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
 
         return $this;
     }
-    
+
     /**
      * Return the lowest price avaiblable for filtering.
-     * 
+     *
      * @param bool $rounding Enable rounding feature according price range
-     * 
+     *
      * @return int
      */
-    public function getMinPriceInt($rounding = false) 
+    public function getMinPriceInt($rounding = false)
     {
         $minPrice = $this->_filter->getMinPriceInt();
         if ($rounding === true) {
@@ -72,7 +72,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
         }
         return $minPrice;
     }
-    
+
     /**
      * Return the highest price avaiblable for filtering.
      *
@@ -80,7 +80,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
      *
      * @return int
      */
-    public function getMaxPriceInt($rounding = false) 
+    public function getMaxPriceInt($rounding = false)
     {
         $maxPrice = $this->_filter->getMaxPriceInt();
         if ($rounding === true) {
@@ -89,7 +89,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
         }
         return $maxPrice;
     }
-    
+
     /**
      * Return the size of the filtering interval
      *
@@ -99,10 +99,10 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
     {
         return $this->_filter->getPriceRange();
     }
-    
+
     /**
      * JS template of the get var filter
-     * 
+     *
      * @return string
      */
     public function getFilterJsTemplate()
@@ -110,29 +110,31 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
         $requestVar = $this->getRequestVar();
         return "$requestVar=#{minValue}-#{maxValue}";
     }
-    
+
     /**
      * Array of the interval containing products (used to build sliders)
-     * 
+     *
      * @return array
      */
     public function getAllowedIntervals()
     {
         $minPriceInt = $this->getMinPriceInt(true);
         $maxPriceInt = $this->getMaxPriceInt(true);
-        
+        $allowedIntervals = array();
+
         foreach ($this->getItems() as $currentItem) {
             list($minValue, $maxValue) = explode('-', $currentItem->getValue());
             $minValue = $minValue == '' ? $minValue = $minPriceInt : $minValue;
             $maxValue = $maxValue == '' ? $maxValue = $maxPriceInt : $maxValue;
-            $lastPosition = $allowedIntervals[count($allowedIntervals) - 1];
-            if (!empty($allowedIntervals) && $minValue <= $allowedIntervals[$lastPosition]) {
+            $lastPosition = count($allowedIntervals) - 1;
+
+            if (!empty($allowedIntervals) && $minValue <= $allowedIntervals[$lastPosition][1]) {
                 $allowedIntervals[$lastPosition][2] = $maxValue;
             } else {
                 $allowedIntervals[] = array((int) $minValue, (int) $maxValue);
             }
         }
-        
+
         return $allowedIntervals;
     }
 }
