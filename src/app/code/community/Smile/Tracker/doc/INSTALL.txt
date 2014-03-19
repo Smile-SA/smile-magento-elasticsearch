@@ -50,11 +50,11 @@ Use a different vhost:
       The following virtual host allows tracking :
    
       <VirtualHost *:80>
-          ServerName hit.es-searchandize.lxc
+          ServerName <MY_TRACKING_DOMAIN>
     
           DocumentRoot <MAGENTO_ROOT>/js/smile/tracker/
 
-          <Location />
+          <Directory <MAGENTO_ROOT>/js/smile/tracker/>
               AllowOverride None
               Order allow,deny
               Allow from all
@@ -68,9 +68,17 @@ Use a different vhost:
 
       </VirtualHost>
       
-      Note : You need to replace <MAGENTO_ROOT> with the root of your Magento deployment and then reload Apache
-
-
+      Notes : 
+        - You need to replace <MAGENTO_ROOT> with the root of your Magento deployment and then reload Apache
+        
+        - ServerName <MY_TRACKING_DOMAIN> by the FQDN of the tracker
+        
+        - Be careful about the port into the vhosts. Usually it should be 81 since you will have varnish in front of Magento.
+          You should also take care to bypass Varnish for the tracking domain (pass). 
+        
+        - If tracker code is not deployed yet, reloading Apache will fail. You can fix it with 
+           
+           mkdir -p <MAGENTO_ROOT>/js/smile/tracker
 
    Configure log retention policy :
    --------------------------------
@@ -78,6 +86,7 @@ Use a different vhost:
       Configure logrotate by putting this into /etc/logrotate.d/smile-tracker-log
       
       /var/log/smile_searchandising_suite/apache_raw_events/*.log {
+        daily
         dateext 
         missingok
         rotate 7
