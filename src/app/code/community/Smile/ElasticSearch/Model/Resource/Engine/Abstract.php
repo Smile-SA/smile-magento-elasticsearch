@@ -456,7 +456,8 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Abstract
      *
      * @return boolean
      */
-    public function _getSuggestionWeight($data) {
+    protected function _getSuggestionWeight($data)
+    {
         $visibilityWeight = array(
             Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE => 0,
             Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_CATALOG  => 1,
@@ -464,8 +465,8 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Abstract
             Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH        => 2,
         );
 
-        $result = isset($data['visibility']) ? $visibilityWeight[current($data['visibility'])] : 0;
-        $result = isset($data['status']) && current($data['status']) == Mage_Catalog_Model_Product_Status::STATUS_ENABLED ? $result : 0;
+        $result = isset($data['visibility']) && isset($data['status']) ? $visibilityWeight[current($data['visibility'])] : 0;
+        $result = current($data['status']) == Mage_Catalog_Model_Product_Status::STATUS_ENABLED ? $result : 0;
 
         return $result;
     }

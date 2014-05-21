@@ -912,7 +912,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         );
 
         if ($this->isFuzzyQueryEnabled()) {
-            // $params['body']['suggestions']['completion']['fuzzy'] = array('fuzziness' => 1, 'unicode_aware' => true);
+            $params['body']['suggestions']['completion']['fuzzy'] = array('fuzziness' => 1, 'unicode_aware' => true);
         }
 
         $response = $this->_client->suggest($params);

@@ -103,7 +103,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
 
         if ($this->_isValidCategory($this->_appliedCategory)) {
             $this->getLayer()->getState()->addFilter(
-                 $this->_createItem($this->_appliedCategory->getName(), $this->_appliedCategory->getId())
+                $this->_createItem($this->_appliedCategory->getName(), $this->_appliedCategory->getId())
             );
         }
 
@@ -156,10 +156,11 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
     /**
      * Create filter item object
      *
-     * @param   string $label
-     * @param   mixed $value
-     * @param   int $count
-     * @return  Mage_Catalog_Model_Layer_Filter_Item
+     * @param string $label Label of the filter value
+     * @param mixed  $value Value of the filter
+     * @param int    $count Number of result (default is 0)
+     *
+     * @return Mage_Catalog_Model_Layer_Filter_Item
      */
     protected function _createItem($label, $value, $count=0)
     {

@@ -113,7 +113,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
             $select = $adapter->select()
             ->from(array('r' => $this->getTable('rating/rating_vote_aggregated')))
             ->where('r.entity_pk_value IN (?)', $productIds)
-            ->where('r.rating_id = ?', $indexedRatingId )
+            ->where('r.rating_id = ?', $indexedRatingId)
             ->where('store_id = ?', $storeId);
 
             foreach ($adapter->fetchAll($select) as $row) {

@@ -1,6 +1,6 @@
 <?php
 /**
- * Search observer.
+ * Search observer
  *
  * DISCLAIMER
  *
