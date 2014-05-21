@@ -19,6 +19,12 @@
 class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch_Model_Resource_Fulltext
 {
     /**
+     * @var array
+     */
+    protected $_defaultRatingIdByStore = array();
+
+
+    /**
      * Adds advanced index data.
      *
      * @param array $index      Data indexed
@@ -40,7 +46,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         $categoryData = $this->_getCatalogCategoryData($storeId, $productIds);
         $priceData = $this->_getCatalogProductPriceData($productIds);
         $ratingData = $this->_getRatingData($storeId, $productIds);
-        
+
         foreach ($index as $productId => &$productData) {
             if (isset($categoryData[$productId]) && isset($priceData[$productId])) {
                 $productData += $categoryData[$productId];
@@ -52,7 +58,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
                     $prefix . 'visibility' => 0
                 );
             }
-            
+
             if (isset($ratingData[$productId])) {
                 $productData += $ratingData[$productId];
             }
@@ -64,36 +70,65 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
 
         return $index;
     }
-    
+
+    /**
+     * Returns first rating that can be applied for a given store
+     *
+     * @param int $storeId The store id we want the default rating for
+     *
+     * @return false|int
+     */
+    protected function _getDefaultRatingId($storeId)
+    {
+        if (!isset($this->_defaultRatingIdByStore[$storeId])) {
+            $ratingId = false;
+            $ratings = Mage::getResourceModel('rating/rating_collection')
+                ->setStoreFilter($storeId);
+
+            if ($ratings->getSize() > 0) {
+                $ratingId = $ratings->getFirstItem()->getId();
+            }
+            $this->_defaultRatingIdByStore[$storeId] = $ratingId;
+        }
+
+        return $this->_defaultRatingIdByStore[$storeId];
+    }
+
     /**
      * Retrieve product ratings per store for the product list
-     * 
+     *
      * @param int   $storeId    Store id
      * @param array $productIds Product ids
-     * 
-     * @return array 
+     *
+     * @return array
      */
     function _getRatingData($storeId, $productIds)
     {
         $prefix = $this->_engine->getFieldsPrefix();
         $adapter = $this->_getWriteAdapter();
+        $indexedRatingId = $this->_getDefaultRatingId($storeId);
+
         $result = array();
-        $select = $adapter->select()
+        if ($indexedRatingId !== false) {
+            $select = $adapter->select()
             ->from(array('r' => $this->getTable('rating/rating_vote_aggregated')))
             ->where('r.entity_pk_value IN (?)', $productIds)
+            ->where('r.rating_id = ?', $indexedRatingId )
             ->where('store_id = ?', $storeId);
-        
-        foreach ($adapter->fetchAll($select) as $row) {
-            $productId = $row['entity_pk_value'];
-            if (!isset($result[$productId])) {
-                $result[$productId] = array();
+
+            foreach ($adapter->fetchAll($select) as $row) {
+                $productId = $row['entity_pk_value'];
+                if (!isset($result[$productId])) {
+                    $result[$productId] = array();
+                }
+                $result[$productId][$prefix . 'rating_filter'] = (float) $row['percent'];
             }
-            $result[$productId][$prefix . 'rating_' . $row['rating_id']] = (float) $row['percent'];
         }
-        
+
+
         return $result;
     }
-    
+
     /**
      * Retrieves category data for advanced index.
      *
@@ -106,16 +141,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
     protected function _getCatalogCategoryData($storeId, $productIds, $visibility = true)
     {
         $adapter = $this->_getWriteAdapter();
-        $prefix = $this->_engine->getFieldsPrefix();
+        $prefix  = $this->_engine->getFieldsPrefix();
+
         $columns = array(
             'product_id' => 'product_id',
-            'parents' => new Zend_Db_Expr("GROUP_CONCAT(IF(is_parent = 1, category_id, '') SEPARATOR ' ')"),
-            'anchors' => new Zend_Db_Expr("GROUP_CONCAT(IF(is_parent = 0, category_id, '') SEPARATOR ' ')"),
-            'positions' => new Zend_Db_Expr("GROUP_CONCAT(CONCAT(category_id, '_', position) SEPARATOR ' ')"),
         );
 
         if ($visibility) {
-            $columns['visibility'] = 'visibility';
+            $columns[] = 'visibility';
         }
 
         $select = $adapter->select()
@@ -124,11 +157,17 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
             ->where('store_id = ?', $storeId)
             ->group('product_id');
 
+        $helper = Mage::getResourceHelper('core');
+        $helper->addGroupConcatColumn($select, 'parents', 'category_id', ' ', ',', 'is_parent = 1');
+        $helper->addGroupConcatColumn($select, 'anchors', 'category_id', ' ', ',', 'is_parent = 0');
+        $helper->addGroupConcatColumn($select, 'positions', array('category_id', 'position'), ' ', '_');
+        $select  = $helper->getQueryUsingAnalyticFunction($select);
+
         $result = array();
         foreach ($adapter->fetchAll($select) as $row) {
             $data = array(
-                $prefix . 'categories' => array_values(array_filter(explode(' ', $row['parents']))),
-                $prefix . 'show_in_categories' => array_values(array_filter(explode(' ', $row['anchors']))),
+                $prefix . 'categories'          => array_filter(explode(' ', $row['parents'])),
+                $prefix . 'show_in_categories'  => array_filter(explode(' ', $row['anchors'])),
             );
             foreach (explode(' ', $row['positions']) as $value) {
                 list($categoryId, $position) = explode('_', $value);

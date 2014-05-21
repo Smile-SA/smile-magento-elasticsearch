@@ -430,16 +430,44 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Abstract
         foreach ($docsData as $entityId => $index) {
             $index[self::UNIQUE_KEY] = $entityId . '|' . $index['store_id'];
             $index['id'] = $entityId;
-            $suggestFieldName = $this->_getHelper()->getSuggestFieldNameByLocaleCode($localeCode);
-            $index[$suggestFieldName] = array(
-                'input' => array_merge($index['name'], array("sku" . $index['sku'])),
-                'payload' => array('product_id' => $entityId)
-            );
+            if ($weight = $this->_getSuggestionWeight($index)) {
+                $suggestFieldName = $this->_getHelper()->getSuggestFieldNameByLocaleCode($localeCode);
+                $input = $index['name'];
+                if (isset($index['sku'])) {
+                    $input[] = $index['sku'];
+                }
+                $index[$suggestFieldName] = array(
+                    'input'   => $input,
+                    'payload' => array('product_id' => $entityId),
+                    'weight'  => $weight
+                );
+            }
             $index = $this->_prepareIndexData($index, $localeCode);
             $docs[] = $this->_createDoc($entityId, $index, $type);
         }
 
         return $docs;
+    }
+
+    /**
+     * Indicates if product should be suggested or not
+     *
+     * @param array $data Product data
+     *
+     * @return boolean
+     */
+    public function _getSuggestionWeight($data) {
+        $visibilityWeight = array(
+            Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE => 0,
+            Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_CATALOG  => 1,
+            Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH   => 1,
+            Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH        => 2,
+        );
+
+        $result = isset($data['visibility']) ? $visibilityWeight[current($data['visibility'])] : 0;
+        $result = isset($data['status']) && current($data['status']) == Mage_Catalog_Model_Product_Status::STATUS_ENABLED ? $result : 0;
+
+        return $result;
     }
 
     /**

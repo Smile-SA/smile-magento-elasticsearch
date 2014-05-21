@@ -16,29 +16,29 @@
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
  */
-class Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection 
+class Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
     extends Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection
 {
     /**
      * @var null|string
      */
     protected $_suggestQuery   = null;
-    
+
     /**
      * @var null|array
      */
     protected $_suggestionsIds = null;
-    
+
     /**
      * @var bool
      */
     protected $_isSuggestionFilterSet = false;
-    
+
     /**
      * Register suggest input text.
-     * 
+     *
      * @param string $query The text input
-     *  
+     *
      * @return Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
      */
     public function addSuggestFilter($query)
@@ -46,10 +46,10 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
         $this->_suggestQuery = $query;
         return $this;
     }
-    
+
     /**
      * Apply filters before load
-     * 
+     *
      * @return Mage_Catalog_Model_Resource_Product_Collection Self reference
      */
     protected function _beforeLoad()
@@ -60,7 +60,7 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
         }
         return parent::_beforeLoad();
     }
-    
+
     /**
      * Get size of the csuggest collection
      *
@@ -72,9 +72,9 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
             $this->addFqFilter(array('id' => $this->getSuggestionIds()));
             $this->_isSuggestionFilterSet = true;
         }
-        return parent::getSize();   
+        return parent::getSize();
     }
-    
+
     /**
      * Return ids of the suggested product
      *
@@ -85,20 +85,20 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
         if (is_null($this->_suggestionsIds) && !is_null($this->_suggestQuery)) {
             $suggestions = $this->_engine->suggestProduct($this->_suggestQuery);
             $idsFilter = array();
-            
+
             foreach ($suggestions as $suggestion) {
-                if (isset($suggestion['payload']) && $suggestion['payload']['product_id']) {
+                if (isset($suggestion['payload']) && isset($suggestion['payload']['product_id'])) {
                     $idsFilter[] = $suggestion['payload']['product_id'];
                 }
             }
-            
+
             if (empty($idsFilter)) {
                 $idsFilter = array(0);
             }
-            
+
             $this->_suggestionsIds = $idsFilter;
         }
-        
+
         return $this->_suggestionsIds;
     }
 }

@@ -37,6 +37,13 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
     protected $_booleanFilterBlockName;
 
     /**
+     * Rating block name.
+     *
+     * @var string
+     */
+    protected $_ratingFilterBlockName;
+
+    /**
      * Modifies default block names to specific ones if engine is active.
      *
      * @return void
@@ -49,6 +56,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
             $this->_categoryBlockName        = 'smile_elasticsearch/catalog_layer_filter_category';
             $this->_attributeFilterBlockName = 'smile_elasticsearch/catalog_layer_filter_attribute';
             $this->_priceFilterBlockName     = 'smile_elasticsearch/catalog_layer_filter_price';
+            $this->_ratingFilterBlockName    = 'smile_elasticsearch/catalog_layer_filter_rating';
             $this->_decimalFilterBlockName   = 'smile_elasticsearch/catalog_layer_filter_decimal';
             $this->_booleanFilterBlockName   = 'smile_elasticsearch/catalog_layer_filter_boolean';
         }
@@ -67,11 +75,11 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
         if (!$helper->isActiveEngine()) {
             parent::_prepareLayout();
         } else {
-
             $stateBlock = $this->getLayout()->createBlock($this->_stateBlockName)
                 ->setLayer($this->getLayer());
 
             $categoryBlock = $this->getLayout()->createBlock($this->_categoryBlockName)
+                ->setUseUrlRewrites(true)
                 ->setLayer($this->getLayer())
                 ->init();
 
@@ -83,12 +91,10 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
             $filters = array();
             foreach ($filterableAttributes as $attribute) {
 
-                if ($attribute->getAttributeCode() == 'rating_filter') {
-                    continue;
-                }
-
                 if ($attribute->getAttributeCode() == 'price') {
                     $filterBlockName = $this->_priceFilterBlockName;
+                } elseif ($attribute->getAttributeCode() == 'rating_filter') {
+                    $filterBlockName = $this->_ratingFilterBlockName;
                 } elseif ($attribute->getBackendType() == 'decimal') {
                     $filterBlockName = $this->_decimalFilterBlockName;
                 } elseif ($attribute->getSourceModel() == 'eav/entity_attribute_source_boolean') {
@@ -127,6 +133,28 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
         }
 
         return parent::getLayer();
+    }
+
+    /**
+     * Check availability display layer options
+     *
+     * @return bool
+     */
+    public function canShowOptions()
+    {
+        foreach ($this->getFilters() as $filter) {
+            if ($filter->getItemsCount()) {
+                $collectionSize = $this->getLayer()->getProductCollection()->getSize();
+                $items = $filter->getItems();
+                foreach ($items as $item) {
+                    if ($item->getCount() < $collectionSize) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

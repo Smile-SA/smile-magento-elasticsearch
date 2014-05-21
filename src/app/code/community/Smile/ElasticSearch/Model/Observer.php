@@ -168,6 +168,7 @@ class Smile_ElasticSearch_Model_Observer
         $category = $observer->getEvent()->getCategory();
         $productIds = $category->getAffectedProductIds();
         $this->_getIndexer()->rebuildIndex(null, $observer->getEvent()->getProductIds())->resetSearchResults();
+        Mage::dispatchEvent('smile_search_engine_reindex_category', array('category' => $category));
         return $this;
     }
 }

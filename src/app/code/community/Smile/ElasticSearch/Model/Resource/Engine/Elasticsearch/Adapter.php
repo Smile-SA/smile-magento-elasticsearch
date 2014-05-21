@@ -707,7 +707,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
                 $params['body']['settings'] = $this->_getIndexSettings();
                 $params['body']['settings']['number_of_shards'] = (int) $this->getConfig('number_of_shards');
                 $params['body']['mappings']['product']['properties'] = $this->_getIndexProperties();
-                $indices->create($params);
+
+                $properties = new Varien_Object($params);
+                Mage::dispatchEvent('smile_elasticsearch_index_create_before', array('index_properties' => $properties ));
+                $indices->create($properties->getData());
             }
         } catch (Exception $e) {
             Mage::logException($e);
@@ -786,6 +789,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
             if (isset($params['facets']['ranges']) && !empty($params['facets']['ranges'])) {
                 foreach ($params['facets']['ranges'] as $field => $ranges) {
                     $facet = array('range' => array('field' => $field, 'ranges' => $ranges));
+                    $result[$field] = $facet;
+                }
+            }
+
+            if (isset($params['facets']['histogram']) && !empty($params['facets']['histogram'])) {
+                foreach ($params['facets']['histogram'] as $field => $interval) {
+                    $facet = array('histogram' => array('field' => $field, 'interval' => $interval));
                     $result[$field] = $facet;
                 }
             }

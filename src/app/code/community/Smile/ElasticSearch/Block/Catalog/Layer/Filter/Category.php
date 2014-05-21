@@ -30,6 +30,29 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Category extends Smile_Elas
     }
 
     /**
+     * Init filter model object
+     *
+     * @return Mage_Catalog_Block_Layer_Filter_Abstract
+     */
+    protected function _initFilter()
+    {
+        if (!$this->_filterModelName) {
+            Mage::throwException(Mage::helper('catalog')->__('Filter model name must be declared.'));
+        }
+        $this->_filter = Mage::getModel($this->_filterModelName)
+            ->setLayer($this->getLayer());
+
+        if ($this->getUseUrlRewrites()) {
+            $this->_filter->setUseUrlRewrites(true);
+        }
+
+        $this->_prepareFilter();
+
+        $this->_filter->apply($this->getRequest(), $this);
+        return $this;
+    }
+
+    /**
      * Adds facet condition to filter.
      *
      * @see Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category::addFacetCondition()

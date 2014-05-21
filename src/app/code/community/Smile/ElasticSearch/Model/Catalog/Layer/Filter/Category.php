@@ -69,6 +69,12 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
      */
     public function apply(Zend_Controller_Request_Abstract $request, $filterBlock)
     {
+        $minLevel = Mage::getStoreConfig('catalog/search/elasticsearch_min_category_filter_level');
+
+        if (!$this->getUseUrlRewrites()) {
+            $minLevel = 2;
+        }
+
         $filter = (int) $request->getParam($this->getRequestVar());
         if ($filter) {
             $this->_categoryId = $filter;
@@ -78,6 +84,12 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
         $category = $this->getCategory();
         if (!Mage::registry('current_category_filter')) {
             Mage::register('current_category_filter', $category);
+        }
+
+        if (!$filter && $this->getCategory()) {
+            if ($this->getCategory()->getLevel() >= $minLevel) {
+                $filter = $this->getCategory()->getId();
+            }
         }
 
         if (!$filter) {
@@ -90,11 +102,8 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
             ->load($filter);
 
         if ($this->_isValidCategory($this->_appliedCategory)) {
-            $this->getLayer()->getProductCollection()
-                ->addCategoryFilter($this->_appliedCategory);
-            $this->addCategoryFilter($this->_appliedCategory);
             $this->getLayer()->getState()->addFilter(
-                $this->_createItem($this->_appliedCategory->getName(), $filter)
+                 $this->_createItem($this->_appliedCategory->getName(), $this->_appliedCategory->getId())
             );
         }
 
@@ -142,4 +151,29 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
 
         return $data;
     }
+
+
+    /**
+     * Create filter item object
+     *
+     * @param   string $label
+     * @param   mixed $value
+     * @param   int $count
+     * @return  Mage_Catalog_Model_Layer_Filter_Item
+     */
+    protected function _createItem($label, $value, $count=0)
+    {
+        $item = parent::_createItem($label, $value, $count);
+
+        if ($this->getUseUrlRewrites()) {
+            $item = Mage::getModel('smile_elasticsearch/catalog_layer_filter_item_category')
+                ->setFilter($this)
+                ->setLabel($label)
+                ->setValue($value)
+                ->setCount($count);
+        }
+
+        return $item;
+    }
+
 }

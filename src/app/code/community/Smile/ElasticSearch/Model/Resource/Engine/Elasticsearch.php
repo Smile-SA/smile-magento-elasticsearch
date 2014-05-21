@@ -105,7 +105,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
 
         foreach ($indexes as &$data) {
             foreach ($data as $key => &$value) {
-                if (is_array($value)) {
+                if (is_array($value) && strpos($key, 'suggest') !== 0) {
                     $value = array_values(array_filter(array_unique($value)));
                 }
                 if (array_key_exists($key, $searchables)) {
@@ -132,7 +132,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
                     }
                 }
                 if (array_key_exists($key, $sortables)) {
-                    $val = is_array($value) ? $value[0] : $value;
+                    $val = is_array($value) ? current($value) : $value;
                     /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
                     $attribute = $sortables[$key];
                     $attribute->setStoreId($store->getId());
@@ -232,10 +232,15 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
      */
     protected function _escape($value)
     {
-        $pattern = '/(\+|-|&&|\|\||!|\(|\)|\{|}|\[|]|\^|"|~|\*|\?|:|\\\)/';
-        $replace = '\\\$1';
+        $result = $value;
+        // \ escaping has to be first, otherwise escaped later once again
+        $chars = array('\\', '+', '-', '&&', '||', '!', '(', ')', '{', '}', '[', ']', '^', '"', '~', '*', '?', ':', '/');
 
-        return preg_replace($pattern, $replace, $value);
+        foreach ($chars as $char) {
+            $result = str_replace($char, '\\' . $char, $result);
+        }
+
+        return $result;
     }
 
     /**
@@ -290,29 +295,33 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
                 if (empty($facetFieldConditions)) {
                     $result['fields'][] = $facetField;
                 } else {
-                    foreach ($facetFieldConditions as $facetCondition) {
-                        if (is_array($facetCondition) && isset($facetCondition['from']) && isset($facetCondition['to'])) {
-                            $from = (isset($facetCondition['from']) && strlen(trim($facetCondition['from'])))
-                                ? $this->_prepareQueryText($facetCondition['from'])
-                                : '';
-                            $to = (isset($facetCondition['to']) && strlen(trim($facetCondition['to'])))
-                                ? $this->_prepareQueryText($facetCondition['to'])
-                                : '';
-                            if (!$from) {
-                                unset($facetCondition['from']);
+                    if (isset($facetFieldConditions['interval'])) {
+                        $result['histogram'][$facetField] = $facetFieldConditions['interval'];
+                    } else {
+                        foreach ($facetFieldConditions as $facetCondition) {
+                            if (is_array($facetCondition) && isset($facetCondition['from']) && isset($facetCondition['to'])) {
+                                $from = (isset($facetCondition['from']) && strlen(trim($facetCondition['from'])))
+                                    ? $this->_prepareQueryText($facetCondition['from'])
+                                    : '';
+                                $to = (isset($facetCondition['to']) && strlen(trim($facetCondition['to'])))
+                                    ? $this->_prepareQueryText($facetCondition['to'])
+                                    : '';
+                                if (!$from) {
+                                    unset($facetCondition['from']);
+                                } else {
+                                    $facetCondition['from'] = $from;
+                                }
+                                if (!$to) {
+                                    unset($facetCondition['to']);
+                                } else {
+                                    $facetCondition['to'] = $to;
+                                }
+                                $result['ranges'][$facetField][] = $facetCondition;
                             } else {
-                                $facetCondition['from'] = $from;
+                                $facetCondition = $this->_prepareQueryText($facetCondition);
+                                $fieldCondition = $this->_prepareFieldCondition($facetField, $facetCondition);
+                                $result['queries'][] = $fieldCondition;
                             }
-                            if (!$to) {
-                                unset($facetCondition['to']);
-                            } else {
-                                $facetCondition['to'] = $to;
-                            }
-                            $result['ranges'][$facetField][] = $facetCondition;
-                        } else {
-                            $facetCondition = $this->_prepareQueryText($facetCondition);
-                            $fieldCondition = $this->_prepareFieldCondition($facetField, $facetCondition);
-                            $result['queries'][] = $fieldCondition;
                         }
                     }
                 }
@@ -344,6 +353,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
                     $from = isset($range['from_str']) ? $range['from_str'] : '';
                     $to = isset($range['to_str']) ? $range['to_str'] : '';
                     $result[$attr]["[$from TO $to]"] = $range['total_count'];
+                }
+            } elseif (isset($data['entries'])) {
+                foreach ($data['entries'] as $entry) {
+                    $result[$attr][$entry['key']] = $entry['count'];
                 }
             } elseif (preg_match('/\(categories:(\d+) OR show_in_categories\:\d+\)/', $attr, $matches)) {
                 $result['categories'][$matches[1]] = $data['count'];

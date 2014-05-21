@@ -27,13 +27,20 @@ class Smile_ElasticSearch_Block_Catalogsearch_Layer extends Mage_CatalogSearch_B
      * @var array
      */
     protected $_filterTemplates = array();
-    
+
     /**
      * Boolean block name.
      *
      * @var string
      */
     protected $_booleanFilterBlockName;
+
+    /**
+     * Rating block name.
+     *
+     * @var string
+     */
+    protected $_ratingFilterBlockName;
 
     /**
      * Modifies default block names to specific ones if engine is active.
@@ -47,6 +54,7 @@ class Smile_ElasticSearch_Block_Catalogsearch_Layer extends Mage_CatalogSearch_B
         if (Mage::helper('smile_elasticsearch')->isActiveEngine()) {
             $this->_categoryBlockName = 'smile_elasticsearch/catalog_layer_filter_category';
             $this->_attributeFilterBlockName = 'smile_elasticsearch/catalogsearch_layer_filter_attribute';
+            $this->_ratingFilterBlockName    = 'smile_elasticsearch/catalog_layer_filter_rating';
             $this->_priceFilterBlockName = 'smile_elasticsearch/catalog_layer_filter_price';
             $this->_decimalFilterBlockName = 'smile_elasticsearch/catalog_layer_filter_decimal';
             $this->_booleanFilterBlockName   = 'smile_elasticsearch/catalog_layer_filter_boolean';
@@ -81,6 +89,8 @@ class Smile_ElasticSearch_Block_Catalogsearch_Layer extends Mage_CatalogSearch_B
             foreach ($filterableAttributes as $attribute) {
                 if ($attribute->getAttributeCode() == 'price') {
                     $filterBlockName = $this->_priceFilterBlockName;
+                } elseif ($attribute->getAttributeCode() == 'rating_filter') {
+                    $filterBlockName = $this->_ratingFilterBlockName;
                 } elseif ($attribute->getSourceModel() == 'eav/entity_attribute_source_boolean') {
                     $filterBlockName = $this->_booleanFilterBlockName;
                 } elseif ($attribute->getBackendType() == 'decimal') {
@@ -106,9 +116,31 @@ class Smile_ElasticSearch_Block_Catalogsearch_Layer extends Mage_CatalogSearch_B
     }
 
     /**
+     * Check availability display layer options
+     *
+     * @return bool
+     */
+    public function canShowOptions()
+    {
+        foreach ($this->getFilters() as $filter) {
+            if ($filter->getItemsCount()) {
+                $collectionSize = $this->getLayer()->getProductCollection()->getSize();
+                $items = $filter->getItems();
+                foreach ($items as $item) {
+                    if ($item->getCount() < $collectionSize) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Indicates if the block should be shown or not.
-     * Append forced category loading to make the system more resistant to layout changes 
-     * 
+     * Append forced category loading to make the system more resistant to layout changes
+     *
      * @return bool
      */
     public function canShowBlock()
@@ -116,7 +148,7 @@ class Smile_ElasticSearch_Block_Catalogsearch_Layer extends Mage_CatalogSearch_B
         if (!$this->getLayer()->getProductCollection()->isLoaded()) {
             $this->getLayer()->getProductCollection()->load();
         }
-        
+
         return ($this->canShowOptions() || count($this->getLayer()->getState()->getFilters()));
     }
 
@@ -135,7 +167,7 @@ class Smile_ElasticSearch_Block_Catalogsearch_Layer extends Mage_CatalogSearch_B
 
         return parent::getLayer();
     }
-    
+
     /**
      * Assign a custom template for a given filter
      *
@@ -144,12 +176,12 @@ class Smile_ElasticSearch_Block_Catalogsearch_Layer extends Mage_CatalogSearch_B
      *
      * @return Smile_ElasticSearch_Model_Catalog_Layer Self reference
      */
-    public function addFilterTemplate($filterName, $template) 
+    public function addFilterTemplate($filterName, $template)
     {
         $this->_filterTemplates[$filterName] = $template;
         return $this;
     }
-    
+
     /**
      * Custom template handling for children blocks (filters) before to display theme
      *
@@ -163,7 +195,7 @@ class Smile_ElasticSearch_Block_Catalogsearch_Layer extends Mage_CatalogSearch_B
                 $block->setTemplate($template);
             }
         }
-    
+
         return parent::_beforeToHtml();
     }
 }

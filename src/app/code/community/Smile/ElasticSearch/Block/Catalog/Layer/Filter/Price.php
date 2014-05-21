@@ -68,7 +68,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
         $minPrice = $this->_filter->getMinPriceInt();
         if ($rounding === true) {
             $range = $this->getPriceRange();
-            $minPrice = max(0, ((int) ($minPrice / $range) - 1) * $range);
+            $minPrice = max(0, floor($minPrice / $range) * $range);
         }
         return $minPrice;
     }
@@ -85,7 +85,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
         $maxPrice = $this->_filter->getMaxPriceInt();
         if ($rounding === true) {
             $range = $this->getPriceRange();
-            $maxPrice = ((int) ($maxPrice / $range) + 1) * $range;
+            $maxPrice = ceil($maxPrice / $range) * $range;
         }
         return $maxPrice;
     }
@@ -129,7 +129,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
             $lastPosition = count($allowedIntervals) - 1;
 
             if (!empty($allowedIntervals) && $minValue <= $allowedIntervals[$lastPosition][1]) {
-                $allowedIntervals[$lastPosition][2] = $maxValue;
+                $allowedIntervals[$lastPosition][1] = (int) $maxValue;
             } else {
                 $allowedIntervals[] = array((int) $minValue, (int) $maxValue);
             }

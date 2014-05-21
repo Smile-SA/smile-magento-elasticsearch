@@ -190,6 +190,7 @@
                 <elasticsearch_fuzzy_prefix_length>0</elasticsearch_fuzzy_prefix_length>
                 <elasticsearch_fuzzy_max_query_terms>10</elasticsearch_fuzzy_max_query_terms>
                 <elasticsearch_fuzzy_query_boost>1.0</elasticsearch_fuzzy_query_boost>
+                <elasticsearch_min_category_filter_level>3</elasticsearch_min_category_filter_level>
             </search>
         </catalog>
     </default>

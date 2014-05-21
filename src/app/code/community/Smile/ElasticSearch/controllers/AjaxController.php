@@ -39,7 +39,7 @@ class Smile_ElasticSearch_AjaxController extends Mage_CatalogSearch_AjaxControll
 {
     /**
      * Execute autocomplete
-     * 
+     *
      * @return Mage_Core_Controller_Front_Action Self reference
      */
     public function suggestAction()
