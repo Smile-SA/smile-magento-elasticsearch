@@ -21,6 +21,7 @@ class Smile_Tracker_Block_Config extends Mage_Core_Block_Template
      *
      * @return Mage_Core_Block_Abstract Self reference
      */
+    // @codingStandardsIgnoreStart
     public function _prepareLayout()
     {
         if ($this->isEnabled() && $this->getLayout()->getBlock('head')) {
@@ -28,6 +29,7 @@ class Smile_Tracker_Block_Config extends Mage_Core_Block_Template
         }
         return $this;
     }
+    // @codingStandardsIgnoreEnd
 
     /**
      * Is tracker enabled.

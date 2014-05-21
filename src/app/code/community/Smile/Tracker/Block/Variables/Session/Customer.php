@@ -20,10 +20,13 @@ class Smile_Tracker_Block_Variables_Session_Customer extends Smile_Tracker_Block
      *
      * @return void Nothing
      */
+    // @codingStandardsIgnoreStart
     public function _construct()
     {
         $this->setTemplate('smile/tracker/variables/session.phtml');
     }
+    // @codingStandardsIgnoreEnd
+
 
     /**
      * Return the customer related variables to be tracked including :

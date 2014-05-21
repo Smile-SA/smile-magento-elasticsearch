@@ -105,7 +105,7 @@ class Smile_Tracker_Block_Variables_Page_Catalog extends Smile_Tracker_Block_Var
                     $identifier = $currentFilter->getFilter()->getRequestVar();
                 }
 
-                $variables['product_list.filters.' . $identifier] = $this->getRequest()->getParam($identifier,'');
+                $variables['product_list.filters.' . $identifier] = $this->getRequest()->getParam($identifier, '');
             }
         }
 

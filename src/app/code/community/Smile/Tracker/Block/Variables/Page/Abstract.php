@@ -21,10 +21,12 @@ class Smile_Tracker_Block_Variables_Page_Abstract extends Smile_Tracker_Block_Va
      *
      * @return void Nothing
      */
+    // @codingStandardsIgnoreStart
     public function _construct()
     {
         $this->setTemplate('smile/tracker/variables/page.phtml');
     }
+    // @codingStandardsIgnoreEnd
 
     /**
      * List of the variables added to the tracker
