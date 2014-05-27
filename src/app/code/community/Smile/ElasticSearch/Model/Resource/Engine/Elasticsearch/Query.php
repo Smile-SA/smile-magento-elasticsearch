@@ -7,7 +7,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
     protected $_type;
     protected $_adapter;
     protected $_indexName;
-    protected $_facetFields;
+    protected $_facetFields = array();
 
     public function setFulltextQuery($q)
     {
@@ -54,14 +54,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         $filters = $this->_buildQueryFilters($this->_facetFields);
         $searchParams['body']['query']['filtered']['filter'] = $filters;
 
-        $allFilterFields = array_merge(array_keys($this->_params['filters']), array_keys($this->_params['range_filters']));
-        $facetFilters = array_diff($allFilterFields, $this->_facetFields);
-        $searchParams['body']['query']['filter']['filter'] = $filters = $this->_buildQueryFilters($facetFilters);
+        if (isset($searchParams['body']['facets'])) {
+            $allFilterFields = array_merge(array_keys($this->_params['filters']), array_keys($this->_params['range_filters']));
+            $facetFilters = array_diff($allFilterFields, $this->_facetFields);
+            $searchParams['body']['query']['filter']['filter'] = $filters = $this->_buildQueryFilters($facetFilters);
 
-        foreach ($searchParams['body']['facets'] as $field => $facet) {
-            $excludeField = $facetFilters;
-            $excludeField[] = $field;
-            $searchParams['body']['facets'][$field]['facet_filter'] = $this->_buildQueryFilters($excludeField);
+            foreach ($searchParams['body']['facets'] as $field => $facet) {
+                $excludeField = $facetFilters;
+                $excludeField[] = $field;
+                $searchParams['body']['facets'][$field]['facet_filter'] = $this->_buildQueryFilters($excludeField);
+            }
         }
 
         if (!empty($q)) {

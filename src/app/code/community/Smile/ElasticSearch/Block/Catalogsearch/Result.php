@@ -35,36 +35,4 @@ class Smile_ElasticSearch_Block_Catalogsearch_Result extends Mage_CatalogSearch_
         }
         return $this->getData('result_count');
     }
-
-    /**
-     * Prepare layout
-     *
-     * @return Mage_CatalogSearch_Block_Result
-     */
-    protected function _prepareLayout()
-    {
-        // add Home breadcrumb
-        $breadcrumbs = $this->getLayout()->getBlock('breadcrumbs');
-        if ($breadcrumbs) {
-            $title = $this->__("Search results for: '%s'", $this->helper('catalogsearch')->getQueryText());
-
-            $breadcrumbs->addCrumb(
-                'home', array(
-                'label' => $this->__('Modyf'),
-                'title' => $this->__('Go to Home Page'),
-                'link'  => Mage::getBaseUrl()
-            )
-            )
-                ->addCrumb(
-                    'search', array(
-                    'label' => $title,
-                    'title' => $title
-                )
-                );
-        }
-        // modify page title
-        $title = $this->__("Search results for: '%s'", $this->helper('catalogsearch')->getEscapedQueryText());
-        $this->getLayout()->getBlock('head')->setTitle($title);
-        return $this;
-    }
 }

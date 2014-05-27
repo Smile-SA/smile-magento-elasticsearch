@@ -698,12 +698,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
         $params = array('index' => $this->_currentIndexName);
         $params['body']['suggestions'] = array(
             'text'       => $suggestQuery,
-            'completion' => array('field' => $suggestFieldName),
+            'completion' => array(
+                'field' => $suggestFieldName,
+                'fuzzy' => array('fuzziness' => 1, 'unicode_aware' => true)
+            )
         );
 
         $response = $this->_client->suggest($params);
-
-        var_dump($response);
 
         return $response;
     }

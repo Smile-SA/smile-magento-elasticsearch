@@ -16,7 +16,7 @@
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
  */
-class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_ElasticSearch_Model_Resource_Engine_Abstract
+class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
 {
     const CACHE_INDEX_PROPERTIES_ID = 'elasticsearch_index_properties';
     const DEFAULT_ROWS_LIMIT        = 9999;
@@ -753,7 +753,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
     {
         $data  = array();
         $response = $this->getAdapter()->autocompleteProducts($text);
-
+        Mage::log($response);
         if (!isset($response['error']) && isset($response['suggestions'])) {
             $suggestions = current($response['suggestions']);
             foreach ($suggestions['options'] as $suggestion) {
@@ -1080,8 +1080,15 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch extends Smile_Elas
         foreach ($docsData as $entityId => $index) {
             $index[self::UNIQUE_KEY] = $entityId . '|' . $index['store_id'];
             $index['id'] = $entityId;
-            if ($weight = $this->_getSuggestionWeight($index)) {
-                $suggestFieldName = $this->_getHelper()->getSuggestFieldNameByLocaleCode($localeCode);
+            $weight = 1;
+            if ($type == 'product') {
+                $this->_getSuggestionWeight($index);
+            }
+
+            $suggestFieldName = $this->_getHelper()->getSuggestFieldNameByLocaleCode($localeCode);
+
+            if (!isset($index[$suggestFieldName]) && $weight) {
+
                 $input = $index['name'];
                 if (isset($index['sku'])) {
                     $input[] = $index['sku'];

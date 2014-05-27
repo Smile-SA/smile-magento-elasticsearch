@@ -192,12 +192,12 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
     {
         return Mage::getStoreConfig(Mage_Core_Model_Locale::XML_PATH_DEFAULT_LOCALE, $store);
     }
-    
+
     /**
      * Get suggest field name for a store
-     * 
+     *
      * @param string|int|Mage_Core_Model_Store $store The store (current store is used if null)
-     * 
+     *
      * @return string
      */
     public function getSuggestFieldName($store = null)
@@ -205,7 +205,7 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
         $languageCode = $this->getLanguageCodeByStore($store);
         return $this->getSuggestFieldNameByLanguageCode($languageCode);
     }
-    
+
     /**
      * Get suggest field name for a locale
      *
@@ -217,19 +217,19 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $languageCode = $this->getLanguageCodeByLocaleCode($localeCode);
         return $this->getSuggestFieldNameByLanguageCode($languageCode);
-        
+
     }
-    
+
     /**
      * Get suggest field name for a language code
-     * 
+     *
      * @param string $languageCode The language code
-     * 
+     *
      * @return string
      */
-    public function getSuggestFieldNameByLanguageCode($languageCode = null) 
+    public function getSuggestFieldNameByLanguageCode($languageCode = null)
     {
-        $languageCode = $languageCode !== null ? $languageCode : $this->getLanguageCodeByStore(); 
+        $languageCode = $languageCode !== null ? $languageCode : $this->getLanguageCodeByStore();
         $languageSuffix = $languageCode ? '_' . $languageCode : '';
         return 'suggest' . $languageSuffix;
     }
@@ -459,7 +459,7 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
         if ($engine && Mage::getConfig()->getResourceModelClassName($engine)) {
             $model = Mage::getResourceSingleton($engine);
             return $model
-                && $model instanceof Smile_ElasticSearch_Model_Resource_Engine_Abstract
+                && $model instanceof Smile_ElasticSearch_Model_Resource_Engine_ElasticSearch
                 && $model->test();
         }
 

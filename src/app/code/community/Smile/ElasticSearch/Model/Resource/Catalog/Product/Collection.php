@@ -19,7 +19,7 @@
 class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage_Catalog_Model_Resource_Product_Collection
 {
     /**
-     * @var Smile_ElasticSearch_Model_Resource_Engine_Abstract Search engine.
+     * @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch Search engine.
      */
     protected $_engine;
 
@@ -265,11 +265,11 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
     /**
      * Defines current search engine.
      *
-     * @param Smile_ElasticSearch_Model_Resource_Engine_Abstract $engine Search engine to be set
+     * @param Smile_ElasticSearch_Model_Resource_Engine_ElasticSearch $engine Search engine to be set
      *
      * @return Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection
      */
-    public function setEngine(Smile_ElasticSearch_Model_Resource_Engine_Abstract $engine)
+    public function setEngine(Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch $engine)
     {
         $this->_engine = $engine;
 
