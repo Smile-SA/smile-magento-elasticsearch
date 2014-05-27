@@ -53,7 +53,6 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
         if ($this->_isValidFilter($filter) && strlen($text)) {
             $this->applyFilterToCollection($this, $filter);
             $this->getLayer()->getState()->addFilter($this->_createItem($text, $filter));
-            $this->_items = array();
         }
 
         return $this;
@@ -96,7 +95,6 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
         $productCollection = $this->getLayer()->getProductCollection();
         $fieldName = $this->_getFilterField();
         $facets = $productCollection->getFacetedData($fieldName);
-
         return $facets;
     }
 

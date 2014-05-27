@@ -47,4 +47,5 @@ class Smile_ElasticSearch_Helper_Elasticsearch extends Smile_ElasticSearch_Helpe
     {
         return Mage::getStoreConfigFlag('catalog/search/elasticsearch_enable_options_search');
     }
+
 }

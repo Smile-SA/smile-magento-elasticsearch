@@ -97,7 +97,6 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Rating extends Smile_Elasti
         if ($this->_isValidFilter($filter) && strlen($text)) {
             $this->applyFilterToCollection($this, (int) $filter);
             $this->getLayer()->getState()->addFilter($this->_createItem($text, $filter));
-            $this->_items = array();
         }
 
         return $this;

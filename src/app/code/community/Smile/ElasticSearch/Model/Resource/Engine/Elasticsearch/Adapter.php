@@ -248,72 +248,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
     }
 
     /**
-     * Returns facets max size parameter.
-     *
-     * @return int
-     */
-    public function getFacetsMaxSize()
-    {
-        return (int) $this->getConfig('facets_max_size');
-    }
-
-    /**
-     * Returns fuzzy max query terms parameter.
-     *
-     * @link http://www.elasticsearch.org/guide/reference/query-dsl/flt-query.html
-     * @return int
-     */
-    public function getFuzzyMaxQueryTerms()
-    {
-        return (int) $this->getConfig('fuzzy_max_query_terms');
-    }
-
-    /**
-     * Returns fuzzy min similarity parameter.
-     *
-     * @link http://www.elasticsearch.org/guide/reference/query-dsl/flt-query.html
-     * @return float
-     */
-    public function getFuzzyMinSimilarity()
-    {
-        // 0 to 1 (1 excluded)
-        return min(0.99, max(0, $this->getConfig('fuzzy_min_similarity')));
-    }
-
-    /**
-     * Returns fuzzy prefix length.
-     *
-     * @link http://www.elasticsearch.org/guide/reference/query-dsl/flt-query.html
-     * @return int
-     */
-    public function getFuzzyPrefixLength()
-    {
-        return (int) $this->getConfig('fuzzy_prefix_length');
-    }
-
-    /**
-     * Returns fuzzy query boost parameter.
-     *
-     * @link http://www.elasticsearch.org/guide/reference/query-dsl/flt-query.html
-     * @return float
-     */
-    public function getFuzzyQueryBoost()
-    {
-        return (float) $this->getConfig('fuzzy_query_boost');
-    }
-
-    /**
-     * Checks if fuzzy query is enabled.
-     *
-     * @link http://www.elasticsearch.org/guide/reference/query-dsl/flt-query.html
-     * @return bool
-     */
-    public function isFuzzyQueryEnabled()
-    {
-        return (bool) $this->getConfig('enable_fuzzy_query');
-    }
-
-    /**
      * Checks if ICU folding is enabled.
      *
      * @link http://www.elasticsearch.org/guide/reference/index-modules/analysis/icu-plugin.html
@@ -364,7 +298,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
      *
      * @return array
      */
-    protected function _getIndexProperties()
+    public function getIndexProperties()
     {
         $cacheId = Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch::CACHE_INDEX_PROPERTIES_ID;
         if ($properties = Mage::app()->loadCache($cacheId)) {
@@ -608,9 +542,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
      *
      * @return array
      */
-    protected function _getSearchFields($onlyFuzzy = false, $q = '')
+    public function getSearchFields($onlyFuzzy = false, $q = '')
     {
-        $properties = $this->_getIndexProperties();
+        $properties = $this->getIndexProperties();
         $fields = array();
         foreach ($properties as $key => $property) {
             if ($property['type'] == 'date'
@@ -699,14 +633,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
                 $indices->putSettings($settingsParams);
 
                 $mapping = $params;
-                $mapping['body']['mappings']['product']['properties'] = $this->_getIndexProperties();
+                $mapping['body']['mappings']['product']['properties'] = $this->getIndexProperties();
                 $indices->putMapping($mapping);
 
                 $indices->open();
             } else {
                 $params['body']['settings'] = $this->_getIndexSettings();
                 $params['body']['settings']['number_of_shards'] = (int) $this->getConfig('number_of_shards');
-                $params['body']['mappings']['product']['properties'] = $this->_getIndexProperties();
+                $params['body']['mappings']['product']['properties'] = $this->getIndexProperties();
 
                 $properties = new Varien_Object($params);
                 Mage::dispatchEvent('smile_elasticsearch_index_create_before', array('index_properties' => $properties ));
@@ -722,115 +656,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
     }
 
     /**
-     * Build a fulltext query with optionnal fuzzy params read from config
-     *
-     * @param string $text The text searched
-     *
-     * @return array
-     */
-    protected function _buildFullTextQuery($text)
-    {
-        $result = array('query_string' => array('query' => $text, 'fields' => $this->_getSearchFields(false, $text)));
-        if ($this->isFuzzyQueryEnabled()) {
-            $result = array('bool' => array('should' => array($result)));
-            $fuzzyQuery = array(
-                'fields'          => $this->_getSearchFields(true, $text),
-                'like_text'       => $text,
-                'min_similarity'  => $this->getFuzzyMinSimilarity(),
-                'prefix_length'   => $this->getFuzzyPrefixLength(),
-                'max_query_terms' => $this->getFuzzyMaxQueryTerms(),
-                'boost'           => $this->getFuzzyQueryBoost()
-            );
-            $result['bool']['should'][] = array('fuzzy_like_this' => $fuzzyQuery);
-        }
-        return $result;
-    }
-
-    /**
-     * Build the facet part of the query
-     *
-     * @param array $params Query parameters
-     *
-     * @return array
-     */
-    protected function _buildFacets($params)
-    {
-        $result = array();
-
-        if (isset($params['facets']['queries']) && !empty($params['facets']['queries'])) {
-            foreach ($params['facets']['queries'] as $facetQuery) {
-                $facet = array('query' => array('query_string' => array('query' => $facetQuery)));
-                $result[$facetQuery] = $facet;
-            }
-        }
-
-        if (isset($params['stats']['fields']) && !empty($params['stats']['fields'])) {
-            foreach ($params['stats']['fields'] as $field) {
-                $facet = array('statistical' => array('field' => $field));
-                $result[$field] = $facet;
-            }
-        } else {
-            if (isset($params['facets']['fields']) && !empty($params['facets']['fields'])) {
-                $properties = $this->_getIndexProperties();
-                foreach ($params['facets']['fields'] as $field) {
-                    if (array_key_exists($field, $properties)) {
-                        $realField = $field;
-                        if ($properties[$field]['type'] == 'multi_field') {
-                            $realField .= '.untouched';
-                        }
-                        $facet = array('terms' => array('field' => $realField));
-                        $facet['terms']['all_terms'] = true;
-                        $facet['terms']['size'] = $this->getFacetsMaxSize();
-                        $result[$field] = $facet;
-                    }
-                }
-            }
-
-            if (isset($params['facets']['ranges']) && !empty($params['facets']['ranges'])) {
-                foreach ($params['facets']['ranges'] as $field => $ranges) {
-                    $facet = array('range' => array('field' => $field, 'ranges' => $ranges));
-                    $result[$field] = $facet;
-                }
-            }
-
-            if (isset($params['facets']['histogram']) && !empty($params['facets']['histogram'])) {
-                foreach ($params['facets']['histogram'] as $field => $interval) {
-                    $facet = array('histogram' => array('field' => $field, 'interval' => $interval));
-                    $result[$field] = $facet;
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Build the query filter part of the query
-     *
-     * @param array $params Query parameters
-     *
-     * @return array
-     */
-    protected function _buildQueryFilters($params)
-    {
-
-        $filters = array('bool' => array('must' => array()));
-
-        if (empty($params['filters'])) {
-            $params['filters'] = '*';
-        }
-        $filters['bool']['must'][] = array('query' => array('query_string' => array('query' => $params['filters'])));
-
-        if (isset($params['range_filters']) && !empty($params['range_filters'])) {
-            foreach ($params['range_filters'] as $field => $rangeFilter) {
-                $filters['bool']['must'][] = array('range' => array($field => $rangeFilter));
-            }
-        }
-
-        return $filters;
-    }
-
-    /**
      * Handles search and facets.
      *
      * @param string $q      Fulltext query
@@ -841,53 +666,18 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
      *
      * @throws Exception
      */
-    public function search($q, $params = array(), $type = 'product')
+    public function search($query)
     {
         $indices = $this->_client->indices();
         $results = array();
 
         if ($indices->exists(array('index' => $this->_currentIndexName))) {
             Varien_Profiler::start('ELASTICSEARCH');
-            $searchParams = array('index' => $this->_currentIndexName, 'type'  => $type);
 
-            // Filter management
-            $filters = $this->_buildQueryFilters($params);
-            $searchParams['body']['query']['filtered']['filter'] = $filters;
+            $query->setAdapter($this)
+                  ->setIndex($this->_currentIndexName);
 
-            if (!empty($q)) {
-                // Append fulltext query if relevant
-                $textQuery = $this->_buildFullTextQuery($q);
-                $searchParams['body']['query']['filtered']['query']  = $textQuery;
-
-                $searchParams['body']['suggest'] = array(
-                    "text" => $q,
-                    "spellcheck" => array(
-                        "term" => array(
-                            "field"    => "name_fr.whitespace",
-                            "size" => 3
-                        )
-                    )
-                );
-            }
-
-            // Facet management
-            $facets = $this->_buildFacets($params);
-            if (!empty($facets)) {
-                $searchParams['body']['facets'] = $facets;
-            }
-
-            // Set Pagination
-            $searchParams['body']['from'] = $params['offset'];
-            $searchParams['body']['size'] = $params['limit'];
-
-            // Set sorting
-            if (isset($params['sort']) && !empty($params['sort'])) {
-                foreach ($params['sort'] as $sort) {
-                    $searchParams['body']['sort'][] = $sort;
-                }
-            }
-
-            $results = $this->_client->search($searchParams);
+            $results = $this->_client->search($query->getSearchParams());
 
             Varien_Profiler::stop('ELASTICSEARCH');
         }
@@ -911,11 +701,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
             'completion' => array('field' => $suggestFieldName),
         );
 
-        if ($this->isFuzzyQueryEnabled()) {
-            $params['body']['suggestions']['completion']['fuzzy'] = array('fuzziness' => 1, 'unicode_aware' => true);
-        }
-
         $response = $this->_client->suggest($params);
+
+        var_dump($response);
 
         return $response;
     }

@@ -67,7 +67,7 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
      * @var bool Indicates if the collection has been spellchecked or not
      */
     protected $_isSpellChecked = false;
-    
+
     /**
      * Adds facet condition to current collection.
      *
@@ -228,14 +228,14 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
 
     /**
      * Indicates if the spellchecker has been used to process the query
-     * 
+     *
      * @return boolean
      */
     public function isSpellchecked()
     {
         return $this->_isSpellChecked;
     }
-    
+
     /**
      * Retrieves current collection stats.
      * Used for max price.

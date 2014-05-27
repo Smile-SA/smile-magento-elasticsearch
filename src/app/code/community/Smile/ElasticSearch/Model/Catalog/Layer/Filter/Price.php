@@ -73,26 +73,42 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
     {
 
         if (is_null($this->_stats)) {
-            $searchParams = $this->getLayer()->getProductCollection()->getExtendedSearchParams();
-            $uniquePart = strtoupper(md5(serialize($searchParams)));
-            $cacheKey = 'PRICE_STATS_' . $this->getLayer()->getStateKey() . '_' . $uniquePart;
-
-            $stats = Mage::app()->loadCache($cacheKey);
-
-            if (!$stats) {
-                $stats = $this->getLayer()->getProductCollection()->getStats($this->_getFilterField());
-                $tags = $this->getLayer()->getStateTags();
-                $tags[] = self::CACHE_TAG;
-                $cachedData = serialize($stats);
-                Mage::app()->saveCache($cachedData, $cacheKey, $tags);
-            } else {
-                $stats = unserialize($stats);
-            }
-
-            $this->_stats = $stats;
+            $this->_stats = $this->getLayer()->getProductCollection()->getStats($this->_getFilterField());
         }
 
         return $this->_stats;
+    }
+
+    /**
+     * Get price range for building filter steps
+     *
+     * @return int
+     */
+    public function getPriceRange()
+    {
+        $range = $this->getData('price_range');
+        if (!$range) {
+            $currentCategory = Mage::registry('current_category_filter');
+            if ($currentCategory) {
+                $range = $currentCategory->getFilterPriceRange();
+            } else {
+                $range = $this->getLayer()->getCurrentCategory()->getFilterPriceRange();
+            }
+
+            $maxPrice = $this->getMaxPriceInt();
+            if (!$range) {
+                $calculation = Mage::app()->getStore()->getConfig(self::XML_PATH_RANGE_CALCULATION);
+                if ($calculation == self::RANGE_CALCULATION_AUTO) {
+                    $range = pow(10, (strlen(floor($maxPrice)) - 1));
+                } else {
+                    $range = (float)Mage::app()->getStore()->getConfig(self::XML_PATH_RANGE_STEP);
+                }
+            }
+
+            $this->setData('price_range', $range);
+        }
+
+        return $range;
     }
 
     /**
@@ -191,8 +207,6 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
     {
         if (Mage::app()->getStore()->getConfig(self::XML_PATH_RANGE_CALCULATION) == self::RANGE_CALCULATION_IMPROVED) {
             return $this->_getCalculatedItemsData();
-        } elseif ($this->getInterval()) {
-            return array();
         }
 
         $data = array();

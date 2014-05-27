@@ -124,13 +124,7 @@ class Smile_ElasticSearch_Block_Catalogsearch_Layer extends Mage_CatalogSearch_B
     {
         foreach ($this->getFilters() as $filter) {
             if ($filter->getItemsCount()) {
-                $collectionSize = $this->getLayer()->getProductCollection()->getSize();
-                $items = $filter->getItems();
-                foreach ($items as $item) {
-                    if ($item->getCount() < $collectionSize) {
-                        return true;
-                    }
-                }
+                return true;
             }
         }
 

@@ -49,9 +49,9 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
      */
     public function addFacetCondition()
     {
-        if (!$this->getRequest()->getParam('price')) {
+        //if (!$this->getRequest()->getParam('price')) {
             $this->_filter->addFacetCondition();
-        }
+        //}
 
         return $this;
     }

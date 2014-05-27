@@ -140,22 +140,16 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
      *
      * @return bool
      */
-    public function canShowOptions()
-    {
+    /*public function canShowOptions()
+
         foreach ($this->getFilters() as $filter) {
             if ($filter->getItemsCount()) {
-                $collectionSize = $this->getLayer()->getProductCollection()->getSize();
-                $items = $filter->getItems();
-                foreach ($items as $item) {
-                    if ($item->getCount() < $collectionSize) {
-                        return true;
-                    }
-                }
+                return true;
             }
         }
 
         return false;
-    }
+    }*/
 
     /**
      * Indicates if the block should be shown or not.
