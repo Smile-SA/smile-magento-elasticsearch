@@ -166,9 +166,90 @@ class Smile_ElasticSearch_Model_Observer
     public function reindexCategoryProduct(Varien_Event_Observer $observer)
     {
         $category = $observer->getEvent()->getCategory();
-        $productIds = $category->getAffectedProductIds();
+        $productIds = $category->getProductCollection()->getAllIds();
         $this->_getIndexer()->rebuildIndex(null, $observer->getEvent()->getProductIds())->resetSearchResults();
         Mage::dispatchEvent('smile_search_engine_reindex_category', array('category' => $category));
+        return $this;
+    }
+
+    /**
+     * Index category mapping setup
+     *
+     * @param Varien_Event_Observer $observer Event data
+     *
+     * @return Modyf_Search_Model_Observer
+     */
+    public function addCategoryMappingToIndex(Varien_Event_Observer $observer)
+    {
+        $indexProperties = $observer->getIndexProperties();
+        $indexPropertiesData = $indexProperties->getData();
+        $indexPropertiesData['body']['mappings']['category']['properties'] = array();
+        $categoryMapping = &$indexPropertiesData['body']['mappings']['category']['properties'];
+        $helper = Mage::helper('smile_elasticsearch');
+        foreach (Mage::app()->getStores() as $store) {
+            $languageCode = $helper->getLanguageCodeByStore($store);
+            $categoryMapping[$helper->getSuggestFieldName($store)] = array(
+                'type'     => 'completion',
+                'payloads' => true,
+                'max_input_length' => 500,
+                'index_analyzer' => 'analyzer_' . $languageCode,
+                'search_analyzer' => 'analyzer_' . $languageCode,
+                'preserve_separators' => false
+            );
+        }
+
+        $indexProperties->setData($indexPropertiesData);
+
+        return $this;
+    }
+
+    /**
+     * Reindex categories (auto suggest)
+     *
+     * @param Varien_Event_Observer $observer Event data
+     *
+     * @return Smile_ElasticSearch_Model_Observer
+     */
+    public function reindexCategories(Varien_Event_Observer $observer)
+    {
+        $engine = Mage::helper('catalogsearch')->getEngine();
+
+        if ($engine instanceof Smile_ElasticSearch_Model_Resource_Engine_Abstract) {
+
+            foreach (Mage::app()->getStores() as $store) {
+                $suggestFieldName = Mage::helper('smile_elasticsearch')->getSuggestFieldName($store);
+                $result = array();
+
+                $categories = Mage::getResourceModel('catalog/category_collection')
+                    ->addAttributeToFilter('level', array('gt' => 2))
+                    ->addAttributeToFilter('is_active', 1)
+                    ->addAttributeToSelect('name')
+                    ->setOrder('level', Varien_Data_Collection::SORT_ORDER_ASC);
+
+                foreach ($categories as $category) {
+                    $data = array(
+                        'input'   => $category->getName(),
+                        'output'  => $category->getName(),
+                        'payload' => array('category_id' => $category->getId()),
+                        'weight'  => $category->getLevel()
+                    );
+
+                    if (isset($result[$category->getParentId()])) {
+                        $data['output'] = $result[$category->getParentId()][$suggestFieldName]['output'] . ' > ' . $data['output'];
+                    }
+
+                    $result[$category->getId()] = array(
+                        'name'            => $category->getName(),
+                        'id'              => $category->getId(),
+                        'store_id'        => $store->getId(),
+                        $suggestFieldName => $data
+                    );
+                }
+
+                $engine->saveEntityIndexes($store->getId(), $result, 'category');
+            }
+        }
+
         return $this;
     }
 }

@@ -430,8 +430,15 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Abstract
         foreach ($docsData as $entityId => $index) {
             $index[self::UNIQUE_KEY] = $entityId . '|' . $index['store_id'];
             $index['id'] = $entityId;
-            if ($weight = $this->_getSuggestionWeight($index)) {
-                $suggestFieldName = $this->_getHelper()->getSuggestFieldNameByLocaleCode($localeCode);
+            $weight = 1;
+            if ($type == 'product') {
+                $this->_getSuggestionWeight($index);
+            }
+
+            $suggestFieldName = $this->_getHelper()->getSuggestFieldNameByLocaleCode($localeCode);
+
+            if (!isset($index[$suggestFieldName]) && $weight) {
+
                 $input = $index['name'];
                 if (isset($index['sku'])) {
                     $input[] = $index['sku'];
