@@ -66,14 +66,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
             }
         }
 
-        if (!empty($q)) {
+        if (!empty($this->_q)) {
             // Append fulltext query if relevant
             $textQuery = $this->_buildFullTextQuery();
 
             $searchParams['body']['query']['filtered']['query']  = $textQuery;
 
             $searchParams['body']['suggest'] = array(
-                "text" => $q,
+                "text" => $this->_q,
                 "spellcheck" => array(
                     "term" => array(
                         "field"    => "name_fr.whitespace",
@@ -107,11 +107,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
      */
     protected function _buildFullTextQuery()
     {
-        $result = array('query_string' => array('query' => $this->_q, 'fields' => $this->getSearchFields(false, $this->_q)));
+        $result = array('query_string' => array('query' => $this->_q, 'fields' => $this->_adapter->getSearchFields(false, $this->_q)));
         if ($this->isFuzzyQueryEnabled()) {
             $result = array('bool' => array('should' => array($result)));
             $fuzzyQuery = array(
-                'fields'          => $this->getSearchFields(true, $this->_q),
+                'fields'          => $this->_adapter->getSearchFields(true, $this->_q),
                 'like_text'       => $this->_q,
                 'min_similarity'  => $this->getFuzzyMinSimilarity(),
                 'prefix_length'   => $this->getFuzzyPrefixLength(),
@@ -120,6 +120,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
             );
             $result['bool']['should'][] = array('fuzzy_like_this' => $fuzzyQuery);
         }
+
         return $result;
     }
 
