@@ -187,13 +187,14 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
      */
     protected function _beforeToHtml()
     {
-        foreach ($this->_filterTemplates as $filterName => $template) {
-            $block = $this->getChild($filterName . '_filter');
-            if ($block) {
-                $block->setTemplate($template);
+        if (Mage::helper('smile_elasticsearch')->isActiveEngine()) {
+            foreach ($this->_filterTemplates as $filterName => $template) {
+                $block = $this->getChild($filterName . '_filter');
+                if ($block) {
+                    $block->setTemplate($template);
+                }
             }
         }
-
         return parent::_beforeToHtml();
     }
 }

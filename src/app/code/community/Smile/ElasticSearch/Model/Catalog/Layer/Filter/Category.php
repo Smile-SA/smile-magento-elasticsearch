@@ -81,6 +81,8 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
         if (!$filter && $this->getCategory()) {
             if ($this->getCategory()->getLevel() >= $minLevel) {
                 $filter = $this->getCategory()->getId();
+            } else if ($this->getCategory()) {
+                $this->addCategoryFilter($category);
             }
         }
 

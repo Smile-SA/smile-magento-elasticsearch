@@ -183,10 +183,12 @@ class Smile_ElasticSearch_Block_Catalogsearch_Layer extends Mage_CatalogSearch_B
      */
     protected function _beforeToHtml()
     {
-        foreach ($this->_filterTemplates as $filterName => $template) {
-            $block = $this->getChild($filterName . '_filter');
-            if ($block) {
-                $block->setTemplate($template);
+        if (Mage::helper('smile_elasticsearch')->isActiveEngine()) {
+            foreach ($this->_filterTemplates as $filterName => $template) {
+                $block = $this->getChild($filterName . '_filter');
+                if ($block) {
+                    $block->setTemplate($template);
+                }
             }
         }
 
