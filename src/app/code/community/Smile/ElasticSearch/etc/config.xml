@@ -182,7 +182,7 @@
             <catalogsearch>
                 <args>
                     <modules>
-                        <widget before="Mage_CatalogSearch">Smile_ElasticSearch</widget>
+                        <smile_elasticsearch before="Mage_CatalogSearch">Smile_ElasticSearch</smile_elasticsearch>
                     </modules>
                 </args>
             </catalogsearch>
