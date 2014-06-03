@@ -22,8 +22,8 @@
 /* Price slider styles */
 .range-slider { padding: 5px 0 0; }
 .range-slider .slider-bkg { margin:10px 0; background-color:#ccc; height:5px; position: relative; background: #BAA; cursor : pointer; }
-.range-slider .handle { margin:-6px 0 0; width:10px; height:8px; background-color:#d12c01; cursor:move; position: absolute; }
-.range-slider .handle:after { content: "-"; color: transparent; width: 0; height: 0; border-top: 8px solid #d12c01; border-left: 5px solid transparent; position: absolute; margin: 8px 0 0; border-right: 5px solid transparent; }
+.range-slider .handle { margin:-6px 0 0; width:10px; height:8px; background-color:#3399cc; cursor:move; position: absolute; }
+.range-slider .handle:after { content: "-"; color: transparent; width: 0; height: 0; border-top: 8px solid #3399cc; border-left: 5px solid transparent; position: absolute; margin: 8px 0 0; border-right: 5px solid transparent; }
 .range-slider .handle.min { margin-left: -4px; }
 .range-slider .handle.max { margin-left: 4px; }
 .range-slider .limits-container { margin: 0 0 0; }
@@ -34,4 +34,7 @@
 .range-slider .count.empty { line-height: 10px; color: #AA0000; margin: 0; text-align: center; }
 .range-slider .count { line-height: 20px; margin: 0 50px 0 0; text-align: left; display: block; }
 
-#narrow-by-list .rating-box { display: inline-block; margin: -2px 0; }
+#narrow-by-list .ratings { display: inline-block; margin: 0; }
+#narrow-by-list .ratings .rating-box { margin: 0; }
+
+.block-layered-nav dl dd ol > li > span, .block-layered-nav dl dd ol > li > a { display: inline-block; }

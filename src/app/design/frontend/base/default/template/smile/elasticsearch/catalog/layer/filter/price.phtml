@@ -25,6 +25,7 @@
 	</div>
 	<div class="validate-button"><button class="valid button"><span><span><?php echo $this->__('OK'); ?></span></span></button></div>
 	<em class="count"></em>
+	<div class="clear"></div>
 </div>
 
 <script type="text/javascript">
@@ -58,18 +59,24 @@
         var countProducts  = 0;
         config.valueFormat = config.valueFormat != null ? config.valueFormat : function(value) {return value};
 
-    	var slider = new Control.Slider(sliderRootNode.select('.handle'), sliderRootNode, {
-    	    range       : config.range,
-    	    sliderValue : config.values,
-    	    restricted  : true,
-    	    onSlide     : onSliderChangeValues,
-    	    onChange    : onSliderChangeValues
-    	});
+        function initSlider() {
+        	var slider = new Control.Slider(sliderRootNode.select('.handle'), sliderRootNode, {
+        	    range       : config.range,
+        	    sliderValue : config.values,
+        	    restricted  : true,
+        	    onSlide     : onSliderChangeValues,
+        	    onChange    : onSliderChangeValues
+        	});
+        	return slider;
+        }
+
+        var slider = initSlider();
 
     	function onSliderChangeValues(values) {
     	    for (var i=0; i < values.length; i++) {
                 inputNodes[i].innerHTML = config.valueFormat(values[i]);
             }
+    	    config.values = values;
     	    updateCounter(values);
     	}
 
@@ -128,7 +135,11 @@
             counterNode.addClassName(countTemplate);
     	}
 
+    	window.addEventListener('resize', initSlider);
+    	console.log(config.rootNode.parentNode);
+    	config.rootNode.parentNode.addEventListener('DOMAttrModified', initSlider);
     	onSliderChangeValues(slider.values);
+
     })(sliderConfig);
 -->
 </script>

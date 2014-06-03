@@ -22,11 +22,11 @@
                 <div class="rating" style="width:<?php echo $_item->getLabel(); ?>%"></div>
             </div></div>
             <span><?php echo $this->__('and more')?></span>
+            <?php if ($this->shouldDisplayProductCount()): ?>
+            <span class="count">(<?php echo $_item->getCount() ?>)</span>
+            <?php endif; ?>
         </a>
         <?php else: echo $_item->getLabel() ?>
-        <?php endif; ?>
-        <?php if ($this->shouldDisplayProductCount()): ?>
-        (<?php echo $_item->getCount() ?>)
         <?php endif; ?>
     </li>
 <?php endforeach ?>
