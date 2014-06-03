@@ -289,7 +289,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
 
         $query['body']['sort'] = $this->_prepareSortCondition();
         $query['body'] = array_merge($query['body'], $this->_page);
-
         return $query;
     }
 

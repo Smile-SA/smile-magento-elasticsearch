@@ -140,7 +140,7 @@ class Smile_ElasticSearch_Block_Catalogsearch_Layer extends Mage_CatalogSearch_B
     public function canShowBlock()
     {
         if (!$this->getLayer()->getProductCollection()->isLoaded()) {
-            $this->getLayer()->getProductCollection()->load();
+            $this->getLayer()->getProductCollection()->getSize();
         }
 
         return ($this->canShowOptions() || count($this->getLayer()->getState()->getFilters()));
