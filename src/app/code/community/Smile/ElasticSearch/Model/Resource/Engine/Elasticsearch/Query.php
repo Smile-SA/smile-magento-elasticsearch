@@ -370,12 +370,25 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         if ($this->_fulltextQuery) {
             $query = array('bool' => array('should' => array()));
             $searchFields = $this->getSearchFields();
-            $query['bool']['should'] = array(
+            $query['bool']['should'][] = array(
                 'multi_match' => array(
                     'query'  => $this->prepareFilterQueryText($this->_fulltextQuery),
                     'fields' => $searchFields
                 )
             );
+
+            if ((bool) $this->getConfig('enable_fuzzy_query')) {
+                $fuzzyQuery = array(
+                    'fields'          => $this->getSearchFields(true),
+                    'like_text'       => $this->_fulltextQuery,
+                    'min_similarity'  => min(0.99, max(0, $this->getConfig('fuzzy_min_similarity'))),
+                    'prefix_length'   => (int) $this->getConfig('fuzzy_prefix_length'),
+                    'max_query_terms' => (int) $this->getConfig('fuzzy_prefix_length'),
+                    'boost'           => (float) $this->getConfig('fuzzy_query_boost')
+                );
+
+                $query['bool']['should'][] = array('fuzzy_like_this' => $fuzzyQuery);
+            }
         }
 
         return $query;

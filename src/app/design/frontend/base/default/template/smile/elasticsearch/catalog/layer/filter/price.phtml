@@ -135,7 +135,7 @@
             counterNode.addClassName(countTemplate);
     	}
 
-    	config.rootNode.observe('resize', initSlider);
+    	window.addEventListener('resize', initSlider);
     	onSliderChangeValues(slider.values);
 
     })(sliderConfig);
