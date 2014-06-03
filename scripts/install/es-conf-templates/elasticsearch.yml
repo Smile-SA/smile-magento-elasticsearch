@@ -375,3 +375,5 @@ discovery.zen.ping.unicast.hosts: [HOSTS]
 #monitor.jvm.gc.old.warn: 10s
 #monitor.jvm.gc.old.info: 5s
 #monitor.jvm.gc.old.debug: 2
+
+script.disable_dynamic: false

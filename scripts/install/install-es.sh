@@ -5,7 +5,7 @@
 #
 
 # Configuration stuffs
-ES_VERSION=1.0
+ES_VERSION=1.2
 if [ "$#" -lt 2 ]; then
     echo "Usage : ./install-es.sh cluster_name server1:port <server2:port> ..."
     exit 1
@@ -29,4 +29,4 @@ update-rc.d elasticsearch defaults
 
 # Installing plugins required by Magento modules
 /usr/share/elasticsearch/bin/plugin -install mobz/elasticsearch-head
-/usr/share/elasticsearch/bin/plugin -install elasticsearch/elasticsearch-analysis-icu/2.0.0.RC1
+/usr/share/elasticsearch/bin/plugin -install elasticsearch/elasticsearch-analysis-icu/2.2.0
