@@ -90,7 +90,7 @@ class Smile_ElasticSearch_Model_Observer
         if (null === $storeId && null === $productIds) {
             $engine = Mage::helper('catalogsearch')->getEngine();
             if ($engine instanceof Smile_ElasticSearch_Model_Resource_Engine_ElasticSearch) {
-                $engine->prepareNewIndex();
+                $engine->getCurrentIndex()->prepareNewIndex();
             }
         }
 
@@ -108,7 +108,7 @@ class Smile_ElasticSearch_Model_Observer
     {
         $engine = Mage::helper('catalogsearch')->getEngine();
         if ($engine instanceof Smile_ElasticSearch_Model_Resource_Engine_ElasticSearch) {
-            $engine->installNewIndex();
+            $engine->getCurrentIndex()->installNewIndex();
         }
 
         return $this;

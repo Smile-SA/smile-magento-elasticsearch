@@ -23,35 +23,14 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
      */
     protected $_engine;
 
+
+    protected $_searchEngineQuery = null;
+
     /**
      * @var array Faceted data.
      */
     protected $_facetedData = array();
 
-    /**
-     * @var array Facets conditions.
-     */
-    protected $_facetsConditions = array();
-
-    /**
-     * @var array General default query.
-     */
-    protected $_generalDefaultQuery = array('*' => '*');
-
-    /**
-     * @var string Search query text.
-     */
-    protected $_searchQueryText = '';
-
-    /**
-     * @var array Search query filters.
-     */
-    protected $_searchQueryFilters = array();
-
-    /**
-     * @var array Search query range filters.
-     */
-    protected $_searchQueryRangeFilters = array();
 
     /**
      * @var array Search entity ids.
@@ -63,32 +42,6 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
      */
     protected $_sortBy = array();
 
-    /**
-     * @var bool Indicates if the collection has been spellchecked or not
-     */
-    protected $_isSpellChecked = false;
-
-    /**
-     * Adds facet condition to current collection.
-     *
-     * @param string $field     Field to be build facet for
-     * @param mixed  $condition Facet condition
-     *
-     * @return Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection
-     */
-    public function addFacetCondition($field, $condition = null)
-    {
-        if (array_key_exists($field, $this->_facetsConditions)) {
-            if (!empty($this->_facetsConditions[$field])) {
-                $this->_facetsConditions[$field] = array($this->_facetsConditions[$field]);
-            }
-            $this->_facetsConditions[$field][] = $condition;
-        } else {
-            $this->_facetsConditions[$field] = $condition;
-        }
-
-        return $this;
-    }
 
     /**
      * Add some fields to filter.
@@ -103,42 +56,6 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
     }
 
     /**
-     * Stores filter query.
-     *
-     * @param array $params Param of the filter
-     *
-     * @return Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection
-     */
-    public function addFqFilter($params)
-    {
-        if (is_array($params)) {
-            foreach ($params as $field => $value) {
-                $this->_searchQueryFilters[$field] = $value;
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * Stores range filter query.
-     *
-     * @param array $params Range filter params
-     *
-     * @return Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection
-     */
-    public function addFqRangeFilter($params)
-    {
-        if (is_array($params)) {
-            foreach ($params as $field => $value) {
-                $this->_searchQueryRangeFilters[$field] = $value;
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * Stores query text filter.
      *
      * @param string $query Fulltext search query to be applied
@@ -147,49 +64,10 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
      */
     public function addSearchFilter($query)
     {
-        $this->_searchQueryText = $query;
-
+        $this->getSearchEngineQuery()->setFulltextQuery($query);
         return $this;
     }
 
-    /**
-     * Stores search query filter.
-     *
-     * @param mixed $param Field to be filtered
-     * @param null  $value Filter value
-     *
-     * @return Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection
-     */
-    public function addSearchQfFilter($param, $value = null)
-    {
-        if (is_array($param)) {
-            foreach ($param as $field => $value) {
-                $this->addSearchQfFilter($field, $value);
-            }
-        } elseif (isset($value)) {
-            if (isset($this->_searchQueryFilters[$param]) && !is_array($this->_searchQueryFilters[$param])) {
-                $this->_searchQueryFilters[$param] = array($this->_searchQueryFilters[$param]);
-                $this->_searchQueryFilters[$param][] = $value;
-            } else {
-                $this->_searchQueryFilters[$param] = $value;
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * Aggregates search query filters.
-     *
-     * @return array
-     */
-    public function getExtendedSearchParams()
-    {
-        $result = $this->_searchQueryFilters;
-        $result['query_text'] = $this->_searchQueryText;
-
-        return $result;
-    }
 
     /**
      * Returns faceted data.
@@ -215,51 +93,10 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
     public function getSize()
     {
         if (is_null($this->_totalRecords)) {
-            $query = $this->_getQuery();
-            $params = $this->_getParams();
-            $params['limit'] = 1;
-            $result = $this->_engine->getIdsByQuery($query, $params);
-            $this->_totalRecords = $this->_engine->getLastNumFound();
-            $this->_isSpellChecked = isset($result['is_spellchecked']) ? $result['is_spellchecked'] : false;
+            $this->_beforeLoad();
         }
 
         return $this->_totalRecords;
-    }
-
-    /**
-     * Indicates if the spellchecker has been used to process the query
-     *
-     * @return boolean
-     */
-    public function isSpellchecked()
-    {
-        return $this->_isSpellChecked;
-    }
-
-    /**
-     * Retrieves current collection stats.
-     * Used for max price.
-     *
-     * @param array $fields Stats fields to be collected
-     *
-     * @return mixed
-     */
-    public function getStats($fields)
-    {
-        $query = $this->_getQuery();
-        $params = $this->_getParams();
-        $params['limit'] = 0;
-
-        if (!is_array($fields)) {
-            $fields = array($fields);
-        }
-        foreach ($fields as $field) {
-            $params['stats']['fields'][] = $field;
-        }
-
-        $this->_pageSize = false;
-
-        return $this->_engine->getStats($query, $params);
     }
 
     /**
@@ -320,18 +157,20 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
      */
     protected function _beforeLoad()
     {
+        $this->_prepareQuery();
+
         $ids = array();
-        if ($this->_engine) {
-            $result = $this->_engine->getIdsByQuery($this->_getQuery(), $this->_getParams());
-            $ids = isset($result['ids']) ? $result['ids'] : array();
-            $this->_facetedData = isset($result['faceted_data']) ? $result['faceted_data'] : array();
-            $this->_totalRecords = isset($result['total_count']) ? $result['total_count'] : null;
-            $this->_isSpellChecked = isset($result['is_spellchecked']) ? $result['is_spellchecked'] : false;
-        }
+        $result = $this->getSearchEngineQuery()->search();
+
+        $ids = isset($result['ids']) ? $result['ids'] : array();
+        $this->_facetedData = isset($result['faceted_data']) ? $result['faceted_data'] : array();
+        $this->_totalRecords = isset($result['total_count']) ? $result['total_count'] : null;
+        $this->_isSpellChecked = isset($result['is_spellchecked']) ? $result['is_spellchecked'] : false;
 
         if (empty($ids)) {
             $ids = array(0); // Fix for no result
         }
+
         $this->addIdFilter($ids);
         $this->_searchedEntityIds = $ids;
         $this->_pageSize = false;
@@ -344,39 +183,44 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
      *
      * @return array
      */
-    protected function _getParams()
+    protected function _prepareQuery()
     {
-        $store = Mage::app()->getStore($this->getStoreId());
-        $params = array();
-        $params['locale_code'] = $store->getConfig(Mage_Core_Model_Locale::XML_PATH_DEFAULT_LOCALE);
-        $params['filters'] = $this->_searchQueryFilters;
-        $params['range_filters'] = $this->_searchQueryRangeFilters;
+        $query = $this->getSearchEngineQuery();
 
         if (!empty($this->_sortBy)) {
-            $params['sort_by'] = $this->_sortBy;
+            $query->addSortOrder($this->_sortBy);
         }
 
-        if ($this->_pageSize !== false) {
-            $page = ($this->_curPage  > 0) ? (int) $this->_curPage  : 1;
-            $rowCount = ($this->_pageSize > 0) ? (int) $this->_pageSize : 1;
-            $params['offset'] = $rowCount * ($page - 1);
-            $params['limit'] = $rowCount;
+        if ($this->_pageSize !== false && $this->_curPage !== false) {
+            $query->setPageParams($this->_curPage, $this->_pageSize);
         }
 
-        if (!empty($this->_facetsConditions)) {
-            $params['facets'] = $this->_facetsConditions;
+        if ($this->getStoreId()) {
+            $query->addFilter('terms', array('store_id' => $this->getStoreId()));
         }
-
-        return $params;
     }
 
     /**
-     * Returns stored text query.
+     * Get the ES query model associated with the product collection.
      *
-     * @return string
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
      */
-    protected function _getQuery()
+    public function getSearchEngineQuery()
     {
-        return $this->_searchQueryText;
+        if ($this->_searchEngineQuery === null) {
+            $this->_searchEngineQuery = $this->_engine->createQuery('product');
+        }
+
+        return $this->_searchEngineQuery;
+    }
+
+    /**
+     * Indicates if spellchecker the collection has exact matches or not.
+     *
+     * @return boolean
+     */
+    public function isSpellchecked()
+    {
+        return false;
     }
 }

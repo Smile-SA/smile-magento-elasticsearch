@@ -55,7 +55,8 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
     protected function _beforeLoad()
     {
         if ($this->_isSuggestionFilterSet === false) {
-            $this->addFqFilter(array('id' => $this->getSuggestionIds()));
+            $query = $this->getSearchEngineQuery();
+            $query->addFilter('terms', array('id' => $this->getSuggestionIds()));
             $this->_isSuggestionFilterSet = true;
         }
         return parent::_beforeLoad();
@@ -69,7 +70,8 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
     public function getSize()
     {
         if ($this->_isSuggestionFilterSet === false) {
-            $this->addFqFilter(array('id' => $this->getSuggestionIds()));
+            $query = $this->getSearchEngineQuery();
+            $query->addFilter('terms', array('id' => $this->getSuggestionIds()));
             $this->_isSuggestionFilterSet = true;
         }
         return parent::getSize();
@@ -83,7 +85,7 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
     public function getSuggestionIds()
     {
         if (is_null($this->_suggestionsIds) && !is_null($this->_suggestQuery)) {
-            $suggestions = $this->_engine->suggestProduct($this->_suggestQuery);
+            $suggestions = $this->_engine->suggest($this->_suggestQuery);
             $idsFilter = array();
 
             foreach ($suggestions as $suggestion) {

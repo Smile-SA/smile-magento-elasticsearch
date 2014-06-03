@@ -32,9 +32,10 @@
             <remove name="catalog.leftnav"/>
             <block type="smile_elasticsearch/catalog_layer_view" name="smile.elaticsearch.leftnav" before="-" template="catalog/layer/view.phtml">
                 <!--
-                Example of custom template for a filter :  
-                <action method="addFilterTemplate"><filterName>price</filterName><template>catalog/layer/filter/price.phtml</template></action>
-                -->
+                Example of custom template for a filter :
+                -->  
+                <action method="addFilterTemplate"><filterName>price</filterName><template>smile/elasticsearch/catalog/layer/filter/price.phtml</template></action>
+                <action method="addFilterTemplate"><filterName>rating_filter</filterName><template>smile/elasticsearch/catalog/layer/filter/rating.phtml</template></action>
             </block>
         </reference>
     </catalog_category_layered>
@@ -44,9 +45,10 @@
             <remove name="catalogsearch.leftnav"/>
             <block type="smile_elasticsearch/catalogsearch_layer" name="smile.elaticsearch.leftnav" before="-" template="catalog/layer/view.phtml">
                 <!--
-                Example of custom template for a filter :  
-                <action method="addFilterTemplate"><filterName>price</filterName><template>catalog/layer/filter/price.phtml</template></action>
+                Example of custom template for a filter :
                 -->
+                <action method="addFilterTemplate"><filterName>price</filterName><template>smile/elasticsearch/catalog/layer/filter/price.phtml</template></action>
+                <action method="addFilterTemplate"><filterName>rating_filter</filterName><template>smile/elasticsearch/catalog/layer/filter/rating.phtml</template></action>
             </block>
         </reference>
         <reference name="content">

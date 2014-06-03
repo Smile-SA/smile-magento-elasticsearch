@@ -67,7 +67,7 @@
             SmileTracker.config = config;
             BOOMR.init({
                 beacon_url: config.beaconUrl,
-                BW: { base_url: config.bwBaseUrl }
+                BW: { enabled: false, base_url: config.bwBaseUrl }
             });
             SmileTracker.initSession();
         },

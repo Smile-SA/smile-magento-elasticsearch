@@ -295,49 +295,6 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
-     * Returns searched parameter as array.
-     *
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute Attribute we want to build filter for
-     * @param mixed                                     $value     Filter value
-     *
-     * @return array
-     */
-    public function getSearchParam($attribute, $value)
-    {
-        if (empty($value) ||
-            (isset($value['from']) && empty($value['from']) &&
-                isset($value['to']) && empty($value['to']))) {
-            return false;
-        }
-
-        $field = $this->getAttributeFieldName($attribute);
-        $backendType = $attribute->getBackendType();
-        if ($backendType == 'datetime') {
-            $format = Mage::app()->getLocale()->getDateFormat(Mage_Core_Model_Locale::FORMAT_TYPE_SHORT);
-            if (is_array($value)) {
-                foreach ($value as &$val) {
-                    if (!is_empty_date($val)) {
-                        $date = new Zend_Date($val, $format);
-                        $val = $date->toString(Zend_Date::ISO_8601) . 'Z';
-                    }
-                }
-                unset($val);
-            } else {
-                if (!is_empty_date($value)) {
-                    $date = new Zend_Date($value, $format);
-                    $value = $date->toString(Zend_Date::ISO_8601) . 'Z';
-                }
-            }
-        }
-
-        if ($attribute->usesSource()) {
-            $attribute->setStoreId(Mage::app()->getStore()->getId());
-        }
-
-        return array($field => $value);
-    }
-
-    /**
      * Returns sortable attribute field name (localized if needed).
      *
      * @param Mage_Catalog_Model_Resource_Eav_Attribute|string $attribute Attribute we want the name of the sort field

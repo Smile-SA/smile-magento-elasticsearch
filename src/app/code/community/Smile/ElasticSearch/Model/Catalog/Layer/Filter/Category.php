@@ -27,11 +27,10 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
      */
     public function addCategoryFilter($category)
     {
-        $value = array(
-            'categories' => $category->getId()
-        );
-        $this->getLayer()->getProductCollection()
-            ->addFqFilter($value);
+        $categoryId = $category->getId();
+        $qs = "(categories:{$categoryId} OR show_in_categories:{$categoryId})";
+        $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
+        $query->addFilter('query', array('query_string' => $qs));
 
         return $this;
     }
@@ -45,16 +44,9 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
      */
     public function addFacetCondition()
     {
-        /** @var $category Mage_Catalog_Model_Category */
-        $category = $this->getCategory();
-        $childrenCategories = $category->getChildrenCategories();
-
-        $useFlat = (bool) Mage::getStoreConfig('catalog/frontend/flat_catalog_category');
-        $categories = ($useFlat)
-            ? array_keys($childrenCategories)
-            : array_keys($childrenCategories->toArray());
-
-        $this->getLayer()->getProductCollection()->addFacetCondition('categories', $categories);
+        $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
+        $options = array('script_field' => 'doc.categories.values + doc.show_in_categories.values');
+        $query->addFacet('categories', 'terms', $options);
 
         return $this;
     }
@@ -92,9 +84,8 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
             }
         }
 
-        if (!$filter) {
-            $this->addCategoryFilter($category, null);
-            return $this;
+        if ($filter) {
+            $this->addCategoryFilter($category);
         }
 
         $this->_appliedCategory = Mage::getModel('catalog/category')

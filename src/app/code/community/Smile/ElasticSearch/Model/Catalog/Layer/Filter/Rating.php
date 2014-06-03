@@ -32,9 +32,9 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Rating extends Smile_Elasti
      */
     public function addFacetCondition()
     {
-        $this->getLayer()
-            ->getProductCollection()
-            ->addFacetCondition($this->_getFilterField(), array('interval' => self::RATING_AGG_INTERVAL));
+        $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
+        $options = array('interval' => self::RATING_AGG_INTERVAL, 'field' => $this->_getFilterField());
+        $query->addFacet($this->_getFilterField(), 'histogram', $options);
 
         return $this;
     }
@@ -55,14 +55,25 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Rating extends Smile_Elasti
         $data = $layer->getAggregator()->getCacheData($key);
 
         if ($data === null) {
-            $facets = array_reverse($this->_getFacets(), true);
-            $data = array();
+
+            $data      = array();
+            $facets    = array_reverse($this->_getFacets(), true);
+            $sumCount  = 0;
+
+            $maxValue = current(array_keys($facets));
+
+            while (($maxValue = $maxValue - self::RATING_AGG_INTERVAL) && $maxValue >0) {
+                if (!isset($facets[$maxValue])) {
+                    $facets[$maxValue] = 0;
+                }
+            }
 
             foreach ($facets as $key => $count) {
+                $sumCount  += $count ;
                 $data[] = array(
                     'label' => $key,
                     'value' => $key,
-                    'count' => (int) $count,
+                    'count' => (int) $sumCount,
                 );
             }
 
@@ -93,7 +104,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Rating extends Smile_Elasti
             return $this;
         }
 
-        $text = Mage::helper('smile_elasticsearch')->__('Rating : %d / 5', $filter / self::RATING_AGG_INTERVAL);
+        $text = Mage::helper('smile_elasticsearch')->__('%d / 5 and more', $filter / self::RATING_AGG_INTERVAL);
         if ($this->_isValidFilter($filter) && strlen($text)) {
             $this->applyFilterToCollection($this, (int) $filter);
             $this->getLayer()->getState()->addFilter($this->_createItem($text, $filter));
@@ -112,17 +123,9 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Rating extends Smile_Elasti
      */
     public function applyFilterToCollection($filter, $value)
     {
-        $value = array(
-            $this->getRequestVar() => array(
-                'from' => $value,
-                'to' => $value + self::RATING_AGG_INTERVAL,
-                'include_lower' => true
-            )
-        );
-
-        $this->getLayer()
-            ->getProductCollection()
-            ->addFqRangeFilter($value);
+        $limits = array('gte' => $value);
+        $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
+        $query->addFilter('range', array($this->_getFilterField() => $limits), $this->_getFilterField());
 
         return $this;
     }

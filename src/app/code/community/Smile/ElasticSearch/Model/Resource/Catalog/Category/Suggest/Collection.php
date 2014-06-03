@@ -107,7 +107,7 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Category_Suggest_Collection
     public function getSuggestionIds()
     {
         if (is_null($this->_suggestionsIds) && !is_null($this->_suggestQuery)) {
-            $suggestions = $this->_engine->suggestProduct($this->_suggestQuery);
+            $suggestions = $this->_engine->suggest($this->_suggestQuery);
             $idsFilter = array();
             foreach ($suggestions as $suggestion) {
                 if (isset($suggestion['payload']) && isset($suggestion['payload']['category_id'])) {

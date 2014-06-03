@@ -18,6 +18,8 @@
  */
 class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Catalog_Model_Layer_Filter_Attribute
 {
+    protected $_rawFilter = array();
+
     /**
      * Adds facet condition to product collection.
      *
@@ -27,9 +29,9 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
      */
     public function addFacetCondition()
     {
-        $this->getLayer()
-            ->getProductCollection()
-            ->addFacetCondition($this->_getFilterField());
+        $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
+        $options = array('field' => $this->_getFilterField());
+        $query->addFacet($this->_getFilterField(), 'terms', $options);
 
         return $this;
     }
@@ -45,14 +47,27 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     public function apply(Zend_Controller_Request_Abstract $request, $filterBlock)
     {
         $filter = $request->getParam($this->_requestVar);
-        if (is_array($filter) || null === $filter) {
+
+        if ($filter === null) {
             return $this;
         }
+        if (!is_array($filter)) {
+            $filter = array($filter);
+        }
 
-        $text = $this->_getOptionText($filter);
-        if ($this->_isValidFilter($filter) && strlen($text)) {
+        $filterText = array();
+
+        foreach ($filter as $currentFilter) {
+            $text = $this->_getOptionText($currentFilter);
+            if ($this->_isValidFilter($currentFilter) && strlen($text)) {
+                $filterText[] = $text;
+                $this->_rawFilter[] = $currentFilter;
+            }
+        }
+
+        if (!empty($this->_rawFilter)) {
             $this->applyFilterToCollection($this, $filter);
-            $this->getLayer()->getState()->addFilter($this->_createItem($text, $filter));
+            $this->getLayer()->getState()->addFilter($this->_createItem(implode(' , ', $filterText), $filter));
         }
 
         return $this;
@@ -68,18 +83,12 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
      */
     public function applyFilterToCollection($filter, $value)
     {
-        if (!$this->_isValidFilter($value)) {
-            $value = array();
-        } else if (!is_array($value)) {
+        if (!is_array($value)) {
             $value = array($value);
         }
 
-        $attribute = $filter->getAttributeModel();
-        $param = Mage::helper('smile_elasticsearch')->getSearchParam($attribute, $value);
-
-        $this->getLayer()
-            ->getProductCollection()
-            ->addSearchQfFilter($param);
+        $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
+        $query->addFilter('terms', array($this->_getFilterField() => $value), $this->_getFilterField());
 
         return $this;
     }
@@ -154,6 +163,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
                     if (!$count && $this->_getIsFilterableAttribute($attribute) == self::OPTIONS_ONLY_WITH_RESULTS) {
                         continue;
                     }
+
                     $data[] = array(
                         'label' => $label,
                         'value' => $option['value'],
@@ -199,5 +209,43 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     protected function _isValidFilter($filter)
     {
         return !empty($filter);
+    }
+
+    /**
+     * Create filter item object
+     *
+     * @param string $label Label of the filter value
+     * @param mixed  $value Value of the filter
+     * @param int    $count Number of result (default is 0)
+     *
+     * @return Mage_Catalog_Model_Layer_Filter_Item
+     */
+    protected function _createItem($label, $value, $count=0)
+    {
+        $isSelected = false;
+
+        if ($this->getIsMultipleSelect() && $value) {
+            if (in_array($value, $this->_rawFilter)) {
+                $isSelected = true;
+            }
+
+            $values = $this->_rawFilter;
+
+            if (($key = array_search($value, $values)) !== false) {
+                unset($values[$key]);
+                $value = array_values($values);
+            } else {
+                if (!is_array($value)) {
+                    $value = array($value);
+                }
+                $value = array_merge($values, $value);
+            }
+        }
+
+        $item = parent::_createItem($label, $value, $count);
+        $item->setSelected($isSelected);
+
+
+        return $item;
     }
 }

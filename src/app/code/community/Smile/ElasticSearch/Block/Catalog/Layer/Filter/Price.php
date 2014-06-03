@@ -49,10 +49,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
      */
     public function addFacetCondition()
     {
-        //if (!$this->getRequest()->getParam('price')) {
-            $this->_filter->addFacetCondition();
-        //}
-
+        $this->_filter->addFacetCondition();
         return $this;
     }
 
@@ -108,7 +105,31 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
     public function getFilterJsTemplate()
     {
         $requestVar = $this->getRequestVar();
-        return "$requestVar=#{minValue}-#{maxValue}";
+        return "$requestVar=#{min}-#{max}";
+    }
+
+    /**
+     * Return the currently selected interval.
+     *
+     * @return array
+     */
+    public function getInterval()
+    {
+        $interval = $this->_filter->getInterval();
+        if (is_null($interval)) {
+            $interval = array($this->getMinPriceInt(true), $this->getMaxPriceInt(true));
+        }
+        return $interval;
+    }
+
+    /**
+     * Return the price format used by JS to display prices.
+     *
+     * @return array
+     */
+    public function getJsPriceFormat()
+    {
+        return Mage::helper('core/data')->jsonEncode(Mage::app()->getLocale()->getJsPriceFormat());
     }
 
     /**
@@ -123,16 +144,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
         $allowedIntervals = array();
 
         foreach ($this->getItems() as $currentItem) {
-            list($minValue, $maxValue) = explode('-', $currentItem->getValue());
-            $minValue = $minValue == '' ? $minValue = $minPriceInt : $minValue;
-            $maxValue = $maxValue == '' ? $maxValue = $maxPriceInt : $maxValue;
-            $lastPosition = count($allowedIntervals) - 1;
-
-            if (!empty($allowedIntervals) && $minValue <= $allowedIntervals[$lastPosition][1]) {
-                $allowedIntervals[$lastPosition][1] = (int) $maxValue;
-            } else {
-                $allowedIntervals[] = array((int) $minValue, (int) $maxValue);
-            }
+            $allowedIntervals[] = array('value' => $currentItem->getValue(), 'count' => $currentItem->getCount());
         }
 
         return $allowedIntervals;

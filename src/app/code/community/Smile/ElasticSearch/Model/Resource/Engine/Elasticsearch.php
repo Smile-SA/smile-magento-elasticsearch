@@ -16,79 +16,67 @@
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
  */
+
+// Include the Elasticsearch required libraries used by the adapter
+require_once 'vendor/autoload.php';
+
+/**
+ * Elastic search engine.
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ *
+ */
 class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
 {
+
     const CACHE_INDEX_PROPERTIES_ID = 'elasticsearch_index_properties';
-    const DEFAULT_ROWS_LIMIT        = 9999;
-    const UNIQUE_KEY                = 'unique';
+
+    const UNIQUE_KEY = 'unique';
 
     /**
+     *
      * @var string List of advanced index fields prefix.
      */
     protected $_advancedIndexFieldsPrefix = '#';
 
     /**
-     * @var array List of advanced dynamic index fields.
-     */
-    protected $_advancedDynamicIndexFields = array(
-        '#position_category_',
-        '#price_'
-    );
-
-    /**
-     * @var object Search engine client.
-    */
-    protected $_client;
-
-    /**
-     * @var array List of dates format.
-     */
-    protected $_dateFormats = array();
-
-    /**
+     *
      * @var array List of default query parameters.
-    */
+     */
     protected $_defaultQueryParams = array(
         'offset' => 0,
         'limit' => 100,
-        'sort_by' => array(array('relevance' => 'desc')),
+        'sort_by' => array(
+            array(
+                'relevance' => 'desc'
+            )
+        ),
         'store_id' => null,
         'locale_code' => null,
         'fields' => array(),
         'params' => array(),
         'ignore_handler' => false,
-        'filters' => array(),
+        'filters' => array()
     );
 
     /**
+     *
      * @var array List of indexable attribute parameters.
-    */
+     */
     protected $_indexableAttributeParams = array();
 
     /**
-     * @var int Last number of results found.
-    */
-    protected $_lastNumFound;
-
-    /**
-     * @var array List of non fulltext fields.
-     */
-    protected $_notInFulltextField = array(
-        self::UNIQUE_KEY,
-        'id',
-        'store_id',
-        'in_stock',
-        'categories',
-        'show_in_categories',
-        'visibility'
-    );
-
-    /**
+     *
      * @var bool Stores search engine availibility
-    */
+     */
     protected $_test = null;
 
     /**
+     *
      * @var array List of used fields.
      */
     protected $_usedFields = array(
@@ -104,16 +92,82 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
         'score'
     );
 
-
+    /**
+     *
+     * @var Varien_Object
+     */
+    protected $_config;
 
     /**
-     * Initializes search engine.
      *
-     * @see Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
+     * @var Elasticsearch\Client
      */
-    public function __construct()
+    protected $_client = null;
+
+    /**
+     *
+     * @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
+     */
+    protected $_currentIndex = null;
+
+    /**
+     *
+     * @var string
+     */
+    protected $_currentIndexName = null;
+
+    /**
+     *
+     * @var bool
+     */
+    protected $_indexNeedInstall = false;
+
+    /**
+     *
+     * @var string Date format.
+     * @link http://www.elasticsearch.org/guide/reference/mapping/date-format.html
+     */
+    protected $_dateFormat = 'date';
+
+    /**
+     * Initializes search engine config and index name.
+     *
+     * @param array|bool $params Client init params.
+     */
+    public function __construct($params = false)
     {
-        $this->_defaultAdapter = Mage::getResourceSingleton('smile_elasticsearch/engine_elasticsearch_adapter');
+        $config = $this->_getHelper()->getEngineConfigData();
+
+        $this->_config = new Varien_Object($config);
+
+        $this->_client = new \Elasticsearch\Client(array('hosts' => $config['hosts'], 'logging' => false));
+        // parent::__construct($config);
+        if (! isset($config['alias'])) {
+            Mage::throwException('Alias must be defined for search engine client.');
+        }
+
+        $this->_currentIndex = Mage::getResourceModel('smile_elasticsearch/engine_elasticsearch_index');
+        $this->_currentIndex->setAdapter($this)->setCurrentName($config['alias']);
+    }
+
+    /**
+     * Get the ElasticSearch client instance
+     *
+     * @return \Elasticsearch\Client
+     */
+    public function getClient()
+    {
+        return $this->_client;
+    }
+
+    /**
+     * Return the current index instance
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
+     */
+    public function getCurrentIndex()
+    {
+        return $this->_currentIndex;
     }
 
     /**
@@ -139,35 +193,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
      */
     public function cleanIndex($storeId = null, $id = null, $type = 'product')
     {
-        //$this->getClient()->cleanIndex($storeId, $id, $type);
-
+        // $this->getClient()->cleanIndex($storeId, $id, $type);
         return $this;
-    }
-
-    /**
-     * Deletes index.
-     *
-     * @return mixed
-     */
-    public function deleteIndex()
-    {
-        return $this->getAdapter()->deleteIndex();
-    }
-
-    /**
-     * Retrieves stats for specified query.
-     *
-     * @param string $query  Fulltext query
-     * @param array  $params Search params (filters, facets, ...)
-     * @param string $type   Document type to be searched
-     *
-     * @return array
-     */
-    public function getStats($query, $params = array(), $type = 'product')
-    {
-        $stats = $this->_search($query, $params, $type);
-
-        return isset($stats['facets']['stats']) ? $stats['facets']['stats'] : array();
     }
 
     /**
@@ -195,19 +222,21 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
                     $value = array_values(array_filter(array_unique($value)));
                 }
                 if (array_key_exists($key, $searchables)) {
-                    /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
+                    /**
+                     * @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute
+                     */
                     $attribute = $searchables[$key];
                     if ($attribute->getBackendType() == 'datetime') {
                         foreach ($value as &$date) {
                             $date = $this->_getDate($store->getId(), $date);
                         }
                         unset($date);
-                    } elseif ($attribute->usesSource() && !empty($value)) {
+                    } elseif ($attribute->usesSource() && ! empty($value)) {
                         if ($attribute->getFrontendInput() == 'multiselect') {
                             $value = explode(',', is_array($value) ? $value[0] : $value);
                         } elseif ($helper->isAttributeUsingOptions($attribute)) {
                             $val = is_array($value) ? $value[0] : $value;
-                            if (!isset($data['_options'])) {
+                            if (! isset($data['_options'])) {
                                 $data['_options'] = array();
                             }
                             $option = $attribute->setStoreId($storeId)
@@ -219,7 +248,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
                 }
                 if (array_key_exists($key, $sortables)) {
                     $val = is_array($value) ? current($value) : $value;
-                    /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
+                    /**
+                     * @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute
+                     */
                     $attribute = $sortables[$key];
                     $attribute->setStoreId($store->getId());
                     $key = $helper->getSortableAttributeFieldName($sortables[$key], $localeCode);
@@ -237,7 +268,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
         unset($data);
 
         $docs = $this->_prepareDocs($indexes, $type, $localeCode);
-        $this->_addDocs($docs);
+        $this->getCurrentIndex()->addDocuments($docs);
 
         return $this;
     }
@@ -254,7 +285,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
         }
 
         try {
-            $this->_test = $this->getAdapter()->getStatus();
+            $this->_test = $this->getStatus();
         } catch (Exception $e) {
             Mage::logException($e);
             $this->_test = false;
@@ -268,493 +299,34 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     }
 
     /**
-     * Adds documents to index.
-     *
-     * @param array $docs Docuement to be added
-     *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
-     *
-     * @throws Exception
-     */
-    protected function _addDocs($docs)
-    {
-        try {
-
-
-            if (!empty($docs)) {
-                $this->getAdapter()->addDocuments($docs);
-            }
-
-        } catch (Exception $e) {
-            throw($e);
-        }
-        $this->getAdapter()->refreshIndex();
-
-        return $this;
-    }
-
-    /**
-     * Creates and prepares document for indexation.
-     *
-     * @param int    $entityId Document id
-     * @param array  $index    Document data
-     * @param string $type     Document type
-     *
-     * @return mixed
-     */
-    protected function _createDoc($entityId, $index, $type = 'product')
-    {
-        return $this->getAdapter()->createDoc($index[self::UNIQUE_KEY], $index, $type);
-    }
-
-    /**
-     * Escapes specified value.
-     *
-     * @param string $value Value to be escaped
-     *
-     * @return mixed
-     *
-     * @link http://lucene.apache.org/core/3_6_0/queryparsersyntax.html
-     */
-    protected function _escape($value)
-    {
-        $result = $value;
-        // \ escaping has to be first, otherwise escaped later once again
-        $chars = array('\\', '+', '-', '&&', '||', '!', '(', ')', '{', '}', '[', ']', '^', '"', '~', '*', '?', ':', '/');
-
-        foreach ($chars as $char) {
-            $result = str_replace($char, '\\' . $char, $result);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Escapes specified phrase.
-     *
-     * @param string $value Value to be escaped
-     *
-     * @return string
-     */
-    protected function _escapePhrase($value)
-    {
-        $pattern = '/("|\\\)/';
-        $replace = '\\\$1';
-
-        return preg_replace($pattern, $replace, $value);
-    }
-
-    /**
-     * Phrases specified value.
-     *
-     * @param string $value Value to be escaped
-     *
-     * @return string
-     */
-    protected function _phrase($value)
-    {
-        return '"' . $this->_escapePhrase($value) . '"';
-    }
-
-    /**
-     * Prepares facets conditions.
-     *
-     * @param array $facetsFields Field to be transform as facets
-     *
-     * @return array
-     */
-    protected function _prepareFacetsConditions($facetsFields)
-    {
-        $result = array();
-        if (is_array($facetsFields)) {
-            foreach ($facetsFields as $facetField => $facetFieldConditions) {
-                if (empty($facetFieldConditions)) {
-                    $result['fields'][] = $facetField;
-                } else {
-                    if (isset($facetFieldConditions['interval'])) {
-                        $result['histogram'][$facetField] = $facetFieldConditions['interval'];
-                    } else {
-                        foreach ($facetFieldConditions as $facetCondition) {
-                            if (is_array($facetCondition) && isset($facetCondition['from']) && isset($facetCondition['to'])) {
-                                $from = (isset($facetCondition['from']) && strlen(trim($facetCondition['from'])))
-                                    ? $this->_prepareQueryText($facetCondition['from'])
-                                    : '';
-                                $to = (isset($facetCondition['to']) && strlen(trim($facetCondition['to'])))
-                                    ? $this->_prepareQueryText($facetCondition['to'])
-                                    : '';
-                                if (!$from) {
-                                    unset($facetCondition['from']);
-                                } else {
-                                    $facetCondition['from'] = $from;
-                                }
-                                if (!$to) {
-                                    unset($facetCondition['to']);
-                                } else {
-                                    $facetCondition['to'] = $to;
-                                }
-                                $result['ranges'][$facetField][] = $facetCondition;
-                            } else {
-                                $facetCondition = $this->_prepareQueryText($facetCondition);
-                                $fieldCondition = $this->_prepareFieldCondition($facetField, $facetCondition);
-                                $result['queries'][] = $fieldCondition;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Prepares facets query response.
-     *
-     * @param array $response Response to be parsed
-     *
-     * @return array
-     */
-    protected function _prepareFacetsQueryResponse($response)
-    {
-        $result = array();
-        foreach ($response as $attr => $data) {
-            if (isset($data['terms'])) {
-                foreach ($data['terms'] as $value) {
-                    $result[$attr][$value['term']] = $value['count'];
-                }
-            } elseif (isset($data['_type']) && $data['_type'] == 'statistical') {
-                $result['stats'][$attr] = $data;
-            } elseif (isset($data['ranges'])) {
-                foreach ($data['ranges'] as $range) {
-                    $from = isset($range['from_str']) ? $range['from_str'] : '';
-                    $to = isset($range['to_str']) ? $range['to_str'] : '';
-                    $result[$attr]["[$from TO $to]"] = $range['total_count'];
-                }
-            } elseif (isset($data['entries'])) {
-                foreach ($data['entries'] as $entry) {
-                    $result[$attr][$entry['key']] = $entry['count'];
-                }
-            } elseif (preg_match('/\(categories:(\d+) OR show_in_categories\:\d+\)/', $attr, $matches)) {
-                $result['categories'][$matches[1]] = $data['count'];
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Prepares field condition.
-     *
-     * @param string $field Field name
-     * @param string $value Filter value
-     *
-     * @return string
-     */
-    protected function _prepareFieldCondition($field, $value)
-    {
-        if ($field == 'categories') {
-            $fieldCondition = "(categories:{$value} OR show_in_categories:{$value})";
-        } else {
-            $fieldCondition = $field . ': "' . $value . '"';
-        }
-
-        return $fieldCondition;
-    }
-
-    /**
-     * Prepares filter query text.
-     *
-     * @param string $text Fulltext query
-     *
-     * @return mixed|string
-     */
-    protected function _prepareFilterQueryText($text)
-    {
-        $words = explode(' ', $text);
-        if (count($words) > 1) {
-            $text = $this->_phrase($text);
-        } else {
-            $text = $this->_escape($text);
-        }
-
-        return $text;
-    }
-
-    /**
-     * Prepares filters.
-     *
-     * @param array $filters Filters
-     *
-     * @return array
-     */
-    protected function _prepareFilters($filters)
-    {
-        $result = array();
-        if (is_array($filters) && !empty($filters)) {
-            foreach ($filters as $field => $value) {
-                if (is_array($value)) {
-                    if ($field == 'price' || isset($value['from']) || isset($value['to'])) {
-                        $from = (isset($value['from']))
-                            ? $this->_prepareFilterQueryText($value['from'])
-                            : '';
-                        $to = (isset($value['to']))
-                            ? $this->_prepareFilterQueryText($value['to'])
-                            : '';
-                        $fieldCondition = "$field:[$from TO $to]";
-                    } else {
-                        $fieldCondition = array();
-                        foreach ($value as $part) {
-                            $part = $this->_prepareFilterQueryText($part);
-                            $fieldCondition[] = $this->_prepareFieldCondition($field, $part);
-                        }
-                        $fieldCondition = '(' . implode(' OR ', $fieldCondition) . ')';
-                    }
-                } else {
-                    $value = $this->_prepareFilterQueryText($value);
-                    $fieldCondition = $this->_prepareFieldCondition($field, $value);
-                }
-
-                $result[$field] = $fieldCondition;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Prepares query response.
-     *
-     * @param array $response Response to parsed
-     *
-     * @return array
-     */
-    protected function _prepareQueryResponse($response)
-    {
-        $this->_lastNumFound = (int) $response['hits']['total'];
-        $result = array();
-        foreach ($response['hits']['hits'] as $doc) {
-            $result[] = $doc['_source'];
-        }
-        return $result;
-    }
-
-    /**
-     * Prepares query text.
-     *
-     * @param string $text Fulltext query
-     *
-     * @return string
-     */
-    protected function _prepareQueryText($text)
-    {
-        $words = explode(' ', $text);
-        if (count($words) > 1) {
-            foreach ($words as $key => &$val) {
-                if (!empty($val)) {
-                    $val = $this->_escape($val);
-                } else {
-                    unset($words[$key]);
-                }
-            }
-            $text = '(' . implode(' ', $words) . ')';
-        } else {
-            $text = $this->_escape($text);
-        }
-
-        return $text;
-    }
-
-    /**
-     * Prepares search conditions.
-     *
-     * @param mixed $query Filltext query
-     *
-     * @return string
-     */
-    protected function _prepareSearchConditions($query)
-    {
-        if (!is_array($query)) {
-            $searchConditions = $this->_prepareQueryText($query);
-        } else {
-            $searchConditions = array();
-            foreach ($query as $field => $value) {
-                if (is_array($value)) {
-                    if ($field == 'price' || isset($value['from']) || isset($value['to'])) {
-                        $from = (isset($value['from']) && strlen(trim($value['from'])))
-                            ? $this->_prepareQueryText($value['from'])
-                            : '';
-                        $to = (isset($value['to']) && strlen(trim($value['to'])))
-                            ? $this->_prepareQueryText($value['to'])
-                            : '';
-                        $fieldCondition = "$field:[$from TO $to]";
-                    } else {
-                        $fieldCondition = array();
-                        foreach ($value as $part) {
-                            $part = $this->_prepareFilterQueryText($part);
-                            $fieldCondition[] = $field .':'. $part;
-                        }
-                        $fieldCondition = '('. implode(' OR ', $fieldCondition) .')';
-                    }
-                } else {
-                    if ($value != '*') {
-                        $value = $this->_prepareQueryText($value);
-                    }
-                    $fieldCondition = $field .':'. $value;
-                }
-                $searchConditions[] = $fieldCondition;
-            }
-            $searchConditions = implode(' AND ', $searchConditions);
-        }
-
-        return $searchConditions;
-    }
-
-    /**
-     * Prepares sort fields.
-     *
-     * @param array $sortBy Sort conditions
-     *
-     * @return array
-     */
-    protected function _prepareSortFields($sortBy)
-    {
-        $result = array();
-        foreach ($sortBy as $sort) {
-            $_sort = each($sort);
-            $sortField = $_sort['key'];
-            $sortType = $_sort['value'];
-            if ($sortField == 'relevance') {
-                $sortField = '_score';
-            } elseif ($sortField == 'position') {
-                $sortField = 'position_category_' . Mage::registry('current_category')->getId();
-            } elseif ($sortField == 'price') {
-                $websiteId = Mage::app()->getStore()->getWebsiteId();
-                $customerGroupId = Mage::getSingleton('customer/session')->getCustomerGroupId();
-                $sortField = 'price_'. $customerGroupId .'_'. $websiteId;
-            } else {
-                $sortField = $this->_getHelper()->getSortableAttributeFieldName($sortField);
-            }
-            $result[] = array($sortField => trim(strtolower($sortType)));
-        }
-
-        return $result;
-    }
-
-    /**
-     * Performs search and facetting.
-     *
-     * @param string $query  Fulltext query
-     * @param array  $params Search params (facets, filters, ...)
-     * @param string $type   Document type to be searched
-     *
-     * @return array
-     */
-    protected function _search($query, $params = array(), $type = 'product')
-    {
-        $searchConditions = $this->_prepareSearchConditions($query);
-
-        $_params = $this->_defaultQueryParams;
-        if (is_array($params) && !empty($params)) {
-            $_params = array_intersect_key($params, $_params) + array_diff_key($_params, $params);
-        }
-
-        $searchParams = array();
-        $searchParams['offset'] = isset($_params['offset'])
-            ? (int) $_params['offset']
-            : 0;
-        $searchParams['limit'] = isset($_params['limit'])
-            ? (int) $_params['limit']
-            : self::DEFAULT_ROWS_LIMIT;
-
-        if (!is_array($_params['params'])) {
-            $_params['params'] = array($_params['params']);
-        }
-
-        $searchParams['sort'] = $this->_prepareSortFields($_params['sort_by']);
-
-        $useFacetSearch = (isset($params['facets']) && !empty($params['facets']));
-        if ($useFacetSearch) {
-            $searchParams['facets'] = $this->_prepareFacetsConditions($params['facets']);
-        }
-
-        if (!empty($_params['params'])) {
-            foreach ($_params['params'] as $name => $value) {
-                $searchParams[$name] = $value;
-            }
-        }
-
-        if ($_params['store_id'] > 0) {
-            $_params['filters']['store_id'] = $_params['store_id'];
-        }
-        if ($type == 'product') {
-            if (!Mage::helper('cataloginventory')->isShowOutOfStock()) {
-                $_params['filters']['in_stock'] = '1';
-            }
-
-            if (!empty($query)) {
-                $visibility = Mage::getSingleton('catalog/product_visibility')->getVisibleInSearchIds();
-            } else {
-                $visibility = Mage::getSingleton('catalog/product_visibility')->getVisibleInCatalogIds();
-            }
-            $_params['filters']['visibility'] = $visibility;
-        }
-
-        $searchParams['filters'] = $this->_prepareFilters($_params['filters']);
-
-        if (!empty($params['range_filters'])) {
-            $searchParams['range_filters'] = $params['range_filters'];
-        }
-
-        if (!empty($params['stats'])) {
-            $searchParams['stats'] = $params['stats'];
-        }
-
-        $query = Mage::getResourceModel('smile_elasticsearch/engine_elasticsearch_query')
-            ->setFulltextQuery($searchConditions)
-            ->setQueryParams($searchParams)
-            ->setType($type);
-
-        $data = $this->getAdapter()->search($query);
-
-        $result = array();
-
-        if (!isset($data['error'])) {
-            if (!isset($params['params']['stats']) || $params['params']['stats'] != 'true') {
-                $result = array(
-                    'docs' => $this->_prepareQueryResponse($data),
-                    'total_count' => $data['hits']['total'],
-                );
-                if ($useFacetSearch && isset($data['facets'])) {
-                    $result['facets'] = $this->_prepareFacetsQueryResponse($data['facets']);
-                }
-
-                if (isset($data['suggest']) && isset($data['suggest']['spellcheck'])) {
-                    $result['is_spellchecked'] = false;
-                    foreach ($data['suggest']['spellcheck'] as $term) {
-                        if (!empty($term['options'])) {
-                            $result['is_spellchecked'] = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    /**
      * Run autocomplete for products on the search engigne
      *
      * @param string $text Text to be autocompleted
      *
      * @return array
      */
-    public function suggestProduct($text)
+    public function suggest($text)
     {
-        $data  = array();
-        $response = $this->getAdapter()->autocompleteProducts($text);
-        Mage::log($response);
-        if (!isset($response['error']) && isset($response['suggestions'])) {
+        $suggestFieldName = $this->_getHelper()->getSuggestFieldName();
+        $params = array(
+            'index' => $this->_currentIndex->getCurrentName()
+        );
+        $params['body']['suggestions'] = array(
+            'text' => $text,
+            'completion' => array(
+                'field' => $suggestFieldName,
+                'fuzzy' => array(
+                    'fuzziness' => 1,
+                    'unicode_aware' => true
+                )
+            )
+        );
+
+        $response = $this->_client->suggest($params);
+
+        $data = array();
+
+        if (! isset($response['error']) && isset($response['suggestions'])) {
             $suggestions = current($response['suggestions']);
             foreach ($suggestions['options'] as $suggestion) {
                 $data[] = $suggestion;
@@ -762,39 +334,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
         }
 
         return $data;
-    }
-
-
-    /**
-     * Prepare a new empty index for full reindex
-     *
-     * @return void
-     */
-    public function prepareNewIndex()
-    {
-        $this->cleanCache();
-        $this->getAdapter()->prepareNewIndex();
-    }
-
-    /**
-     * Installs the new index after full reindex
-     *
-     * @return void
-     */
-    public function installNewIndex()
-    {
-        $this->getAdapter()->installNewIndex();
-    }
-
-    /**
-     * Get the adapter used to connect ElasticSearch
-     *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
-     */
-    public function getAdapter()
-    {
-        return $this->_defaultAdapter;
-
     }
 
     /**
@@ -805,11 +344,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
      * @param array $productIds Product ids
      *
      * @return array
-    */
+     */
     public function addAdvancedIndex($index, $storeId, $productIds = null)
     {
-        return Mage::getResourceSingleton('smile_elasticsearch/engine_index')
-        ->addAdvancedIndex($index, $storeId, $productIds);
+        return Mage::getResourceSingleton('smile_elasticsearch/engine_index')->addAdvancedIndex($index, $storeId, $productIds);
     }
 
     /**
@@ -832,6 +370,19 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
         return true;
     }
 
+    /**
+     * Return a new query instance
+     *
+     * @param string $type Type of document for the query
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     */
+    public function createQuery($type)
+    {
+        $query = Mage::getResourceModel('smile_elasticsearch/engine_elasticsearch_query')->setAdapter($this)->setType($type);
+
+        return $query;
+    }
 
     /**
      * Returns product visibility ids for search.
@@ -856,35 +407,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     }
 
     /**
-     * Retrieves product ids for specified query.
-     *
-     * @param string $query  Fulltext query
-     * @param array  $params Search params (filters, facets, ...)
-     * @param string $type   Document type to be searched
-     *
-     * @return array
-     */
-    public function getIdsByQuery($query, $params = array(), $type = 'product')
-    {
-        $ids = array();
-        $params['fields'] = array('id');
-        $resultTmp = $this->search($query, $params, $type);
-        if (!empty($resultTmp['docs'])) {
-            foreach ($resultTmp['docs'] as $doc) {
-                $ids[] = $doc['id'];
-            }
-        }
-        $result = array(
-            'ids' => $ids,
-            'total_count'     => (isset($resultTmp['total_count'])) ? $resultTmp['total_count'] : null,
-            'faceted_data'    => (isset($resultTmp['facets'])) ? $resultTmp['facets'] : array(),
-            'is_spellchecked' => (isset($resultTmp['is_spellchecked'])) ? $resultTmp['is_spellchecked'] : false,
-        );
-
-        return $result;
-    }
-
-    /**
      * Returns resource name.
      *
      * @return string
@@ -892,16 +414,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     public function getResourceName()
     {
         return 'smile_elasticsearch/advanced';
-    }
-
-    /**
-     * Returns last number of results found.
-     *
-     * @return int
-     */
-    public function getLastNumFound()
-    {
-        return $this->_lastNumFound;
     }
 
     /**
@@ -939,125 +451,36 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     }
 
     /**
-     * Performs search query and facetting.
-     *
-     * @param string $query  Fulltext query
-     * @param array  $params Search params (filters, facets, ...)
-     * @param string $type   Document type to be searched
-     *
-     * @return array
-     */
-    public function search($query, $params = array(), $type = 'product')
-    {
-        try {
-            Varien_Profiler::start('ELASTICSEARCH');
-            $result = $this->_search($query, $params, $type);
-            Varien_Profiler::stop('ELASTICSEARCH');
-            return $result;
-        } catch (Exception $e) {
-            Mage::logException($e);
-            if ($this->_getHelper()->isDebugEnabled()) {
-                $this->_getHelper()->showError($e->getMessage());
-            }
-        }
-
-        return array();
-    }
-
-
-    /**
      * Transforms specified date to basic YYYY-MM-dd format.
      *
      * @param int    $storeId Current store id
      * @param string $date    Date to be transformed
      *
-     * @return null|string
+     * @return null string
      */
     protected function _getDate($storeId, $date = null)
     {
-        if (!isset($this->_dateFormats[$storeId])) {
+        if (! isset($this->_dateFormats[$storeId])) {
             $timezone = Mage::getStoreConfig(Mage_Core_Model_Locale::XML_PATH_DEFAULT_TIMEZONE, $storeId);
-            $locale   = Mage::getStoreConfig(Mage_Core_Model_Locale::XML_PATH_DEFAULT_LOCALE, $storeId);
-            $locale   = new Zend_Locale($locale);
+            $locale = Mage::getStoreConfig(Mage_Core_Model_Locale::XML_PATH_DEFAULT_LOCALE, $storeId);
+            $locale = new Zend_Locale($locale);
 
-            $dateObj  = new Zend_Date(null, null, $locale);
+            $dateObj = new Zend_Date(null, null, $locale);
             $dateObj->setTimezone($timezone);
-            $this->_dateFormats[$storeId] = array($dateObj, $locale->getTranslation(null, 'date', $locale));
+            $this->_dateFormats[$storeId] = array(
+                $dateObj,
+                $locale->getTranslation(null, 'date', $locale)
+            );
         }
 
         if (is_empty_date($date)) {
             return null;
         }
 
-        list($dateObj, $localeDateFormat) = $this->_dateFormats[$storeId];
+        list ($dateObj, $localeDateFormat) = $this->_dateFormats[$storeId];
         $dateObj->setDate($date, $localeDateFormat);
 
         return $dateObj->toString('YYYY-MM-dd');
-    }
-
-    /**
-     * Returns search helper.
-     *
-     * @return Smile_ElasticSearch_Helper_Data
-     */
-    protected function _getHelper()
-    {
-        return Mage::helper('smile_elasticsearch');
-    }
-
-    /**
-     * Returns indexable attribute parameters.
-     *
-     * @return array
-     */
-    protected function _getIndexableAttributeParams()
-    {
-        if (null === $this->_indexableAttributeParams) {
-            $this->_indexableAttributeParams = array();
-            $attributes = $this->_getHelper()->getSearchableAttributes();
-            foreach ($attributes as $attribute) {
-                /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
-                $this->_indexableAttributeParams[$attribute->getAttributeCode()] = array(
-                    'backend_type'   => $attribute->getBackendType(),
-                    'frontend_input' => $attribute->getFrontendInput(),
-                    'search_weight'  => $attribute->getSearchWeight(),
-                    'is_searchable'  => $attribute->getIsSearchable()
-                );
-            }
-        }
-
-        return $this->_indexableAttributeParams;
-    }
-
-    /**
-     * Returns store locale code.
-     *
-     * @param int $storeId Store Id
-     *
-     * @return string
-     */
-    protected function _getLocaleCode($storeId = null)
-    {
-        return $this->_getHelper()->getLocaleCode($storeId);
-    }
-
-    /**
-     * Transforms specified object to an array.
-     *
-     * @param object $object Source object
-     *
-     * @return array
-     */
-    protected function _objectToArray($object)
-    {
-        if (!is_object($object) && !is_array($object)) {
-            return $object;
-        }
-        if (is_object($object)) {
-            $object = get_object_vars($object);
-        }
-
-        return array_map(array($this, '_objectToArray'), $object);
     }
 
     /**
@@ -1071,7 +494,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
      */
     protected function _prepareDocs($docsData, $type, $localeCode = null)
     {
-        if (!is_array($docsData) || empty($docsData)) {
+        if (! is_array($docsData) || empty($docsData)) {
             return array();
         }
 
@@ -1087,20 +510,22 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
 
             $suggestFieldName = $this->_getHelper()->getSuggestFieldNameByLocaleCode($localeCode);
 
-            if (!isset($index[$suggestFieldName]) && $weight) {
+            if (! isset($index[$suggestFieldName]) && $weight) {
 
                 $input = $index['name'];
                 if (isset($index['sku'])) {
                     $input[] = $index['sku'];
                 }
                 $index[$suggestFieldName] = array(
-                    'input'   => $input,
-                    'payload' => array('product_id' => $entityId),
-                    'weight'  => $weight
+                    'input' => $input,
+                    'payload' => array(
+                        'product_id' => $entityId
+                    ),
+                    'weight' => $weight
                 );
             }
             $index = $this->_prepareIndexData($index, $localeCode);
-            $docs[] = $this->_createDoc($entityId, $index, $type);
+            $docs[] = $this->getCurrentIndex()->createDocument($index[self::UNIQUE_KEY], $index, $type);
         }
 
         return $docs;
@@ -1117,9 +542,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     {
         $visibilityWeight = array(
             Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE => 0,
-            Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_CATALOG  => 1,
-            Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH   => 1,
-            Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH        => 2,
+            Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_CATALOG => 1,
+            Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH => 1,
+            Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH => 2
         );
 
         $result = isset($data['visibility']) && isset($data['status']) ? $visibilityWeight[current($data['visibility'])] : 0;
@@ -1138,7 +563,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
      */
     protected function _prepareIndexData($data, $localeCode = null)
     {
-        if (!is_array($data) || empty($data)) {
+        if (! is_array($data) || empty($data)) {
             return array();
         }
 
@@ -1158,5 +583,37 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
         }
 
         return $data;
+    }
+
+    /**
+     * Indicates if connection to the search engine is up or not
+     *
+     * @return bool
+     */
+    public function getStatus()
+    {
+        return $this->_client->ping();
+    }
+
+    /**
+     * Read configuration from key
+     *
+     * @param string $key Name of the config param to retrieve
+     *
+     * @return mixed
+     */
+    public function getConfig($key)
+    {
+        return $this->_config->getData($key);
+    }
+
+    /**
+     * Returns search helper.
+     *
+     * @return Smile_ElasticSearch_Helper_Elasticsearch
+     */
+    protected function _getHelper()
+    {
+        return Mage::helper('smile_elasticsearch/elasticsearch');
     }
 }

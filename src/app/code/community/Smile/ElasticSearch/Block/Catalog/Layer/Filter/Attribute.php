@@ -27,6 +27,8 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Attribute extends Smile_Ela
     {
         parent::__construct();
         $this->_filterModelName = 'smile_elasticsearch/catalog_layer_filter_attribute';
+        $this->setIsMultipleSelect(true);
+        $this->setTemplate('smile/elasticsearch/catalog/layer/filter.phtml');
     }
 
     /**
@@ -37,7 +39,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Attribute extends Smile_Ela
     protected function _prepareFilter()
     {
         $this->_filter->setAttributeModel($this->getAttributeModel());
-
+        $this->_filter->setIsMultipleSelect(true);
         return $this;
     }
 

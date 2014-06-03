@@ -29,23 +29,9 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Decimal extends Mage_Catalo
      */
     public function addFacetCondition()
     {
-        $range = $this->getRange();
-        $maxValue = $this->getMaxValue();
-        if ($maxValue > 0) {
-            $facets = array();
-            $facetCount = (int) ceil($maxValue / $range);
-
-            for ($i = 0; $i < $facetCount + 1; $i++) {
-                $facets[] = array(
-                    'from' => $i * $range,
-                    'to' => ($i + 1) * $range,
-                    'include_upper' => !($i < $facetCount)
-                );
-            }
-
-            $fieldName = $this->_getFilterField();
-            $this->getLayer()->getProductCollection()->addFacetCondition($fieldName, $facets);
-        }
+        $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
+        $options = array('interval' => 1, 'field' => $this->_getFilterField());
+        $query->addFacet($this->_getFilterField(), 'histogram', $options);
 
         return $this;
     }

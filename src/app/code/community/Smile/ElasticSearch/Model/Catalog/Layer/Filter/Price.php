@@ -31,24 +31,9 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
      */
     public function addFacetCondition()
     {
-        $range = $this->getPriceRange();
-        $maxPrice = $this->getMaxPriceInt();
-        if ($maxPrice > 0) {
-            $priceFacets = array();
-            $facetCount = (int) ceil($maxPrice / $range);
-
-            for ($i = 0; $i < $facetCount + 1; $i++) {
-                $from = ($i === 0) ? '' : ($i * $range);
-                $to = ($i === $facetCount) ? '' : (($i + 1) * $range);
-                $priceFacets[] = array(
-                    'from' => $from,
-                    'to' => $to,
-                    'include_upper' => !($i < $facetCount)
-                );
-            }
-
-            $this->getLayer()->getProductCollection()->addFacetCondition($this->_getFilterField(), $priceFacets);
-        }
+        $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
+        $options = array('interval' => 1, 'field' => $this->_getFilterField());
+        $query->addFacet($this->_getFilterField(), 'histogram', $options);
 
         return $this;
     }
@@ -73,7 +58,9 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
     {
 
         if (is_null($this->_stats)) {
-            $this->_stats = $this->getLayer()->getProductCollection()->getStats($this->_getFilterField());
+            $facets = $this->getLayer()->getProductCollection()->getFacetedData($this->_getFilterField());
+            $this->_stats['min'] = key($facets);
+            $this->_stats['max'] = key(array_reverse($facets, true));
         }
 
         return $this->_stats;
@@ -96,10 +83,11 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
             }
 
             $maxPrice = $this->getMaxPriceInt();
+            $minPrice = $this->getMinPriceInt();
             if (!$range) {
                 $calculation = Mage::app()->getStore()->getConfig(self::XML_PATH_RANGE_CALCULATION);
                 if ($calculation == self::RANGE_CALCULATION_AUTO) {
-                    $range = pow(10, (strlen(floor($maxPrice)) - 1));
+                    $range = pow(10, (strlen(floor($maxPrice - $minPrice)) - 1));
                 } else {
                     $range = (float)Mage::app()->getStore()->getConfig(self::XML_PATH_RANGE_STEP);
                 }
@@ -107,7 +95,6 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
 
             $this->setData('price_range', $range);
         }
-
         return $range;
     }
 
@@ -119,7 +106,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
     public function getMaxPriceInt()
     {
         $stats = $this->_getFieldStats();
-        $max = $stats[$this->_getFilterField()]['max'];
+        $max = $stats['max'];
         if (!is_numeric($max)) {
             $max = parent::getMaxPriceInt();
         }
@@ -134,7 +121,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
     public function getMinPriceInt()
     {
         $stats = $this->_getFieldStats();
-        $min = $stats[$this->_getFilterField()]['min'];
+        $min = $stats['min'];
         if (!is_numeric($min)) {
             $min = 0;
         }
@@ -149,6 +136,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
     protected function _applyPriceRange()
     {
         $interval = $this->getInterval();
+
         if (!$interval) {
             return $this;
         }
@@ -158,28 +146,17 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
             return $this;
         }
 
-        if ($to !== '') {
-            $to = (float) $to;
-            if ($from == $to) {
-                $to += .01;
-            }
-        }
-
-        $field = $this->_getFilterField();
-        $value = array(
-            $field => array(
-                'include_upper' => !($to < $this->getMaxPriceInt())
-            )
-        );
-
+        $field  = $this->_getFilterField();
+        $limits = array();
         if (!empty($from)) {
-            $value[$field]['from'] = $from;
+            $limits['gte'] = $from;
         }
         if (!empty($to)) {
-            $value[$field]['to'] = $to;
+            $limits['lte'] = $to;
         }
 
-        $this->getLayer()->getProductCollection()->addFqRangeFilter($value);
+        $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
+        $query->addFilter('range', array($this->_getFilterField() => $limits), $this->_getFilterField());
 
         return $this;
     }
@@ -210,28 +187,40 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
         }
 
         $data = array();
+
         $facets = $this->getLayer()->getProductCollection()->getFacetedData($this->_getFilterField());
 
-        if (!empty($facets)) {
+        if (!empty($facets) && count($facets) > 1) {
             foreach ($facets as $key => $count) {
-                if (!$count) {
-                    unset($facets[$key]);
-                }
-            }
-            $i = 0;
-            foreach ($facets as $key => $count) {
-                $i++;
-                preg_match('/^\[(\d*) TO (\d*)\]$/', $key, $rangeKey);
-                $fromPrice = $rangeKey[1];
-                $toPrice = ($i < count($facets)) ? $rangeKey[2] : '';
                 $data[] = array(
-                    'label' => $this->_renderRangeLabel($fromPrice, $toPrice),
-                    'value' => $fromPrice . '-' . $toPrice,
-                    'count' => $count
+                    'label'  => $key,
+                    'value' => $key,
+                    'count'  => $count
                 );
             }
         }
 
         return $data;
+    }
+
+    /**
+     * Prepare text of range label
+     *
+     * @param float|string $fromPrice Interval min.
+     * @param float|string $toPrice   Interval max.
+     *
+     * @return string
+     */
+    protected function _renderRangeLabel($fromPrice, $toPrice)
+    {
+        $store      = Mage::app()->getStore();
+        $formattedFromPrice  = $store->formatPrice($fromPrice);
+        if ($toPrice === '') {
+            return Mage::helper('catalog')->__('%s and above', $formattedFromPrice);
+        } elseif ($fromPrice == $toPrice && Mage::app()->getStore()->getConfig(self::XML_PATH_ONE_PRICE_INTERVAL)) {
+            return $formattedFromPrice;
+        } else {
+            return Mage::helper('catalog')->__('%s - %s', $formattedFromPrice, $store->formatPrice($toPrice));
+        }
     }
 }

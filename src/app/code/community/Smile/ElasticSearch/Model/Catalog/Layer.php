@@ -34,14 +34,36 @@ class Smile_ElasticSearch_Model_Catalog_Layer extends Mage_Catalog_Model_Layer
             $collection = Mage::helper('catalogsearch')
                 ->getEngine()
                 ->getResultCollection()
-                ->setStoreId($category->getStoreId())
-                ->addCategoryFilter($category)
-                ->addFqFilter(array('categories' => $category->getId()))
-                ->addFqFilter(array('store_id' => $category->getStoreId()));
+                ->setStoreId($category->getStoreId());
+
             $this->prepareProductCollection($collection);
             $this->_productCollections[$category->getId()] = $collection;
         }
 
         return $collection;
+    }
+
+    /**
+     * Initialize product collection
+     *
+     * @param Mage_Catalog_Model_Resource_Eav_Mysql4_Product_Collection $collection Product collection.
+     *
+     * @return Mage_Catalog_Model_Layer
+     */
+    public function prepareProductCollection($collection)
+    {
+        $query = $collection->getSearchEngineQuery();
+
+        $allowedVisibilities = Mage::getSingleton('catalog/product_visibility')->getVisibleInCatalogIds();
+        $query->addFilter('terms', array('visibility' => $allowedVisibilities));
+
+        $allowedStatuses = Mage::getSingleton('catalog/product_status')->getVisibleStatusIds();
+        $query->addFilter('terms', array('status' => $allowedStatuses));
+
+        if (Mage::helper('cataloginventory')->isShowOutOfStock() == false) {
+            $query->addFilter('terms', array('in_stock' => 1));
+        }
+
+        return parent::prepareProductCollection($collection);
     }
 }
