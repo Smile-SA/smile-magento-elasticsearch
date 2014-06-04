@@ -20,7 +20,6 @@
 /**
  * @var Mage_Catalog_Model_Resource_Setup
  */
-
 $installer = $this;
 $installer->startSetup();
 
