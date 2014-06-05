@@ -18,6 +18,14 @@
  */
 class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Catalog_Model_Layer_Filter_Attribute
 {
+    /**
+     * @var array()
+     */
+    protected $_appliedItems = array();
+
+    /**
+     * @var array()
+     */
     protected $_rawFilter = array();
 
     /**
@@ -62,6 +70,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
             if ($this->_isValidFilter($currentFilter) && strlen($text)) {
                 $filterText[] = $text;
                 $this->_rawFilter[] = $currentFilter;
+                $this->_appliedItems[$currentFilter] = $text;
             }
         }
 
@@ -163,12 +172,20 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
                         continue;
                     }
 
-                    $data[] = array(
+                    $data[$option['value']] = array(
                         'label' => $label,
                         'value' => $option['value'],
                         'count' => (int) $count,
                     );
                 }
+
+                foreach ($this->_appliedItems as $value => $label) {
+                    if (!isset($data[$value])) {
+                        $data[] = array('label' => $label, 'value' => $value, 'count' => 0);
+                    }
+                }
+
+                $data = array_values($data);
             }
 
             $tags = array(

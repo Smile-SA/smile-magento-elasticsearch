@@ -16,17 +16,12 @@
 <ol>
 <?php foreach ($this->getItems() as $_item): ?>
     <li class="attr-filter">
-
-        <?php if ($_item->getCount() > 0): ?>
-            <a href="<?php echo $this->urlEscape($_item->getUrl()) ?>">
-                <?php if ($this->getIsMultipleSelect()) : ?>
-                    <input type="checkbox" <?php if ($_item->getSelected()) : ?>checked<?php endif; ?> onclick="this.parentNode.click();"/>
-                <?php endif; ?>
-                <label><?php echo $_item->getLabel(); ?></label>
-            </a>
-        <?php else: ?>
-            <?php echo $_item->getLabel(); ?>
-        <?php endif; ?>
+        <a href="<?php echo $this->urlEscape($_item->getUrl()) ?>">
+            <?php if ($this->getIsMultipleSelect()) : ?>
+                <input type="checkbox" <?php if ($_item->getSelected()) : ?>checked<?php endif; ?> onclick="this.parentNode.click();"/>
+            <?php endif; ?>
+            <label><?php echo $_item->getLabel(); ?></label>
+        </a>
         <?php if ($this->shouldDisplayProductCount()): ?>
         (<?php echo $_item->getCount() ?>)
         <?php endif; ?>
