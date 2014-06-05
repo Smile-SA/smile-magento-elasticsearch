@@ -65,10 +65,11 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
      *
      * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute  Attribute we want the ES field
      * @param string                                    $localeCode Locale used
+     * @param string                                    $type       Can specify a type (ex: facet)
      *
      * @return string
      */
-    public function getAttributeFieldName($attribute, $localeCode = null)
+    public function getAttributeFieldName($attribute, $localeCode = null, $type=false)
     {
         if (is_string($attribute)) {
             $this->getSearchableAttributes(); // populate searchable attributes if not already set
@@ -87,6 +88,9 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
             $languageCode = $this->getLanguageCodeByLocaleCode($localeCode);
             $languageSuffix = $languageCode ? '_' . $languageCode : '';
             $attributeCode .= $languageSuffix;
+            if ($type == "facet") {
+                $attributeCode = $attributeCode . '.untouched';
+            }
         }
 
         return $attributeCode;

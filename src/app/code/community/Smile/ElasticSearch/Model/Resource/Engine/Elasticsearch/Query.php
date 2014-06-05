@@ -55,8 +55,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
      * @var array
      */
     protected $_facetModelNames = array(
-       'terms'     => 'smile_elasticsearch/engine_elasticsearch_query_facet_terms',
-       'histogram' => 'smile_elasticsearch/engine_elasticsearch_query_facet_histogram',
+       'terms'      => 'smile_elasticsearch/engine_elasticsearch_query_facet_terms',
+       'histogram'  => 'smile_elasticsearch/engine_elasticsearch_query_facet_histogram',
+       'queryGroup' => 'smile_elasticsearch/engine_elasticsearch_query_facet_queryGroup',
     );
 
     /**
@@ -65,7 +66,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
     protected $_filterModelNames = array(
         'terms' => 'smile_elasticsearch/engine_elasticsearch_query_filter_terms',
         'range' => 'smile_elasticsearch/engine_elasticsearch_query_filter_range',
-        'query' => 'smile_elasticsearch/engine_elasticsearch_query_filter_queryString',
+        'query' => 'smile_elasticsearch/engine_elasticsearch_query_filter_queryString'
     );
 
     /**
@@ -117,7 +118,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
 
             if (isset($response['facets'])) {
                 foreach ($this->_facets as $facetName => $facetModel) {
-                    if (isset($response['facets'][$facetName])) {
+                    if ($facetModel->isGroup()) {
+                        $result['faceted_data'][$facetName] = $facetModel->getItems($response['facets']);
+                    } else if (isset($response['facets'][$facetName])) {
                         $result['faceted_data'][$facetName] = $facetModel->getItems($response['facets'][$facetName]);
                     }
                 }
@@ -256,7 +259,31 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         $query['body']['query']['filtered']['query']['bool']['must'][] = $this->_prepareFulltextCondition();
 
         foreach ($this->_facets as $facetName => $facet) {
-            $query['body']['facets'][$facetName] = $facet->getFacetQuery();
+
+            $facets = $facet->getFacetQuery();
+
+            if (!$facet->isGroup()) {
+                $facets = array($facetName => $facets);
+            }
+
+            foreach ($facets as $realFacetName => $facet) {
+                foreach ($this->_filters as $filterFacetName => $filters) {
+                    $rawFilter = array();
+
+                    foreach ($filters as $filter) {
+                        $rawFilter[] = $filter->getFilterQuery();
+                    }
+
+                    if ($filterFacetName != $facetName) {
+                        $mustConditions = $rawFilter;
+                        if (isset($facet['facet_filter']['bool']['must'])) {
+                            $mustConditions = array_merge($facet['facet_filter']['bool']['must'], $rawFilter);
+                        }
+                        $facet['facet_filter']['bool']['must'] = $mustConditions;
+                    }
+                }
+                $query['body']['facets'][$realFacetName] = $facet;
+            }
         }
 
         foreach ($this->_filters as $facetName => $filters) {
@@ -275,20 +302,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
                     $query['body']['filter']['bool']['must'] = array();
                 }
                 $query['body']['filter']['bool']['must'] = array_merge($query['body']['filter']['bool']['must'], $rawFilter);
-                foreach ($query['body']['facets'] as $currentFacetName => &$facet) {
-                    if ($currentFacetName != $facetName) {
-                        $mustConditions = $rawFilter;
-                        if (isset($facet['facet_filter']['bool']['must'])) {
-                            $mustConditions = array_merge($facet['facet_filter']['bool']['must'], $rawFilter);
-                        }
-                        $facet['facet_filter']['bool']['must'] = $mustConditions;
-                    }
-                }
             }
         }
 
         $query['body']['sort'] = $this->_prepareSortCondition();
         $query['body'] = array_merge($query['body'], $this->_page);
+
         return $query;
     }
 
@@ -312,7 +331,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
                 $sortType = $sortType == 'asc' ? 'desc' : 'asc';
                 $hasRelevance = true;
             } elseif ($sortField == 'position') {
-                $sortField = 'position_category_' . Mage::registry('current_category')->getId();
+                $category = Mage::registry('current_category');
+                if ($category && $category->getProductCount() > 0) {
+                    $sortField = 'position_category_' . Mage::registry('current_category')->getId();
+                } else {
+                    $sortField = '_score';
+                    $sortType = $sortType == 'asc' ? 'desc' : 'asc';
+                }
             } elseif ($sortField == 'price') {
                 $websiteId = Mage::app()->getStore()->getWebsiteId();
                 $customerGroupId = Mage::getSingleton('customer/session')->getCustomerGroupId();

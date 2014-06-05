@@ -66,7 +66,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
         }
 
         if (!empty($this->_rawFilter)) {
-            $this->applyFilterToCollection($this, $filter);
+            $this->applyFilterToCollection($filter);
             $this->getLayer()->getState()->addFilter($this->_createItem(implode(' , ', $filterText), $filter));
         }
 
@@ -76,12 +76,11 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     /**
      * Applies filter to product collection.
      *
-     * @param Mage_Catalog_Model_Layer_Filter_Attribute $filter Filter to be applied
-     * @param mixed                                     $value  Value of the filter
+     * @param mixed $value Value of the filter
      *
      * @return Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute
      */
-    public function applyFilterToCollection($filter, $value)
+    public function applyFilterToCollection($value)
     {
         if (!is_array($value)) {
             $value = array($value);
@@ -116,7 +115,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     {
         /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
         $attribute = $this->getAttributeModel();
-        $fieldName = Mage::helper('smile_elasticsearch')->getAttributeFieldName($attribute);
+        $fieldName = Mage::helper('smile_elasticsearch')->getAttributeFieldName($attribute, null, 'facet');
         return $fieldName;
     }
 

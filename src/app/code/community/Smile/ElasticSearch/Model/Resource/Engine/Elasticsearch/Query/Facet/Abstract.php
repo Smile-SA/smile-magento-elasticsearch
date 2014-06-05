@@ -54,6 +54,16 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fac
     }
 
     /**
+     * Set the facet as group of facet
+     *
+     * @return bool
+     */
+    public function isGroup()
+    {
+        return false;
+    }
+
+    /**
      * Transform the facet into an ES syntax compliant array.
      *
      * @return array

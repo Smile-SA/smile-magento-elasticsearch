@@ -50,4 +50,42 @@ class Smile_VirtualCategories_Model_Rule_Condition_Combine extends Mage_CatalogR
 
         return $conditions;
     }
+
+    /**
+     * Build search query for the rule.
+     *
+     * @param string $excludedCategories Categories that should not beein used during query building.
+     *
+     * @return string
+     */
+    public function getSearchQuery($excludedCategories)
+    {
+        $operator = 'must';
+
+        $ruleOperator = $this->getAggregator();
+        $ruleValue    = $this->getValue();
+
+        $conditions   = array();
+
+        foreach ($this->getConditions() as $condition) {
+            $conditions[] = $condition->getSearchQuery($excludedCategories);
+        }
+
+        $conditions = array_filter($conditions);
+        $query = false;
+
+        if (!empty($conditions)) {
+            if ($ruleOperator == 'any' && $ruleValue == '1') {
+                $query = implode(' OR ', $conditions);
+            } elseif ($ruleOperator == 'any' && $ruleValue = '0') {
+                $query = '-(' . implode(' AND ', $conditions) . ')';
+            } elseif ($ruleOperator == 'all' && $ruleValue = '1') {
+                $query = implode(' AND ', $conditions);
+            } elseif ($ruleOperator == 'all' && $ruleValue = '0') {
+                $query = '-(' . implode(' OR ', $conditions) . ')';
+            }
+        }
+
+        return $query;
+    }
 }

@@ -69,6 +69,8 @@ class Smile_VirtualCategories_Model_Category_Attributes_Backend_Virtual extends 
                 ->loadArray($data['rule_serialized']);
         }
 
+        $virtualCategoryRule->setCategory($object);
+
         $object->setData('is_virtual', $data['is_virtual']);
         $object->setData('virtual_rule', $virtualCategoryRule);
 

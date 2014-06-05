@@ -27,10 +27,17 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
      */
     public function addCategoryFilter($category)
     {
-        $categoryId = $category->getId();
-        $qs = "(categories:{$categoryId} OR show_in_categories:{$categoryId})";
-        $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
-        $query->addFilter('query', array('query_string' => $qs));
+        $this->setCategory($category);
+
+
+        Mage::dispatchEvent('category_filter_add_filter_to_collection_before', array('filter' => $this, 'category' => $category));
+
+        if (!$this->getProductCollectionFilterSet()) {
+            $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
+            $categoryId = $category->getId();
+            $qs = "(categories:{$categoryId} OR show_in_categories:{$categoryId})";
+            $query->addFilter('query', array('query_string' => $qs));
+        }
 
         return $this;
     }
@@ -44,9 +51,15 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
      */
     public function addFacetCondition()
     {
-        $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
-        $options = array('script_field' => 'doc.categories.values + doc.show_in_categories.values');
-        $query->addFacet('categories', 'terms', $options);
+        $category = $this->getCategory();
+
+        Mage::dispatchEvent('category_filter_add_facet_to_collection_before', array('filter' => $this, 'category' => $category));
+
+        if (!$this->getProductCollectionFacetSet()) {
+            $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
+            $options = array('script_field' => 'doc.categories.values + doc.show_in_categories.values');
+            $query->addFacet('categories', 'terms', $options);
+        }
 
         return $this;
     }

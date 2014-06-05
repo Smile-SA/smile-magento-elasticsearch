@@ -36,5 +36,57 @@ class Smile_VirtualCategories_Model_Observer
 
         return $this;
     }
+
+    /**
+     * Install category filter into categories
+     *
+     * @param Varien_Event_Observer $observer Event data.
+     *
+     * @return Smile_VirtualCategories_Model_Observer
+     */
+    public function prepareCategoryFilter(Varien_Event_Observer $observer)
+    {
+        // Retrieve filter and category from event
+        $filter   = $observer->getFilter();
+        $category = $observer->getCategory();
+
+        // Retrieve query associated with the filter
+        $query = $filter->getLayer()->getProductCollection()->getSearchEngineQuery();
+
+        // Append the query string for the virtual categories
+        $qs = $category->getVirtualRule()->getSearchQuery();
+        $query->addFilter('query', array('query_string' => $qs), 'categories');
+
+        // Mark filter as installed (avoid default filter behavior)
+        $filter->setProductCollectionFilterSet(true);
+
+        return $this;
+    }
+
+    /**
+     * Install category facet into categories
+     *
+     * @param Varien_Event_Observer $observer Event data.
+     *
+     * @return Smile_VirtualCategories_Model_Observer
+     */
+    public function prepareCategoryFacet(Varien_Event_Observer $observer)
+    {
+        // Retrieve filter and category from event
+        $filter   = $observer->getFilter();
+        $category = $observer->getCategory();
+
+        // Retrieve query associated with the filter
+        $query = $filter->getLayer()->getProductCollection()->getSearchEngineQuery();
+
+        // Prepare facet query group
+        $queries = $category->getVirtualRule()->getChildrenCategoryQueries();
+        $options = array('queries' => $queries, 'prefix' => 'categories_');
+        $query->addFacet('categories', 'queryGroup', $options);
+
+        $filter->setProductCollectionFacetSet(true);
+
+        return $this;
+    }
 }
 

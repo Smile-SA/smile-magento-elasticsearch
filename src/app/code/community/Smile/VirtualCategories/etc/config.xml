@@ -105,5 +105,23 @@
                 </smile_virtualcategories>
             </updates>
         </layout>
+        <events>
+            <category_filter_add_filter_to_collection_before>
+                <observers>
+                    <smile_virtualcategories>
+                        <class>smile_virtualcategories/observer</class>
+                        <method>prepareCategoryFilter</method>
+                    </smile_virtualcategories>
+                </observers>
+            </category_filter_add_filter_to_collection_before>
+            <category_filter_add_facet_to_collection_before>
+                <observers>
+                    <smile_virtualcategories>
+                        <class>smile_virtualcategories/observer</class>
+                        <method>prepareCategoryFacet</method>
+                    </smile_virtualcategories>
+                </observers>
+            </category_filter_add_facet_to_collection_before>
+        </events>
     </frontend>
 </config>

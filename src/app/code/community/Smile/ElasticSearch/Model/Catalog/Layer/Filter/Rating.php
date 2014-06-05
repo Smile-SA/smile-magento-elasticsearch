@@ -106,7 +106,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Rating extends Smile_Elasti
 
         $text = Mage::helper('smile_elasticsearch')->__('%d / 5 and more', $filter / self::RATING_AGG_INTERVAL);
         if ($this->_isValidFilter($filter) && strlen($text)) {
-            $this->applyFilterToCollection($this, (int) $filter);
+            $this->applyFilterToCollection((int) $filter);
             $this->getLayer()->getState()->addFilter($this->_createItem($text, $filter));
         }
 
@@ -116,12 +116,11 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Rating extends Smile_Elasti
     /**
      * Applies filter to product collection.
      *
-     * @param Mage_Catalog_Model_Layer_Filter_Attribute $filter Filter to be applied
-     * @param mixed                                     $value  Value of the filter
+     * @param mixed $value Value of the filter
      *
      * @return Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute
      */
-    public function applyFilterToCollection($filter, $value)
+    public function applyFilterToCollection($value)
     {
         $limits = array('gte' => $value);
         $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
