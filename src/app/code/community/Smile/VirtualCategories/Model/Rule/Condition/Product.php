@@ -111,7 +111,9 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
         } else {
             $category = Mage::getModel('catalog/category')->load($value);
             if ($category->getId() && !in_array($category->getId(), $excludedCategories)) {
-                $query = '(' . $category->getVirtualRule()->getSearchQuery($excludedCategories) . ')';
+                $virtualRule = $category->getVirtualRule();
+                $query = '(' . $virtualRule->getSearchQuery($excludedCategories) . ')';
+                $this->getRule()->addUsedCategoryIds($virtualRule->getUsedCategoryIds());
             }
         }
 

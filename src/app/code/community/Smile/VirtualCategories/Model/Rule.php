@@ -19,9 +19,49 @@
 class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
 {
     /**
+     *
+     */
+    const CACHE_KEY_PREFIX = 'SMILE_VIRTUALCATEGORIES_RULES';
+
+    /**
      * @var array
      */
     private $_queryCache = array();
+
+    /**
+     * @var array
+     */
+    private $_usedCategories = array();
+
+    /**
+     * Retrieve list of the category ids used to build the condition
+     *
+     *  @return array
+     */
+    public function getUsedCategoryIds()
+    {
+        return $this->_usedCategories;
+    }
+
+    /**
+     * Append category id(s) to the list of categories used to build the condition.
+     *
+     * @param array|int $categoryIds Category to add.
+     *
+     * @return Smile_VirtualCategories_Model_Rule
+     */
+    public function addUsedCategoryIds($categoryIds)
+    {
+        if (!is_array($categoryIds)) {
+            $categoryIds = array($categoryIds);
+        }
+
+        $categoryIds = array_filter($categoryIds);
+
+        $this->_usedCategories = array_unique(array_merge($this->_usedCategories, $categoryIds));
+
+        return $this;
+    }
 
     /**
      * Getter for rule conditions collection
@@ -43,21 +83,41 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
     public function getQueryFromCache($categoryId)
     {
         $cacheInstance = Mage::getSingleton('smile_virtualcategories/rule');
-        return isset($cacheInstance->_queryCache[$categoryId]) ? $cacheInstance->_queryCache[$categoryId] : null;
+        $data = false;
+
+        if (isset($cacheInstance->_queryCache[$categoryId])) {
+            $data = $cacheInstance->_queryCache[$categoryId];
+        }
+
+        if ($data === false && $cacheData = Mage::app()->loadCache(self::CACHE_KEY_PREFIX . '_' .$categoryId)) {
+            $data = unserialize($cacheData);
+        }
+
+        return $data;
     }
 
     /**
      * Store category query into the local cache.
      *
      * @param int    $categoryId Id of the category.
-     * @param string $query      Query of the category.
+     * @param string $data       Data to cache [query, used_categories].
      *
      * @return Smile_VirtualCategories_Model_Rule
      */
-    public function cacheQuery($categoryId, $query)
+    public function cacheQuery($categoryId, $data)
     {
         $cacheInstance = Mage::getSingleton('smile_virtualcategories/rule');
-        $cacheInstance->_queryCache[$categoryId] = $query;
+        $cacheInstance->_queryCache[$categoryId] = $data;
+
+        $cacheTags = array();
+        foreach ($data[1] as $usedCategoryId) {
+            $cacheTags[] = Mage_Catalog_Model_Category::CACHE_TAG . '_' . $usedCategoryId;
+        }
+
+        $cacheId = self::CACHE_KEY_PREFIX . '_' .$categoryId;
+
+        Mage::app()->saveCache(serialize($data), $cacheId, $cacheTags, Mage_Core_Model_Cache::DEFAULT_LIFETIME);
+
         return $this;
     }
 
@@ -72,9 +132,13 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
     {
         $category = $this->getCategory();
 
-        $query = $this->getQueryFromCache($category->getId());
+        $cacheData = $this->getQueryFromCache($category->getId());
+        $query = '';
 
-        if ($query === null) {
+        if (!$cacheData || (!empty($excludedCategories))) {
+
+            $this->_usedCategories = array();
+            $this->addUsedCategoryIds($category->getId());
             if ($category->getIsVirtual()) {
                 $query = $this->getConditions()->getSearchQuery($excludedCategories);
             } else {
@@ -82,8 +146,11 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
                 $childrenQueries = $this->getChildrenCategoryQueries($excludedCategories);
                 $query = implode(' OR ', array_merge($query, $childrenQueries));
             }
-
-            $this->cacheQuery($category->getId(), $query);
+            if (empty($excludedCategories)) {
+                $this->cacheQuery($category->getId(), array($query, $this->_usedCategories));
+            }
+        } else {
+            list($query, $this->_usedCategories) = $cacheData;
         }
 
         return $query;
@@ -113,15 +180,15 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
             ->setStoreId($rootCategory->getId())
             ->addIsActiveFilter()
             ->addIdFilter($childrenIds)
-            ->addAttributeToSelect('virtual_category');
+            ->addAttributeToSelect(array('name', 'virtual_category'));
 
         foreach ($categories as $currentCategory) {
-
             $virtualCategoryBackendModel->afterLoad($currentCategory);
-
-            $query = $currentCategory->getVirtualRule()->getSearchQuery($excludedCategories);
+            $virtualRule = $currentCategory->getVirtualRule();
+            $query = $virtualRule->getSearchQuery($excludedCategories);
             if ($query) {
                 $queries[$currentCategory->getId()] = '(' . $query . ')';
+                $this->addUsedCategoryIds($virtualRule->getUsedCategoryIds());
             }
         }
 
