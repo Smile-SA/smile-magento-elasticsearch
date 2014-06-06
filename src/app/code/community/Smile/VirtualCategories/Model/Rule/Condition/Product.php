@@ -99,7 +99,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
             $query  = array();
             $values = explode(',', $value);
             foreach ($values as $currentValue) {
-                $subQuery = _getCategoriesSearchQuery($value);
+                $subQuery = $this->_getCategoriesSearchQuery($value);
                 if (is_array($subQuery)) {
                     $query = array_merge($query, $subQuery);
                 }
@@ -111,7 +111,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
         } else {
             $category = Mage::getModel('catalog/category')->load($value);
             if ($category->getId() && !in_array($category->getId(), $excludedCategories)) {
-                $query = $category->getVirtualRule()->getSearchQuery($excludedCategories);
+                $query = '(' . $category->getVirtualRule()->getSearchQuery($excludedCategories) . ')';
             }
         }
 

@@ -51,7 +51,6 @@ class Smile_VirtualCategories_Model_Category_Attributes_Backend_Virtual extends 
      */
     public function afterLoad($object)
     {
-
         $attributeCode = $this->getAttribute()->getName();
         $data = $object->getData($attributeCode);
 
@@ -75,5 +74,20 @@ class Smile_VirtualCategories_Model_Category_Attributes_Backend_Virtual extends 
         $object->setData('virtual_rule', $virtualCategoryRule);
 
         return $this;
+    }
+
+
+    /**
+     * Get attribute instance
+     *
+     * @return Mage_Eav_Model_Entity_Attribute_Abstract
+     */
+    public function getAttribute()
+    {
+        if (is_null($this->_attribute)) {
+            $attribute = Mage::getModel('eav/entity_attribute')->loadByCode('catalog_category', 'virtual_category');
+            $this->setAttribute($attribute);
+        }
+        return parent::getAttribute();
     }
 }

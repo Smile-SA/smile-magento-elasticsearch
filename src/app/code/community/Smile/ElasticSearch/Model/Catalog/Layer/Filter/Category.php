@@ -144,13 +144,20 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
                     $category->setProductCount(0);
                 }
                 if ($category->getIsActive() && $category->getProductCount()) {
-                    $data[] = array(
+                    $data[$categoryId] = array(
                         'label' => Mage::helper('core')->escapeHtml($category->getName()),
                         'value' => $categoryId,
                         'count' => $category->getProductCount(),
                     );
                 }
             }
+
+            if ($this->getUseUrlRewrites()) {
+                $data = $this->_appendUrlRewritesToData($data);
+            }
+
+            $data = array_values($data);
+
             $tags = $layer->getStateTags();
             $layer->getAggregator()->saveCacheData($data, $key, $tags);
         }
@@ -165,10 +172,11 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
      * @param string $label Label of the filter value
      * @param mixed  $value Value of the filter
      * @param int    $count Number of result (default is 0)
+     * @param string $url   URL of the category
      *
      * @return Mage_Catalog_Model_Layer_Filter_Item
      */
-    protected function _createItem($label, $value, $count=0)
+    protected function _createItem($label, $value, $count=0, $url = null)
     {
         $item = parent::_createItem($label, $value, $count);
 
@@ -177,10 +185,54 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
                 ->setFilter($this)
                 ->setLabel($label)
                 ->setValue($value)
-                ->setCount($count);
+                ->setCount($count)
+                ->setCategoryUrl($url);
         }
 
         return $item;
     }
 
+    /**
+     * Append categories URL rewrites to facet items.
+     *
+     * @param array $data Facet items data
+     *
+     * @return array
+     */
+    protected function _appendUrlRewritesToData($data)
+    {
+
+        $categoryIds = array_keys($data);
+        $categories = Mage::getResourceModel('catalog/category_collection')
+            ->setStoreId(Mage::app()->getStore()->getId())
+            ->addIdFilter($categoryIds)
+            ->addUrlRewriteToResult();
+
+        foreach ($categories as $currentCategory) {
+            $data[$currentCategory->getId()]['category_url'] = $currentCategory->getUrl();
+        }
+
+        return $data;
+    }
+
+    /**
+     * Initialize filter items
+     *
+     * @return  Mage_Catalog_Model_Layer_Filter_Abstract
+     */
+    protected function _initItems()
+    {
+        $data = $this->_getItemsData();
+        $items=array();
+        foreach ($data as $itemData) {
+            $items[] = $this->_createItem(
+                $itemData['label'],
+                $itemData['value'],
+                $itemData['count'],
+                isset($itemData['category_url']) ? $itemData['category_url'] : null
+            );
+        }
+        $this->_items = $items;
+        return $this;
+    }
 }

@@ -43,7 +43,10 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Item_Category extends Mage_
      */
     public function getUrl()
     {
-        $categoryUrl = Mage::getModel('catalog/category')->load($this->getValue())->getUrl();
+        $categoryUrl = $this->getCategoryUrl();
+        if (!$categoryUrl) {
+            $categoryUrl = Mage::getModel('catalog/category')->load($this->getValue())->getUrl();
+        }
         return $this->_addCurrentParameters($categoryUrl);
     }
 
@@ -56,6 +59,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Item_Category extends Mage_
     {
         $parentCategory = Mage::getModel('catalog/category')->load($this->getValue())
             ->getParentCategory();
+
         return $this->_addCurrentParameters($parentCategory->getUrl());
     }
 

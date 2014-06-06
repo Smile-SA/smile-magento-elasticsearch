@@ -101,22 +101,27 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
      */
     public function getChildrenCategoryQueries($excludedCategories = array())
     {
+        $queries = array();
+
         $rootCategory = $this->getCategory();
         $childrenIds  = explode(',', $rootCategory->getChildren());
         $childrenIds  = array_diff($childrenIds, $excludedCategories);
-        $queries = array();
 
-        foreach ($childrenIds as $currentCategoryId) {
+        $virtualCategoryBackendModel = Mage::getModel('smile_virtualcategories/category_attributes_backend_virtual');
 
-            $currentCategory = Mage::getModel('catalog/category')
-                ->setStoreId($rootCategory->getId())
-                ->load($currentCategoryId);
+        $categories = Mage::getResourceModel('catalog/category_collection')
+            ->setStoreId($rootCategory->getId())
+            ->addIsActiveFilter()
+            ->addIdFilter($childrenIds)
+            ->addAttributeToSelect('virtual_category');
 
-            if ($currentCategory->getIsActive()) {
-                $query = $currentCategory->getVirtualRule()->getSearchQuery($excludedCategories);
-                if ($query) {
-                    $queries[$currentCategoryId] = '(' . $query . ')';
-                }
+        foreach ($categories as $currentCategory) {
+
+            $virtualCategoryBackendModel->afterLoad($currentCategory);
+
+            $query = $currentCategory->getVirtualRule()->getSearchQuery($excludedCategories);
+            if ($query) {
+                $queries[$currentCategory->getId()] = '(' . $query . ')';
             }
         }
 

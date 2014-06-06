@@ -87,7 +87,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
             $this->setChild('category_filter', $categoryBlock->addFacetCondition());
 
             $filterableAttributes = $this->_getFilterableAttributes();
-            //var_dump($filterableAttributes); die;
+
             $filters = array();
             foreach ($filterableAttributes as $attribute) {
 

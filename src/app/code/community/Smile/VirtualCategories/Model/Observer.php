@@ -81,6 +81,7 @@ class Smile_VirtualCategories_Model_Observer
 
         // Prepare facet query group
         $queries = $category->getVirtualRule()->getChildrenCategoryQueries();
+
         $options = array('queries' => $queries, 'prefix' => 'categories_');
         $query->addFacet('categories', 'queryGroup', $options);
 
