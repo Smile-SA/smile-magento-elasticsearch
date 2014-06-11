@@ -208,7 +208,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
      */
     public function saveEntityIndexes($storeId, $indexes, $type = 'product')
     {
-        $indexes = $this->addAdvancedIndex($indexes, $storeId, array_keys($indexes));
+        if ($type == 'product') {
+            $indexes = $this->addAdvancedIndex($indexes, $storeId, array_keys($indexes));
+        }
         $helper = $this->_getHelper();
         $store = Mage::app()->getStore($storeId);
         $localeCode = $helper->getLocaleCode($store);
