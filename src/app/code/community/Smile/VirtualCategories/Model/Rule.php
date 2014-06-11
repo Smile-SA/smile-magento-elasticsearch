@@ -132,11 +132,10 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
     {
         $category = $this->getCategory();
 
-        $cacheData = $this->getQueryFromCache($category->getId());
+        $cacheData = $this->getQueryFromCache($category->getId() . $category->getStoreId());
         $query = '';
 
         if (!$cacheData || (!empty($excludedCategories))) {
-
             $this->_usedCategories = array();
             $this->addUsedCategoryIds($category->getId());
             if ($category->getIsVirtual()) {
@@ -146,8 +145,9 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
                 $childrenQueries = $this->getChildrenCategoryQueries($excludedCategories);
                 $query = implode(' OR ', array_merge($query, $childrenQueries));
             }
+
             if (empty($excludedCategories)) {
-                $this->cacheQuery($category->getId(), array($query, $this->_usedCategories));
+                $this->cacheQuery($category->getId() . $category->getStoreId(), array($query, $this->_usedCategories));
             }
         } else {
             list($query, $this->_usedCategories) = $cacheData;
@@ -174,16 +174,13 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
         $childrenIds  = explode(',', $rootCategory->getChildren());
         $childrenIds  = array_diff($childrenIds, $excludedCategories);
 
-        $virtualCategoryBackendModel = Mage::getModel('smile_virtualcategories/category_attributes_backend_virtual');
-
-        $categories = Mage::getResourceModel('catalog/category_collection')
+        $categories = Mage::getResourceModel('smile_virtualcategories/catalog_virtualCategory_collection')
             ->setStoreId($rootCategory->getId())
             ->addIsActiveFilter()
             ->addIdFilter($childrenIds)
-            ->addAttributeToSelect(array('name', 'virtual_category'));
+            ->addAttributeToSelect('virtual_category');
 
         foreach ($categories as $currentCategory) {
-            $virtualCategoryBackendModel->afterLoad($currentCategory);
             $virtualRule = $currentCategory->getVirtualRule();
             $query = $virtualRule->getSearchQuery($excludedCategories);
             if ($query) {

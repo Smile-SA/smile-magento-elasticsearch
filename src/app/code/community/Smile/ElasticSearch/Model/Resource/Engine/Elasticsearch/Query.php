@@ -274,7 +274,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
                         $rawFilter[] = $filter->getFilterQuery();
                     }
 
-                    if ($filterFacetName != $facetName) {
+                    if ($filterFacetName != $facetName && $filterFacetName != '_none_') {
                         $mustConditions = $rawFilter;
                         if (isset($facet['facet_filter']['bool']['must'])) {
                             $mustConditions = array_merge($facet['facet_filter']['bool']['must'], $rawFilter);
@@ -328,7 +328,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
             if ($sortField == 'relevance') {
                 $sortField = '_score';
                 // Score has to be reversed
-                $sortType = $sortType == 'asc' ? 'desc' : 'asc';
                 $hasRelevance = true;
             } elseif ($sortField == 'position') {
                 $category = Mage::registry('current_category');
@@ -393,12 +392,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         $query = array('match_all' => array());
 
         if ($this->_fulltextQuery) {
-            $query = array('bool' => array('should' => array()));
-            $searchFields = $this->getSearchFields();
-            $query['bool']['should'][] = array(
+            $query = array('dis_max' => array('queries' => array()));
+            $searchFields = $this->getSearchFields(true);
+            $query['dis_max']['queries'][] = array(
                 'multi_match' => array(
                     'query'  => $this->prepareFilterQueryText($this->_fulltextQuery),
-                    'fields' => $searchFields
+                    'fields' => $searchFields,
+                    'boost'  => 2
                 )
             );
 
@@ -408,11 +408,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
                     'like_text'       => $this->_fulltextQuery,
                     'min_similarity'  => min(0.99, max(0, $this->getConfig('fuzzy_min_similarity'))),
                     'prefix_length'   => (int) $this->getConfig('fuzzy_prefix_length'),
-                    'max_query_terms' => (int) $this->getConfig('fuzzy_prefix_length'),
-                    'boost'           => (float) $this->getConfig('fuzzy_query_boost')
+                    'max_query_terms' => (int) $this->getConfig('fuzzy_max_query_terms'),
+                    'boost'           => (float) $this->getConfig('fuzzy_query_boost'),
+                    'ignore_tf'       => true
                 );
-
-                $query['bool']['should'][] = array('fuzzy_like_this' => $fuzzyQuery);
+                $query['dis_max']['queries'][] = array('fuzzy_like_this' => $fuzzyQuery);
             }
         }
 

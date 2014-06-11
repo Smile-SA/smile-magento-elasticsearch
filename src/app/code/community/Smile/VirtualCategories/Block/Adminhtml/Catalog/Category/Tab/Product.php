@@ -117,10 +117,14 @@ class Smile_VirtualCategories_Block_Adminhtml_Catalog_Category_Tab_Product exten
         $this->setVirtualRuleFieldsetHtmlId($fieldset->getHtmlId());
 
         $rule = Mage::getModel('smile_virtualcategories/rule');
+
         if ($this->getCategory()->getVirtualRule()) {
             $rule = $this->getCategory()->getVirtualRule();
         }
+
         $rule->setForm($form);
+        $rule->getConditions()->setJsFormObject('virtual_virtual_fieldset');
+
         $field->setRule($rule)
               ->setRenderer(Mage::getBlockSingleton('rule/conditions'));
 

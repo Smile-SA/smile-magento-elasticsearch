@@ -46,6 +46,7 @@
             <adminhtml>
                 <rewrite>
                     <catalog_category_tabs>Smile_VirtualCategories_Block_Adminhtml_Override_Catalog_Category_Tabs</catalog_category_tabs>
+                    <catalog_category_tree>Smile_VirtualCategories_Block_Adminhtml_Override_Catalog_Category_Tree</catalog_category_tree>
                 </rewrite>
             </adminhtml>
         </blocks>

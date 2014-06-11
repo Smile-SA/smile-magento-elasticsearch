@@ -211,10 +211,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         $properties['store_id']   = array('type' => 'integer');
         $properties['in_stock']   = array('type' => 'boolean');
 
-        if (Mage::app()->useCache('config')) {
-            $lifetime = $this->_getHelper()->getCacheLifetime();
-            Mage::app()->saveCache(serialize($properties), $cacheId, array('config'), $lifetime);
-        }
 
         foreach (Mage::app()->getStores() as $store) {
             $languageCode = $helper->getLanguageCodeByStore($store);
@@ -226,6 +222,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                 'search_analyzer' => 'analyzer_' . $languageCode,
                 'preserve_separators' => false
             );
+        }
+
+        if (Mage::app()->useCache('config')) {
+            $lifetime = $this->_getHelper()->getCacheLifetime();
+            Mage::app()->saveCache(serialize($properties), $cacheId, array('config'), $lifetime);
         }
 
         return $properties;

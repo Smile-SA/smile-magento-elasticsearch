@@ -209,7 +209,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     public function saveEntityIndexes($storeId, $indexes, $type = 'product')
     {
         $indexes = $this->addAdvancedIndex($indexes, $storeId, array_keys($indexes));
-
         $helper = $this->_getHelper();
         $store = Mage::app()->getStore($storeId);
         $localeCode = $helper->getLocaleCode($store);
@@ -221,6 +220,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
                 if (is_array($value) && strpos($key, 'suggest') !== 0) {
                     $value = array_values(array_filter(array_unique($value)));
                 }
+
                 if (array_key_exists($key, $searchables)) {
                     /**
                      * @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute
@@ -503,27 +503,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
         foreach ($docsData as $entityId => $index) {
             $index[self::UNIQUE_KEY] = $entityId . '|' . $index['store_id'];
             $index['id'] = $entityId;
-            $weight = 1;
-            if ($type == 'product') {
-                $this->_getSuggestionWeight($index);
-            }
-
-            $suggestFieldName = $this->_getHelper()->getSuggestFieldNameByLocaleCode($localeCode);
-
-            if (! isset($index[$suggestFieldName]) && $weight) {
-
-                $input = $index['name'];
-                if (isset($index['sku'])) {
-                    $input[] = $index['sku'];
-                }
-                $index[$suggestFieldName] = array(
-                    'input' => $input,
-                    'payload' => array(
-                        'product_id' => $entityId
-                    ),
-                    'weight' => $weight
-                );
-            }
             $index = $this->_prepareIndexData($index, $localeCode);
             $docs[] = $this->getCurrentIndex()->createDocument($index[self::UNIQUE_KEY], $index, $type);
         }
@@ -531,27 +510,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
         return $docs;
     }
 
-    /**
-     * Indicates if product should be suggested or not
-     *
-     * @param array $data Product data
-     *
-     * @return boolean
-     */
-    protected function _getSuggestionWeight($data)
-    {
-        $visibilityWeight = array(
-            Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE => 0,
-            Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_CATALOG => 1,
-            Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH => 1,
-            Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH => 2
-        );
-
-        $result = isset($data['visibility']) && isset($data['status']) ? $visibilityWeight[current($data['visibility'])] : 0;
-        $result = current($data['status']) == Mage_Catalog_Model_Product_Status::STATUS_ENABLED ? $result : 0;
-
-        return $result;
-    }
 
     /**
      * Prepares index data before indexation.

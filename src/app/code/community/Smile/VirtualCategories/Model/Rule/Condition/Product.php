@@ -95,13 +95,15 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
     {
         $excludedCategories[] = $this->getRule()->getCategory()->getId();
         $query = false;
-        if (!is_array($value) && strpos($value, ',') !== false) {
+        if (strpos($value, ',') !== false) {
             $query  = array();
             $values = explode(',', $value);
             foreach ($values as $currentValue) {
-                $subQuery = $this->_getCategoriesSearchQuery($value);
+                $subQuery = $this->_getCategoriesSearchQuery($currentValue, false, $excludedCategories);
                 if (is_array($subQuery)) {
                     $query = array_merge($query, $subQuery);
+                } else {
+                    $query[] = $subQuery;
                 }
             }
             if (!empty($query)) {
@@ -110,7 +112,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
             }
         } else {
             $category = Mage::getModel('catalog/category')->load($value);
-            if ($category->getId() && !in_array($category->getId(), $excludedCategories)) {
+            if ($category->getId() && !in_array($value, $excludedCategories)) {
                 $virtualRule = $category->getVirtualRule();
                 $query = '(' . $virtualRule->getSearchQuery($excludedCategories) . ')';
                 $this->getRule()->addUsedCategoryIds($virtualRule->getUsedCategoryIds());
@@ -139,9 +141,8 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
             $template = $this->_queryTemplates['=='];
             $query = array();
             $values = explode(',', $value);
-            $values = array_diff($values, $excludedCategories);
             foreach ($values as $currentValue) {
-                $query[] = $this->_getSearchQuery($attribute, $currentValue, "==");
+                $query[] = $this->_getSearchQuery($attribute, $currentValue, "==", $excludedCategories);
             }
             if (!empty($query)) {
                 $query = '(' . implode(' OR ', $query) . ')';
@@ -149,7 +150,6 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
                 if ($operator == '!()') {
                     $query = "(-${query})";
                 }
-
             }
 
         } else {

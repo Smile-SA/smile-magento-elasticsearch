@@ -23,6 +23,25 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
      */
     protected $_defaultRatingIdByStore = array();
 
+    /**
+     * @var array
+     */
+    protected $_suggestFieldNames = array();
+
+    /**
+     * Init the suggest field name by store during construct
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        foreach (Mage::app()->getStores(true) as $store) {
+            $this->_suggestFieldNames[$store->getId()] = Mage::helper('smile_elasticsearch')->getSuggestFieldName($store);
+        }
+
+        parent::__construct();
+    }
+
 
     /**
      * Adds advanced index data.
@@ -43,6 +62,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         }
 
         $prefix = $this->_engine->getFieldsPrefix();
+        $suggestionFiledName = $this->_suggestFieldNames[$storeId];
+
         $categoryData = $this->_getCatalogCategoryData($storeId, $productIds);
         $priceData = $this->_getCatalogProductPriceData($productIds);
         $ratingData = $this->_getRatingData($storeId, $productIds);
@@ -62,13 +83,74 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
             if (isset($ratingData[$productId])) {
                 $productData += $ratingData[$productId];
             }
+
+            $suggestData = $this->_addSuggestionData($productId, $productData);
+            if ($suggestData) {
+                $productData[$suggestionFiledName] = $suggestData;
+            }
+
         }
 
-        unset($productData);
-        unset($categoryData);
-        unset($priceData);
-
         return $index;
+    }
+
+    /**
+     * Data to be added to the index for product suggestion
+     *
+     * @param int   $productId    Current product id
+     * @param array &$productData Current product data
+     *
+     * @return false|array
+     */
+    protected function _addSuggestionData($productId, &$productData)
+    {
+        $suggestData = false;
+        $weight = $this->_getSuggestionWeight($productData);
+
+        $input = $productData['name'];
+        if (!is_array($input)) {
+            $input = array($input);
+        }
+
+        $input = explode(' ', implode(' ', $input));
+
+        if ($weight && !empty($input)) {
+            $suggestData = array(
+                'input' => array_values($input),
+                'payload' => array(
+                    'product_id' => $productId
+                ),
+                'weight' => $weight
+            );
+        }
+
+        return $suggestData;
+    }
+
+    /**
+     * Indicates if product should be suggested or not
+     *
+     * @param array $data Product data
+     *
+     * @return boolean
+     */
+    protected function _getSuggestionWeight($data)
+    {
+
+        return 3;
+        $prefix = $this->_engine->getFieldsPrefix();
+
+        $visibilityWeight = array(
+            Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE => 0,
+            Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_CATALOG  => 1,
+            Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH   => 1,
+            Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH        => 2
+        );
+
+        $result = isset($data[$prefix . 'visibility']) ? $visibilityWeight[$data[$prefix . 'visibility']] : 0;
+        $result = current($data['status']) == Mage_Catalog_Model_Product_Status::STATUS_ENABLED ? $result : 0;
+
+        return $result;
     }
 
     /**
