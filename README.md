@@ -11,7 +11,7 @@ Contact: Aurelien FOUCRET <aurelien.foucret@smile.fr>
 Basic installation :
 ====================
 
-- First you will need to install a version of ElasticSearch > 0.90.x and ensure it is running (port 9200 by default)
+- First you will need to install a version of ElasticSearch >= 1.2 and ensure it is running (port 9200 by default)
 
 - This module can run on both Magento CE and Magento EE edition. 
 
