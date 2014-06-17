@@ -27,6 +27,6 @@ class Smile_SearchandisingSuite_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getSiteId()
     {
-        return Mage::getStoreConfig(self::CONFIG_SITE_ID_XPATH);
+        return (string) Mage::getStoreConfig(self::CONFIG_SITE_ID_XPATH);
     }
 }

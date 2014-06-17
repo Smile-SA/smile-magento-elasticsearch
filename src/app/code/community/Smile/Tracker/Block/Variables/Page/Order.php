@@ -42,6 +42,7 @@ class Smile_Tracker_Block_Variables_Page_Order extends Smile_Tracker_Block_Varia
                     $itemId = $item->getId();
                     $prefix = "order.items.$itemId";
                     $variables[$prefix . '.sku'] = $item->getSku();
+                    $variables[$prefix . '.product_id'] = $item->getProductId();
                     $variables[$prefix . '.qty'] = $item->getQtyOrdered();
                     $variables[$prefix . '.price'] = $item->getBasePrice();
                     $variables[$prefix . '.row_total'] = $item->getRowTotal();

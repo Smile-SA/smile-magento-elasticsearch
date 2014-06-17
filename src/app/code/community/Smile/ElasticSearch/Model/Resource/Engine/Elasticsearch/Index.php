@@ -20,6 +20,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Abstract
 {
     /**
+     * @var int
+     */
+    const COPY_DATA_BULK_SIZE = 1000;
+
+    /**
      * @var string
      */
     protected $_name;
@@ -28,6 +33,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
      * @var boolean
      */
     protected $_indexNeedInstall = false;
+
+    /**
+     * @var string
+     */
+    protected $_dateFormat = 'date';
 
     /**
      * @var array Stop languages for token filter.
@@ -404,7 +414,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     protected function _getAttributeType($attribute)
     {
         $type = 'string';
-        if ($attribute->getBackendType() == 'decimal') {
+        if ($attribute->getBackendType() == 'int') {
+            $type = 'integer';
+        } elseif ($attribute->getBackendType() == 'decimal') {
             $type = 'double';
         } elseif ($attribute->getSourceModel() == 'eav/entity_attribute_source_boolean') {
             $type = 'boolean';
@@ -477,6 +489,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     public function installNewIndex()
     {
         if ($this->_indexNeedInstall) {
+
+            Mage::dispatchEvent('smile_elasticsearch_index_install_before', array('index_name' => $this->getCurrentName()));
+
             $indices = $this->getClient()->indices();
             $alias = $this->getConfig('alias');
             $indices->putAlias(array('index' => $this->getCurrentName(), 'name' => $alias));
@@ -500,16 +515,19 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
      */
     public function createDocument($id, array $data = array(), $type = 'product')
     {
-        $headerRow = json_encode(
-            array(
-                'index' => array(
-                    '_index' => $this->getCurrentName(),
-                    '_type'  => $type,
-                    '_id'    => $id
-                )
-            )
+        $headerData = array(
+            '_index' => $this->getCurrentName(),
+            '_type'  => $type,
+            '_id'    => $id
         );
+
+        if (isset($data['_parent'])) {
+            $headerData['_parent'] = $data['_parent'];
+        }
+
+        $headerRow = json_encode(array('index' => $headerData));
         $dataRow = json_encode($data);
+
         $result = array($headerRow, $dataRow);
         return implode("\n", $result);
     }
@@ -520,6 +538,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
      * @param array $docs Document prepared with createDoc methods
      *
      * @return  Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter Self reference
+     *
+     * @throws Exception
      */
     public function addDocuments(array $docs)
     {
@@ -534,6 +554,49 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         }
 
         $this->refresh();
+
+        return $this;
+    }
+
+
+
+    /**
+     * Copy all data of a type from an index to the current one
+     *
+     * @param string $index Source Index for the copy.
+     * @param string $type  Type of documents to be copied.
+     *
+     * @return  Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter Self reference
+     */
+    public function copyDataFromIndex($index, $type)
+    {
+        if ($this->getClient()->indices()->exists(array('index' => $index))) {
+            $scrollQuery = array(
+                'index'  => $index,
+                'type'   => $type,
+                'size'   => self::COPY_DATA_BULK_SIZE,
+                'scroll' => '5m',
+                'search_type' => 'scan'
+            );
+
+            $scroll = $this->getClient()->search($scrollQuery);
+            $indexDocumentCount = 0;
+
+            if ($scroll['_scroll_id'] && $scroll['hits']['total'] > 0) {
+                $scroller = array('scroll' => '5m', 'scroll_id' => $scroll['_scroll_id']);
+                while ($indexDocumentCount <= $scroll['hits']['total']) {
+                    $docs = array();
+                    $data = $this->getClient()->scroll($scroller);
+
+                    foreach ($data['hits']['hits'] as $item) {
+                        $docs[] = $this->createDocument($item['_id'], $item['_source'], 'stats');
+                    }
+
+                    $this->addDocuments($docs);
+                    $indexDocumentCount = $indexDocumentCount + self::COPY_DATA_BULK_SIZE;
+                }
+            }
+        }
 
         return $this;
     }

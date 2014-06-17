@@ -62,6 +62,7 @@
                 </observers>
             </catalogsearch_index_process_start>
             <catalogsearch_index_process_complete>
+            
                 <observers>
                     <smile_elasticsearch>
                         <class>smile_elasticsearch/observer</class>
@@ -69,14 +70,14 @@
                     </smile_elasticsearch>
                 </observers>
             </catalogsearch_index_process_complete>
-            <catalogsearch_index_process_complete>
+            <smile_elasticsearch_index_install_before>
                 <observers>
                     <reindex_categories>
                         <class>smile_elasticsearch/observer</class>
                         <method>reindexCategories</method>
                     </reindex_categories>
                 </observers>
-            </catalogsearch_index_process_complete>
+            </smile_elasticsearch_index_install_before>
             <catalog_entity_attribute_save_after>
                 <observers>
                     <smile_elasticsearch>
@@ -195,7 +196,7 @@
                 <elasticsearch_servers>127.0.0.1:9200</elasticsearch_servers>
                 <elasticsearch_timeout>30</elasticsearch_timeout>
                 <elasticsearch_alias>magento</elasticsearch_alias>
-                <elasticsearch_indices_pattern>{{YYYYMMDD}}-{{HHmmss}}</elasticsearch_indices_pattern>
+                <elasticsearch_indices_pattern>{{YYYYMMd}}-{{HHmmss}}</elasticsearch_indices_pattern>
                 <elasticsearch_number_of_shards>1</elasticsearch_number_of_shards>
                 <elasticsearch_number_of_replicas>0</elasticsearch_number_of_replicas>
                 <elasticsearch_facets_max_size>50</elasticsearch_facets_max_size>

@@ -393,18 +393,19 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
 
         if ($this->_fulltextQuery) {
             $query = array('dis_max' => array('queries' => array()));
-            $searchFields = $this->getSearchFields(true);
+            $searchFields = $this->getSearchFields();
+            $query['dis_max'] =  array('tie_breaker' => 0.5, 'boost' => 2);
             $query['dis_max']['queries'][] = array(
                 'multi_match' => array(
                     'query'  => $this->prepareFilterQueryText($this->_fulltextQuery),
                     'fields' => $searchFields,
-                    'boost'  => 2
+                    'type'   => 'most_fields',
                 )
             );
 
-            if ((bool) $this->getConfig('enable_fuzzy_query')) {
+            if ((bool) $this->getConfig('enable_fuzzy_query') && false) {
                 $fuzzyQuery = array(
-                    'fields'          => $this->getSearchFields(true),
+                    'fields'          => $this->getSearchFields(),
                     'like_text'       => $this->_fulltextQuery,
                     'min_similarity'  => min(0.99, max(0, $this->getConfig('fuzzy_min_similarity'))),
                     'prefix_length'   => (int) $this->getConfig('fuzzy_prefix_length'),
@@ -422,11 +423,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
     /**
      * Retrieves searchable fields according to text query.
      *
-     * @param bool $onlyFuzzy Return only field used for fuzzy matching
-     *
      * @return array
      */
-    public function getSearchFields($onlyFuzzy = false)
+    public function getSearchFields()
     {
         $properties = $this->getAdapter()->getCurrentIndex()->getProperties();
 
@@ -452,9 +451,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
                 continue;
             }
 
-            if (!$onlyFuzzy && $property['type'] == 'multi_field') {
+            if ($property['type'] == 'multi_field') {
                 foreach ($property['fields'] as $field => $fieldProperties) {
-                    if (strpos($field, 'edge_ngram') !== 0) {
+                    if (strpos($field, 'edge_ngram') !== 0 && strpos($field, 'suggest') !==0 ) {
 
                         if (isset($fieldProperties['boost'])) {
                             $field = $field . '^' . $fieldProperties['boost'];

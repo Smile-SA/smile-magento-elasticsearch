@@ -73,6 +73,16 @@ class Smile_Tracker_Block_Config extends Mage_Core_Block_Template
     }
 
     /**
+     * Return the tracked store id.
+     *
+     * @return int
+     */
+    public function getStoreId()
+    {
+        return Mage::app()->getStore()->getId();
+    }
+
+    /**
      * Return the session cookie configuration (names and lifetimes)
      * for cookies used by the tracker (visit/session and visitor).
      *

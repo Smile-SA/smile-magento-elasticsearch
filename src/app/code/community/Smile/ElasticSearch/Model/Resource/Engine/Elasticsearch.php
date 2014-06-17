@@ -117,17 +117,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     protected $_currentIndexName = null;
 
     /**
-     *
-     * @var bool
+     * @var array()
      */
-    protected $_indexNeedInstall = false;
-
-    /**
-     *
-     * @var string Date format.
-     * @link http://www.elasticsearch.org/guide/reference/mapping/date-format.html
-     */
-    protected $_dateFormat = 'date';
+    protected $_dateFormats = array();
 
     /**
      * Initializes search engine config and index name.

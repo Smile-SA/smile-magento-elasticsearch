@@ -108,7 +108,7 @@ class Smile_Tracker_Block_Variables_Page_Catalog extends Smile_Tracker_Block_Var
                 $filterValue = $this->getRequest()->getParam($identifier, '');
 
                 if (is_array($filterValue)) {
-                    $filterValue = implode(',', $filterValue);
+                    $filterValue = implode('|', $filterValue);
                 }
 
                 $variables['product_list.filters.' . $identifier] = $filterValue;
