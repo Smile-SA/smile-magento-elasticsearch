@@ -101,6 +101,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
     {
         $result = array();
         $query = $this->_assembleQuery();
+        
+        Mage::dispatchEvent('smile_elasticsearch_query_assembled', array('query' => $query));
+        
         $response = $this->getClient()->search($query);
 
         if (!isset($data['error'])) {
@@ -394,20 +397,20 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         if ($this->_fulltextQuery) {
             $query = array('dis_max' => array('queries' => array()));
             $searchFields = $this->getSearchFields();
-            $query['dis_max'] =  array('tie_breaker' => 0.5, 'boost' => 2);
+            $query['dis_max'] =  array('tie_breaker' => 0);
             $query['dis_max']['queries'][] = array(
                 'multi_match' => array(
                     'query'  => $this->prepareFilterQueryText($this->_fulltextQuery),
                     'fields' => $searchFields,
-                    'type'   => 'most_fields',
+                    'type'   => 'best_fields',
                 )
             );
 
-            if ((bool) $this->getConfig('enable_fuzzy_query') && false) {
+            if ((bool) $this->getConfig('enable_fuzzy_query')) {
                 $fuzzyQuery = array(
                     'fields'          => $this->getSearchFields(),
                     'like_text'       => $this->_fulltextQuery,
-                    'min_similarity'  => min(0.99, max(0, $this->getConfig('fuzzy_min_similarity'))),
+                    'min_similarity'  => min(0.99, max(0, (float) $this->getConfig('fuzzy_min_similarity'))),
                     'prefix_length'   => (int) $this->getConfig('fuzzy_prefix_length'),
                     'max_query_terms' => (int) $this->getConfig('fuzzy_max_query_terms'),
                     'boost'           => (float) $this->getConfig('fuzzy_query_boost'),
