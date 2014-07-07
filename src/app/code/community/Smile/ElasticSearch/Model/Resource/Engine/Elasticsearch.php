@@ -230,13 +230,15 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
                             $value = explode(',', is_array($value) ? $value[0] : $value);
                         } elseif ($helper->isAttributeUsingOptions($attribute)) {
                             $val = is_array($value) ? $value[0] : $value;
-                            if (! isset($data['_options'])) {
+                            if (!isset($data['_options'])) {
                                 $data['_options'] = array();
                             }
                             $option = $attribute->setStoreId($storeId)
                                 ->getFrontend()
                                 ->getOption($val);
                             $data['_options'][] = $option;
+                        } else {
+                            $value = is_array($value) ? current($value) : $value;
                         }
                     }
                 }
