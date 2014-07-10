@@ -56,5 +56,13 @@
             </depends>
         </Smile_VirtualCategories>
 
+        <Smile_SearchOptimizer>
+            <active>true</active>
+            <codePool>community</codePool>
+            <depends>
+                <Smile_VirtualCategories />
+            </depends>
+        </Smile_SearchOptimizer>
+
     </modules>
 </config>

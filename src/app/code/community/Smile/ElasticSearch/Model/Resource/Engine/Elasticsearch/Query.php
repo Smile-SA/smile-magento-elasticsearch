@@ -24,6 +24,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
     /**
      * @var string
      */
+    protected $_queryType = 'default';
+
+
+    /**
+     * @var string
+     */
     protected $_type;
 
     /**
@@ -83,6 +89,33 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
     }
 
     /**
+     * Allow to give the query a type.
+     * Can be used by observers to know if they should be applied to the query or not.
+     *
+     * Default query type is equal to default.
+     * Layer views change query type to "product_search_layer" and "category_products_layer"
+     *
+     * @param string $type Type of the query.
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     */
+    public function setQueryType($type)
+    {
+        $this->_queryType = $type;
+        return $this;
+    }
+
+    /**
+     * Return the query type.
+     *
+     * @return string
+     */
+    public function getQueryType()
+    {
+        return $this->_queryType;
+    }
+
+    /**
      * Get types of documents matched by the query.
      *
      * @return string
@@ -101,9 +134,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
     {
         $result = array();
         $query = $this->_assembleQuery();
-        
-        Mage::dispatchEvent('smile_elasticsearch_query_assembled', array('query' => $query));
-        
+
+        $eventData = new Varien_Object(array('query' => $query, 'query_type' => $this->getQueryType()));
+        Mage::dispatchEvent('smile_elasticsearch_query_assembled', array('query_data' => $eventData));
+        $query = $eventData->getQuery();
+
         $response = $this->getClient()->search($query);
 
         if (!isset($data['error'])) {
@@ -307,7 +342,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
                 $query['body']['filter']['bool']['must'] = array_merge($query['body']['filter']['bool']['must'], $rawFilter);
             }
         }
-
+        // Patch : score not computed when using another sort order than score
+        //         as primary sort order
+        $query['body']['track_scores'] = true;
         $query['body']['sort'] = $this->_prepareSortCondition();
         $query['body'] = array_merge($query['body'], $this->_page);
 
@@ -397,12 +434,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         if ($this->_fulltextQuery) {
             $query = array('dis_max' => array('queries' => array()));
             $searchFields = $this->getSearchFields();
+
             $query['dis_max'] =  array('tie_breaker' => 0);
             $query['dis_max']['queries'][] = array(
                 'multi_match' => array(
-                    'query'  => $this->prepareFilterQueryText($this->_fulltextQuery),
-                    'fields' => $searchFields,
-                    'type'   => 'best_fields',
+                    'query'       => $this->prepareFilterQueryText($this->_fulltextQuery),
+                    'fields'      => $searchFields,
+                    'type'        => 'best_fields',
+                    "tie_breaker" => 0.9
                 )
             );
 

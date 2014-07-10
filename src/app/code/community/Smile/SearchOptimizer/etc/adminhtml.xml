@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Smile Tracker admin config
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_SearchOptimizer
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   OSL 3.0
+ */
+-->
+<config>
+    <menu>
+        <catalog>
+            <children>
+                <search translate="title" module="catalogsearch">
+                    <title>Search</title>
+                    <action />
+                    <sort_order>40</sort_order>
+                    <children>
+                        <terms>
+                            <title>Search Terms</title>
+                            <action>adminhtml/catalog_search/</action>
+                            <sort_order>40</sort_order>
+                        </terms>
+                        <optimizers>
+                            <title>Optimizations</title>
+                            <action>adminhtml/search_optimizer/</action>
+                            <sort_order>60</sort_order>
+                        </optimizers>
+                    </children>
+                </search>
+            </children>
+        </catalog>
+    </menu>
+    <acl>
+        <resources>
+            <admin>
+                <children>
+                    <catalog>
+                        <children>
+                            <search translate="title" module="catalogsearch">
+                                <title>Search</title>
+                                <children>
+                                    <terms translate="title" module="catalogsearch">
+                                        <title>Search Terms</title>
+                                    </terms>
+                                    <optimizers>
+                                        <title>Optimizations</title>
+                                    </optimizers>
+                                </children>
+                            </search>
+                        </children>
+                    </catalog>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>

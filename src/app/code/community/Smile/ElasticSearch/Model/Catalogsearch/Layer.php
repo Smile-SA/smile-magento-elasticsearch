@@ -63,6 +63,8 @@ class Smile_ElasticSearch_Model_Catalogsearch_Layer extends Mage_CatalogSearch_M
             $query->addFilter('terms', array('in_stock' => 1));
         }
 
+        $query->setQueryType('product_search_layer');
+
         return parent::prepareProductCollection($collection);
     }
 }

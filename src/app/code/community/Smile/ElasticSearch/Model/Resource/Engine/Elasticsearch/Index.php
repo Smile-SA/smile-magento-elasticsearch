@@ -452,7 +452,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         $currentDate = new Zend_Date();
 
         // Default pattern if nothing set into the config
-        $pattern = '{{YYYYMMDD}}-{{HHmmss}}';
+        $pattern = '{{YYYYMMdd}}-{{HHmmss}}';
 
         // Try to get the pattern from config
         $config = $this->_getHelper()->getEngineConfigData();

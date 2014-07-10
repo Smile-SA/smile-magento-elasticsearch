@@ -58,7 +58,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Combine extends Mage_CatalogR
      *
      * @return string
      */
-    public function getSearchQuery($excludedCategories)
+    public function getSearchQuery($excludedCategories = array())
     {
         $operator = 'must';
 
