@@ -43,9 +43,13 @@ In the end, you have access to ElasticSearch specific configuration parameters :
 > You can find a very complete documentation about possible implementation of fuzzy search into ES at this address : https://www.found.no/foundation/fuzzy-search/.
 >
 > The implementation is subject to change into the future. Currently we are using two queries (one for exact match and one for fuzzy) and we combine their scores. An alternative will be evaluated as described into #7.
-``
+
 
 ## Attributes configuration
+
+You can set up all
+
+The following param
 
 ## Virtual categories
 
