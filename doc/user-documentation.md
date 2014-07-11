@@ -1,6 +1,9 @@
-# User documentation
+User documentation
+==================
 
-## Global configuration
+Global configuration
+--------------------
+
 The global configuration of the module can be found into the **Catalog Search** section of **System > Configuration > Catalog**.
 
 First, you have access to the global configuration of the search engine shared with all other engines (MySQL and SolR) :
@@ -29,13 +32,17 @@ In the end, you have access to ElasticSearch specific configuration parameters
 |Fuzzy Query Boost|Relative weight of fuzzy search result. <br /> Exact matches have a weight of 1. <br /> The default value (0.3) will result approching result being 3 times less important than exact ones.|
 
 
-## Attributes configuration
+Attributes configuration
+------------------------
 
-## Fulltext search optimization
+Fulltext search optimization
+----------------------------
 
-## Front Office
+Front Office
+------------
 
 ### Facets
+
 
 ### Autocomplete
 
