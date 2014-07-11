@@ -19,6 +19,18 @@ In the end, you have access to ElasticSearch specific configuration parameters
 
 ![alt text](assets/config-3.png)
 
+|Param Name|Description|
+-----------|------------
+|Facets Max Size||
+|Enable Search on Options Labels||
+|Enable ICU Folding Token Filter||
+|Fuzzy Prefix Length||
+|Fuzzy Min Similarity||
+|Fuzzy Prefix Length||
+|Fuzzy Max Expansions||
+|Fuzzy Query Boost||
+
+
 ## Attributes configuration
 
 ## Fulltext search optimization
