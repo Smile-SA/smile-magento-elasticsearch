@@ -10,10 +10,10 @@ This module provides an integration of ElasticSearch into Magento developed by t
 
 # Documentation :
 
-* [Installing the module](doc/install)
-* [User documentation](doc/user-documentation)
-* [Developper documentation](doc/developper-documentation)
-* [Behavorial search documentation](doc/behavorial-search)
+* [Installing the module](doc/install.md)
+* [User documentation](doc/user-documentation.md)
+* [Developper documentation](doc/developper-documentation.md)
+* [Behavorial search documentation](doc/behavorial-search.md)
 
 # FAQ
 
