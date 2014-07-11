@@ -1,5 +1,5 @@
-# About this module :
-
+About this module :
+===================
 This module provides an integration of ElasticSearch into Magento developed by the R&D to address a lot of shortcomings met with the native SolR integration shipped with Magento EE :
 
 * Relevancy using behavior of the customers
@@ -8,17 +8,19 @@ This module provides an integration of ElasticSearch into Magento developed by t
 * Highly tunable scoring features
 * Integration of all Smile experience about search solutions (e.g. : smart categories, …)
 
-# Documentation :
+Documentation :
+===============
 
 * [Installing the module](doc/install.md)
 * [User documentation](doc/user-documentation.md)
 * [Developper documentation](doc/developper-documentation.md)
 * [Behavorial search documentation](doc/behavorial-search.md)
 
-# FAQ
+FAQ
+===
 
-## Why choosing ElaticSearch instead of extending the SolR implementation shipped with Magento EE ?
-
+Why choosing ElaticSearch instead of extending the SolR implementation shipped with Magento EE ?
+------------------------------------------------------------------------------------------------
 First, ElasticSearch contains a lot more features usefull we need to achieve some features of the project :
 
 * Query language is more complete and allow us toi build very complex use case models
@@ -35,19 +37,23 @@ In the end ES has a lot of advantages over SolR :
 * Built for distributed environnement, making easier to scale it up for our biggest clients
 * Built with replication features out of the box ensuring more security for the websites using the engine
 
-## Who is supporting the module ? What about upgrability ?
+
+Who is supporting the module ? What about upgrability ?
+-------------------------------------------------------
 
 Smile is supporting the module and ensure it is compatible with new Magento versions.
 The kind of feature we provide requires usually an external tool (FredHopper, ...) which requires a project by project upgrade which can take longer.
 
 Our main idea is to create a community of clients sharing investment and evolutions about searchandizing features.
  
-## Will the module be OpenSourced ?
+Will the module be OpenSourced ?
+--------------------------------
 
 It is planned. A code audit is still necessary to achieve this goal.
 
 
-## What is the project roadmap ?
+What is the project roadmap ?
+-----------------------------
 
 * More user behavior influence
 * Promotional rules influence on the search engine, Search engine based distance to promotion.
@@ -59,15 +65,18 @@ It is planned. A code audit is still necessary to achieve this goal.
 * Recommandations
 
 
-## What Magento version is supported ?
+What Magento version is supported ?
+-----------------------------------
 
-The module has been successfully deployed and tested against the following Magento versoins :
+The module has been successfully deployed and tested against the following Magento versions :
 * Magento EE 1.13
 * Magento EE 1.14
 * Magento CE 1.8
 * Magento CE 1.9
 
-## Can I install it on my existing project ?
+
+Can I install it on my existing project ?
+-----------------------------------------
 
 If your project is using Magento EE >= 1.13 or Magento CE >= 1.8, the time you will need will depends only of the amount of custom developments you spent on SolR onto the project. The custom developments can be separated in two parts :
 
@@ -78,11 +87,13 @@ If your project does not rely on SolR to achieve developments, the migration pro
 
 For older version of Magento, an evaluation should be done for your specific project.
 
-## Bugs / RFC
+
+Bugs / RFC
+----------
 
 Don't hesitate to :
 
-* Submit a bug, RFC, idea of evolution into [the issue tracker of the project](research-and-development/magento-es/issues)
+* Submit a bug, RFC, idea of new feature into [the issue tracker of the project](research-and-development/magento-es/issues)
 * Submit a merge request
 
 
