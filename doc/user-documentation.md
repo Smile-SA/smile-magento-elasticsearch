@@ -60,7 +60,7 @@ The module is shipped with interface allowing to configure Virtual Categories (s
 * All product of type "Blazer"
 * All product having the containing the word "Kit" dans leur nom.
 
-To define a category as "Virtual Category", 
+To define a category as Virtual Category :
 
 * Go into the **Category tab** of your category :
 * Set the category virtual using the "Enable virtual category" switcher
