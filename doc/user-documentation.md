@@ -81,10 +81,9 @@ To define a category as Virtual Category :
 
 ### Facets
 
-<div style="float: left">
 ![Multi-select facets](assets/facets-1.png)
 
 ![Price facet](assets/facets-2.png)
-</div>
+
 ### Autocomplete
 
