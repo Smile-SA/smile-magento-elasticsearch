@@ -1,23 +1,24 @@
 # User documentation
 
 ## Global configuration
+
 The global configuration of the module can be found into the **Catalog Search** section of **System > Configuration > Catalog**.
 
 First, you have access to the global configuration of the search engine shared with all other engines (MySQL and SolR) :
 
-![alt text](assets/config-1.png)
+![Magento default configuration](assets/config-1.png)
 
 
 Then you have access to the ES search engine parameters. 
 You can check here if the search engine is correctly set up (**Search Engine** param should be set to **Smile Serchandizing Suite**). 
 Other parameters should be changed only by developers and are documented into the [Installing the module](install.md).
 
-![alt text](assets/config-2.png)
+![Technical configuration](assets/config-2.png)
 
 
 In the end, you have access to ElasticSearch specific configuration parameters :
 
-![alt text](assets/config-3.png)
+![Specific ES configuration](assets/config-3.png)
 
 |Param Name|Description|
 -----------|------------
@@ -47,11 +48,34 @@ In the end, you have access to ElasticSearch specific configuration parameters :
 
 ## Attributes configuration
 
-You can set up all
 
-The following param
 
 ## Virtual categories
+
+The module is shipped with interface allowing to configure Virtual Categories (sometimes called Smart Categories). The Virtual categories is a mechanism allowing the admin to select product of a category by building a search engine query instead of picking the products one by one.
+
+**Examples of Virtual Categories :**
+
+* All blue products that are in stock into the category men
+* All product of type "Blazer"
+* All product having the containing the word "Kit" dans leur nom.
+
+To define a category as "Virtual Category", 
+
+* Go into the **Category tab** of your category :
+* Set the category virtual using the "Enable virtual category" switcher
+* The manual product picket is now hidden and you can define the rule to match your product instead
+* Save the category and navigate into you category on the front to verify everything is working as expected.
+
+![Virtual categories](assets/virtual-categories.png)
+
+
+> **About anchor categories**
+>
+> By default, Magento uses a categorie attribute call **Is Anchor** with is responsible of attributing all products of all children category to the parent category if the **Is Anchor**. This attribute is also responsible of triggering facet display / hide.
+>
+> The virtual categories hide this attribute into the admin and make the default value equals to **Yes** for the **Is Anchor** categories
+
 
 ## Front Office
 
