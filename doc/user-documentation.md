@@ -105,9 +105,22 @@ Front Office
 
 ### Facets
 
+The default module implementation make all facets being multi-select facets :
+
 ![Multi-select facets](assets/facets-1.png)
+
+Some facets like the price or the ratings have default templates bundled with the module. Developers can define custom facet for every attributes (see [Developper documentation](developper-documentation.md) for more information).
 
 ![Price facet](assets/facets-2.png)
 
 ### Autocomplete
 
+The module comes with an autocomplete which allows by default to autocomplete :
+
+* Popular searches made by user of the website
+* Products
+* Categories
+
+Default template is very simple (only name) but can be overridden by developers like described (see [Developper documentation](developper-documentation.md) for more information) :
+ 
+![Price facet](assets/autocomplete.png)
