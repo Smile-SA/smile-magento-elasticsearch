@@ -77,7 +77,16 @@ Then the following options are availables :
 |Alias name|**This is the most important part of the configuration especially if you have several instance of Magento on the same ES server. <br /> It is the name of the index that will be used by your Magento instance.**<br /> If you have two instance of Magento name of the alias should be different (magento-dev and magento-staging by example).|
 |Number of shards, Number of replicas|Sharding and replication management <br />. You can have more info about this at : http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/docs-index_.html|
 
+Once everything is finished you can proceed to full reindex of your magento search engine. 
 
-> *Note :*
-> A lot of the settings present here are environment related and should be included in your environment reconfiguration process.
+In Magento EE 1.14, the search engine reindexing is no more present into the admin and you have to proceed by the shell command :
+
+```bash
+php shell/indexer.php reindexall
+```
+
+> *Notes :*
+> * A lot of the settings present here are environment related and should be included in your environment reconfiguration process.
 > It has not yet been decided but it would be a good idea to move this settings to local.xml files just like the database or the cache.
+> * You have to be sure your cron are correctly set up when using Magento EE 1.14 since it is the process in charge of reindexing data when index is invalidated and you have no access to reindexing from admin.
+> * On Magento EE 1.13 a bug is present when adding / removing product from a category. It is not ES related. For more information : https://askbot.smile.fr/question/588/magento-1131-indexing-problem/
