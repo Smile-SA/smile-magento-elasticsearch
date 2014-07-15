@@ -62,8 +62,15 @@ The main settings related to the search engines are :
 
 |Param Name|Description|
 -----------|------------
-|Use in search ||
+|Use in Quick Search|Indicates if the attributes has a role in search relevancy computation.|
+|Search weight|Weight of the attributes into search relevancy.<br /> Typically we use higher score on product names than on it's description.|
+|Use in advanced search|Advanced search is not implemented. This settings is useless.|
+|Use in layer navigation|Should the attribute be used as a facet into categories navigation|
+|Use in search result layer|Should the attribute be used as a facet into search result|
 
+**Notes :**
+* This extension allows text attributes to be used as a facet (Magento only allows facets on select / multiselect attributes. Do this only on attributes that are imported from a clean source of data to avoid list which contains many times the same values with different typos (ex: "Robert De Niro" and "robert de Niro" will be two different facets).
+* The attributes **Rating filter** is a vurtual attributes which allow to configure the rating facets and sort. You can change it's label per store view, show / hide the facet, manage the facet position or show / hide the sort order.
 
 Virtual categories
 ------------------
