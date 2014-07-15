@@ -117,7 +117,7 @@ Some facets like the price or the ratings have default templates bundled with th
 
 The module comes with an autocomplete which allows by default to autocomplete :
 
-* Popular searches made by user of the website
+* Popular searches made by users of the website
 * Products
 * Categories
 
