@@ -56,7 +56,7 @@ You can find all settings related to the configuration of an attribute into **Ca
 
 This section is very similar to what Magento EE propose for the SolR implementation :
 
-![Attribute configuration](attribute-config.png)
+![Attribute configuration](assets/attribute-config.png)
 
 The main settings related to the search engines are :
 
@@ -90,7 +90,7 @@ To define a category as Virtual Category :
 >
 > By default, Magento uses a categorie attribute call **Is Anchor** with is responsible of attributing all products of all children category to the parent category if the **Is Anchor**. This attribute is also responsible of triggering facet display / hide.
 >
-/> The virtual categories hide this attribute into the admin and make the default value equals to **Yes** for the **Is Anchor** categories
+> The virtual categories hide this attribute into the admin and make the default value equals to **Yes** for the **Is Anchor** categories
 
 
 Front Office
