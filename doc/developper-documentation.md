@@ -24,7 +24,7 @@ Layered categories :
 --------------------
 
 All categories are anchor categories by default.
-As a result only catalog_category_layered layout handle is used and the catalog_category_default one is useless.
+As a result only **catalog_category_layered** layout handle is used and the **catalog_category_default** one is useless.
 
 
 Overriding facet templates :
