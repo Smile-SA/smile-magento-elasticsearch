@@ -1,6 +1,9 @@
-# User documentation
+User documentation
+==================
 
-## Global configuration
+
+Global configuration
+--------------------
 
 The global configuration of the module can be found into the **Catalog Search** section of **System > Configuration > Catalog**.
 
@@ -46,13 +49,14 @@ In the end, you have access to ElasticSearch specific configuration parameters :
 > The implementation is subject to change into the future. Currently we are using two queries (one for exact match and one for fuzzy) and we combine their scores. An alternative will be evaluated as described into #7.
 
 
-## Attributes configuration
+Attributes configuration
+------------------------
 
 
+Virtual categories
+------------------
 
-## Virtual categories
-
-The module is shipped with interface allowing to configure Virtual Categories (sometimes called Smart Categories). The Virtual categories is a mechanism allowing the admin to select product of a category by building a search engine query instead of picking the products one by one.
+The module is shipped with interface allowing to configure Virtual Categories (sometimes called Smart Categories). The Virtual categories is a powerful mechanism allowing the admin to select product of a category by building a search engine query instead of picking the products one by one.
 
 **Examples of Virtual Categories :**
 
@@ -74,10 +78,11 @@ To define a category as Virtual Category :
 >
 > By default, Magento uses a categorie attribute call **Is Anchor** with is responsible of attributing all products of all children category to the parent category if the **Is Anchor**. This attribute is also responsible of triggering facet display / hide.
 >
-> The virtual categories hide this attribute into the admin and make the default value equals to **Yes** for the **Is Anchor** categories
+/> The virtual categories hide this attribute into the admin and make the default value equals to **Yes** for the **Is Anchor** categories
 
 
-## Front Office
+Front Office
+------------
 
 ### Facets
 
