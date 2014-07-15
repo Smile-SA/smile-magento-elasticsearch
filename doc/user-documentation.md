@@ -52,6 +52,11 @@ In the end, you have access to ElasticSearch specific configuration parameters :
 Attributes configuration
 ------------------------
 
+You can find all settings related to the configuration of an attribute into **Catalog > Attributes > Manage Attributes**
+
+This section is very similar to what Magento EE propose for the SolR implementation :
+
+
 
 Virtual categories
 ------------------
