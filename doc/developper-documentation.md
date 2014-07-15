@@ -2,7 +2,8 @@ Developper documentation
 ========================
 
 **First you should not modify any file shipped with the module (even templates or layout). It should be considered in the same way than Magento core.
-You should use your own module / design / skin to extend the module to grant upgrabilty of the module.**
+You should use your own module / design / skin to extend the module to grant upgrabilty of the module.
+Avoid to copy / paste layout files into you own design. Prefer create a new layout file and work into.**
 
 Indexing :
 ----------
