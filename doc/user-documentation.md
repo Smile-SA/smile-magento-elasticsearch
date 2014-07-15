@@ -56,6 +56,13 @@ You can find all settings related to the configuration of an attribute into **Ca
 
 This section is very similar to what Magento EE propose for the SolR implementation :
 
+![Attribute configuration](attribute-config.png)
+
+The main settings related to the search engines are :
+
+|Param Name|Description|
+-----------|------------
+|Use in search ||
 
 
 Virtual categories
