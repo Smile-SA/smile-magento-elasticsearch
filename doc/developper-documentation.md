@@ -11,18 +11,18 @@ Indexing :
 The search engine can mix several types of document into the same index (product, categories, …). 
 Every document have a type associated with him.
 
-By default the index is named magento-YYYY-MM-DD-HHmmss.
-The creation date is used for YYYY-MM-DD-HHmmss.
+By default the index is named **magento-YYYY-MM-DD-HHmmss**.
+The creation date is used for **YYYY-MM-DD-HHmmss** and the alias configured for the index is used as prefix.
 
-When processin a full reindex 
-- a new index is created,
-- data are pushed into
-- the alias is switched when indexing is finished
+The process for a full reindex is :
 
+1. New index is created,
+2. Data are pushed into
+3. The alias is switched when indexing is finished
+4. The old index is removed
 
 Layered categories :
 --------------------
-
 All categories are anchor categories by default.
 As a result only **catalog_category_layered** layout handle is used and the **catalog_category_default** one is useless.
 
