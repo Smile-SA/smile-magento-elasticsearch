@@ -121,6 +121,6 @@ The module comes with an autocomplete which allows by default to autocomplete :
 * Products
 * Categories
 
-Default template is very simple (only name) but can be overridden by developers to display additional attributes (eg. image) like described (see [Developper documentation](developper-documentation.md) for more information) :
+Default template is very simple (only name) but can be overridden by developers to display additional attributes (eg. image) like described into [Developper documentation](developper-documentation.md) :
  
 ![Price facet](assets/autocomplete.png)
