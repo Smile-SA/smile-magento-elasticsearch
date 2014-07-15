@@ -85,7 +85,8 @@ In Magento EE 1.14, the search engine reindexing is no more present into the adm
 php shell/indexer.php reindexall
 ```
 
-> *Notes :*
+
+> **Notes :**
 > * A lot of the settings present here are environment related and should be included in your environment reconfiguration process.
 > It has not yet been decided but it would be a good idea to move this settings to local.xml files just like the database or the cache.
 > * You have to be sure your cron are correctly set up when using Magento EE 1.14 since it is the process in charge of reindexing data when index is invalidated and you have no access to reindexing from admin.
