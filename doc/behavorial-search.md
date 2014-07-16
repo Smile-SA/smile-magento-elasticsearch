@@ -89,5 +89,8 @@ This configuration can be found into **System > Configuration > Smile Searchandi
 |Param|Description|
 |-----|-----------|
 |Tracker Base Url|The URL of the Apache proxy. <br/> Use an any png suffix (h.png, hit.png, ***). <br /> Prefer URL relative protocol with // (http://www.paulirish.com/2010/the-protocol-relative-url/) especially if using a website with SSL.|
+|Cookie params|This cookie can be adjusted to change the duration of the session or of the visitor identification.|
+
+
 Optimizer models
 ----------------
