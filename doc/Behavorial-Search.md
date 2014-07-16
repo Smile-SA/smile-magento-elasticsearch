@@ -73,7 +73,7 @@ a2enmode proxy proxy_http proxy_balancer headers
 
 > **Note :**
 > * If using Varnish, you have to exclude the hit domain from the cache.
-> * If using SSL on your website, you will need to duplicate this configuration on the 443 port in order your website respond to https://t.mysite.com correctly. You will need a valid certificate for this domain.
+> * If using SSL on your website, you will need **to duplicate this configuration on the SSL port (443)** in order your website respond to https://t.mysite.com correctly. **You will need a valid certificate for this domain.**
 > * Use the same domain name for SSL and non-SSL (a limitation into the tracking module does not allow different domain name).
 
 
