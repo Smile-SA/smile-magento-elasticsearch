@@ -1,4 +1,5 @@
 /**
+
  * ElaticSearch tracking indexer plugin. HTTP endpoint.
  *
  * DISCLAIMER
@@ -26,6 +27,16 @@ import static org.elasticsearch.rest.RestStatus.OK;
  * @author Aurelien FOUCRET <aufou@smile.fr>
  */
 public class CollectRestHandler extends BaseRestHandler {
+	
+	/**
+	 * Content type used to send a PNG image response
+	 */
+	public static final String PNG_CONTENT_TYPE = "image/png";
+	
+	/**
+	 * Empty pixel base64 representation
+	 */
+	public static final String PNG_EMPTY_PIXEL  = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=";
 	
 	/**
 	 * Indexer used to process events collected through the HTTP REST handler.
@@ -58,8 +69,19 @@ public class CollectRestHandler extends BaseRestHandler {
      */
     public void handleRequest(final RestRequest request, final RestChannel channel) {
     	CollectRestHandler.Buffer.addQuery(request.params());
-        channel.sendResponse(new BytesRestResponse(OK, ""));
+    	BytesRestResponse resp = new BytesRestResponse(OK, PNG_CONTENT_TYPE, getEmptyImage());
+        channel.sendResponse(resp);
     }
+    
+    /**
+     * Binary image representation.
+     * 
+     * @return The binary representation for an empty image
+     */
+    public byte[] getEmptyImage() {
+    	return javax.xml.bind.DatatypeConverter.parseBase64Binary(PNG_EMPTY_PIXEL);
+    }
+    
      
     /**
      * Static class implementing a buffer used to store events pending indexation.
