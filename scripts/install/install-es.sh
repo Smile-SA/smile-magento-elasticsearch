@@ -6,7 +6,7 @@
 
 # Configuration stuffs
 ES_VERSION=1.2
-ES_PLUGIN_CMD=/Users/afoucret/local-apps/elasticsearch-1.2.0/bin/plugin
+ES_PLUGIN_CMD=/usr/share/elasticsearch/bin/plugin
 ES_LOCAL_PLUGIN_DIR=`dirname $0`/../../es/plugins
 
 if [ "$#" -lt 2 ]; then
