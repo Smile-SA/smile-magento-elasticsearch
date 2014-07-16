@@ -27,6 +27,8 @@ You can also run the following command to install the plugin from the source :
 /usr/share/elasticsearch/bin/plugin -i tracking-indexer -u file:///SOURCE_ROOT/es/tracking-indexer/tracking-indexer-current.jar
 ```
 
+When installed the http://localhost:9200/tracker/hit URL of the search engine should respond with an empty PNG image and the search engine is ready to index events sent through this URL.
+
 > **Note :** 
 > When using SPBuilder, make sure the es directory of your project is part of your delivery package. It is not the case bu default, but you can add the path to the svn-components (More details at https://wiki.smile.fr/view/Dirtech/Projets/SpBuilderProperties)
 
