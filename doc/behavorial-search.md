@@ -100,16 +100,20 @@ The purpose of this module is to apply custom scoring models to search.
 
 You can access the optimizers though **Catalog > Search > Optimizers** and will found a list of all optimizers applied on the website :
 
-
+![Optimizer list](assets/optimizer-list.png)
 
 > **About applying optimizer on the categories list**
+>
 > There is a regression in ES (https://github.com/elasticsearch/elasticsearch/issues/6788), which preventing using the rescorer on categories.
 > The bug will be fixed in a future release and updating ES will be 
 
 ### Constant Score Optimizers
 
+![Constant score optimizer](assets/constant-score-optimizer.png)
+
 ### Popularity Optimizers
 
+![Popularity](assets/popularity-optimizer.png)
 ### Custom Optimizer Development
 
 ### Roadmap
