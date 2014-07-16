@@ -62,8 +62,8 @@ class Smile_SearchOptimizer_Model_Optimizer_ConstantScore extends Smile_SearchOp
         $boostFactor = 1 + ((float) $optimizer->getConfig('boost_value') / 100);
         $rescoreQuery = array(
           'function_score' => array(
-           'boost_factor' => $boostFactor,
-             'boost_mode'   => 'replace'
+            'boost_factor' => $boostFactor,
+            'boost_mode'   => 'replace'
           )
         );
 
