@@ -129,6 +129,18 @@ At this time two model of optimizer are available :
 |Popularity type|The type of event that will be counted to determine popularity : number of sales or number of views|
 |Scale function|The function that will be applied to the number of sales / views. Most of time, use logarithm (log10) is the best model and avoid product to be overrated|
 |Scale factor|A multiplication factor applied to the count before applying the scale function. <br />Use low scale factor for views (0.1) and higher for sales (10)|
-|Decrease duration (in days)||
+|Decrease duration (in days)|Every day, the count is decreased by a small amount. This param set the number of day before the count reaches 50% of it's value|
+
+**Exemples :**
+|scale function |scale factor|Count = 10|Count=100|Count = 1000|
+|log            |           1|         1|        2|           3|
+|log            |          10|         2|        3|           4|
+|log            |         0.1|         1|        1|           2|
+|sqrt           |           1|       3.1|       10|          31|
+|sqrt           |          10|        10|       31|         100|
+|sqrt           |         0.1|         1|      3.1|          10|
+|linear         |           1|        10|      100|        1000|
+|linear         |          10|       100|     1000|       10000|
+|linear         |         0.1|         1|       10|         100|
 
 ### Custom Optimizer Development
