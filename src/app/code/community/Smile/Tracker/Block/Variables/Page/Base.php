@@ -37,7 +37,7 @@ class Smile_Tracker_Block_Variables_Page_Base extends Smile_Tracker_Block_Variab
     {
         return array(
             'type.identifier' => $this->getPageTypeIdentifier(),
-            'type.label'      => $this->getPageTypeLabel(),
+            'type.label'      =>  stripslashes($this->getPageTypeLabel()),
         );
     }
 
@@ -82,7 +82,8 @@ class Smile_Tracker_Block_Variables_Page_Base extends Smile_Tracker_Block_Variab
     protected function _getPageTypeLabelMap()
     {
         $labelByIdentifier = array();
-        $cache = Mage::app()->loadCache(self::PAGE_LABELS_BY_IDENTIFER_MAP_CACHE_ID);
+        $cacheKey = self::PAGE_LABELS_BY_IDENTIFER_MAP_CACHE_ID . '_' . Mage::app()->getStore()->getId();
+        $cache = Mage::app()->loadCache($cacheKey);
 
         if ($cache === false) {
 
@@ -106,7 +107,7 @@ class Smile_Tracker_Block_Variables_Page_Base extends Smile_Tracker_Block_Variab
 
             $cacheTags = array(Mage_Core_Model_Layout_Update::LAYOUT_GENERAL_CACHE_TAG);
             Mage::app()->saveCache(
-                serialize($labelByIdentifier), self::PAGE_LABELS_BY_IDENTIFER_MAP_CACHE_ID, $cacheTags, 7200
+                serialize($labelByIdentifier), $cacheKey, $cacheTags, 7200
             );
 
         } else {
