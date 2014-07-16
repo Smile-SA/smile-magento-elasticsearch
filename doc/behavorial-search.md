@@ -105,14 +105,30 @@ You can access the optimizers though **Catalog > Search > Optimizers** and will 
 > **About applying optimizer on the categories list**
 >
 > There is a regression in ES (https://github.com/elasticsearch/elasticsearch/issues/6788), which preventing using the rescorer on categories.
-> The bug will be fixed in a future release and updating ES will be 
+> The bug will be fixed in a future release and updating ES will apply optimizer as a secondary sort on category product list (after the position of the product chosen by the admin).
+
+At this time two model of optimizer are available :
+
+* **Constant Score**
+* **Popularity**
 
 ### Constant Score Optimizers
 
 ![Constant score optimizer](assets/constant-score-optimizer.png)
 
+> **Description :** This model apply a a boost defined in percent by the admin to a selection of products.
+
 ### Popularity Optimizers
 
 ![Popularity](assets/popularity-optimizer.png)
+
+> **Description :** This model give a boost to product according to their popularity. Value of the boost is computed using the params below
+
+|Param|Description|
+|-----|-----------|
+|Popularity type|The type of event that will be counted to determine popularity : number of sales or number of views|
+|Scale function|The function that will be applied to the number of sales / views. Most of time, use logarithm (log10) is the best model and avoid product to be overrated|
+|Scale factor|A multiplication factor applied to the count before applying the scale function. <br />Use low scale factor for views (0.1) and higher for sales (10)|
+|Decrease duration (in days)||
 
 ### Custom Optimizer Development
