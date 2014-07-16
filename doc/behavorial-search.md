@@ -79,6 +79,12 @@ a2enmode proxy proxy_http proxy_balancer headers
 
 ### Smile Tracker
 
+The Smile_Tracker module is shipped with the ES install. This module is in charge of tagging pages of the website with small PNG image with relay information about customer navigation to the newly created Apache vhost.
+
+The only thing, you have to do is configuring the URL of your tracker.
+This configuration can be found into **System > Configuration > Smile Searchandising Suite> Tagging** :
+
+![Tracking configuration](assets/config-tracker.png)
 
 
 Optimizer models
