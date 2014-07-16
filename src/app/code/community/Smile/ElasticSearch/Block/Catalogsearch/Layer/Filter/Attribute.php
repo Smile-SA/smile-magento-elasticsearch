@@ -28,6 +28,7 @@ class Smile_ElasticSearch_Block_Catalogsearch_Layer_Filter_Attribute extends Mag
         parent::__construct();
         $this->_filterModelName = 'smile_elasticsearch/catalogsearch_layer_filter_attribute';
         $this->setIsMultipleSelect(true);
+        $this->setTemplate('smile/elasticsearch/catalog/layer/filter.phtml');
     }
 
     /**
