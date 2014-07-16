@@ -34,11 +34,11 @@ When installed the http://localhost:9200/tracker/hit URL of the search engine sh
 
 ### Apache configuration
 
-You will need a new domain name to collect tracking. 
+You will need a new domain name to collect tracking.
 
 For a site named www.mysite.com, you can use a new domain called **t.mysite.com** or **hit.mysite.com** by example.
  
-This domain will be proxied to ES through an Apache vhost :
+This domain will be proxied to ES tracking plugin through an Apache vhost :
 
 ``` conf
 <VirtualHost *:80>
