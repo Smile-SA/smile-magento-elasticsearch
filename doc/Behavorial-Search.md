@@ -8,6 +8,14 @@ This section explains how to configure this feature and extend the available mod
 Data collector
 --------------
 
+### Smile Tracker
+
+### Prepare ElasticSearch
+
+### Apache configuration
+
+> **Note :**
+> If using Varnish, you have to exclude the hit url from the cached ones.
 
 
 Optimizer models
