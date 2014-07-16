@@ -10,7 +10,7 @@ Data collector
 
 ### Prepare ElasticSearch
 
-In order to make the feature working, you will need to install the ES tracking indexer shipped with the module (**es/plugins/tracking-indexer/tracking-indexer-current.jar**).
+In order to make the feature working, you will need to install the ES tracking indexer shipped with the module (es/plugins/tracking-indexer/tracking-indexer-current.jar).
 
 The module is normally installed with ES if you have used the automated install script (see [Installing the module](install.md)). 
 
@@ -36,14 +36,14 @@ When installed the http://localhost:9200/tracker/hit URL of the search engine sh
 
 You will need a new domain name to collect tracking.
 
-For a site named www.mysite.com, you can use a new domain called **t.mysite.com** or **hit.mysite.com** by example.
+For a site named **www.mysite.com**, you can use a new domain called **t.mysite.com** or **hit.mysite.com** by example.
  
 This domain will be proxied to ES tracking plugin through an Apache vhost :
 
 ``` conf
 <VirtualHost *:80>
 
-    ServerName t.mage.local
+    ServerName t.mysite.com
 
     ProxyPreserveHost On
     <Proxy balancer://esnodes>
