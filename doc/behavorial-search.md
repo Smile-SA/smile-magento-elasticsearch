@@ -114,6 +114,5 @@ You can access the optimizers though **Catalog > Search > Optimizers** and will 
 ### Popularity Optimizers
 
 ![Popularity](assets/popularity-optimizer.png)
-### Custom Optimizer Development
 
-### Roadmap
+### Custom Optimizer Development
