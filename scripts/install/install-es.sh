@@ -6,6 +6,9 @@
 
 # Configuration stuffs
 ES_VERSION=1.2
+ES_PLUGIN_CMD=/Users/afoucret/local-apps/elasticsearch-1.2.0/bin/plugin
+ES_LOCAL_PLUGIN_DIR=`dirname $0`/../../es/plugins
+
 if [ "$#" -lt 2 ]; then
     echo "Usage : ./install-es.sh cluster_name server1:port <server2:port> ..."
     exit 1
@@ -28,5 +31,9 @@ service elasticsearch restart
 update-rc.d elasticsearch defaults
 
 # Installing plugins required by Magento modules
-/usr/share/elasticsearch/bin/plugin -install mobz/elasticsearch-head
-/usr/share/elasticsearch/bin/plugin -install elasticsearch/elasticsearch-analysis-icu/2.2.0
+$ES_PLUGIN_CMD -r mobz/elasticsearch-head
+$ES_PLUGIN_CMD -install mobz/elasticsearch-head
+$ES_PLUGIN_CMD -r elasticsearch/elasticsearch-analysis-icu
+$ES_PLUGIN_CMD -install elasticsearch/elasticsearch-analysis-icu/2.2.0
+$ES_PLUGIN_CMD -r tracking-indexer 
+$ES_PLUGIN_CMD -install tracking-indexer -u file:$ES_LOCAL_PLUGIN_DIR/tracking-indexer/tracking-indexer-current.jar
