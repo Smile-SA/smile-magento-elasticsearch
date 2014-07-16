@@ -132,7 +132,9 @@ At this time two model of optimizer are available :
 |Decrease duration (in days)|Every day, the count is decreased by a small amount. This param set the number of day before the count reaches 50% of it's value|
 
 **Exemples :**
+
 |scale function |scale factor|Count = 10|Count=100|Count = 1000|
+|---------------||-----------|----------|---------|------------|
 |log            |           1|         1|        2|           3|
 |log            |          10|         2|        3|           4|
 |log            |         0.1|         1|        1|           2|
