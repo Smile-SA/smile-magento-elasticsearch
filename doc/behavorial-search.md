@@ -227,3 +227,16 @@ class Smile_SearchOptimizer_Model_Optimizer_ConstantScore extends Smile_SearchOp
     }
 }
 ```
+
+It's declaration into config.xml :
+
+``` xml
+<config>
+   <global>
+       <smile_searchoptimizer>
+            <optimizer_models>
+                <constant_score>smile_searchoptimizer/optimizer_constantScore</constant_score>
+            </optimizer_models>
+       </smile_searchoptimizer>
+   </global>
+</config>
