@@ -15,6 +15,7 @@ Documentation :
 * [User documentation](doc/user-documentation.md)
 * [Developper documentation](doc/developper-documentation.md)
 * [Behavorial search documentation](doc/behavorial-search.md)
+* [Indexing external content](doc/indexing.md)
 
 FAQ
 ===
