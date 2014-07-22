@@ -7,10 +7,9 @@
 ### Event listening
 
 * smile_elasticsearch_index_create_before  : Create the index mapping before it is published
+* smile_elasticsearch_index_install_before : CMS page full reindex when reindexing the whole search engine
 * cms_page_save_after                      : Index a single page
 * cms_page_delete_commit_after             : Delete the page
-* smile_elasticsearch_index_install_before : CMS page full reindex when reindexing the whole search engine
-
 
 ``` xml
   <events>
@@ -30,60 +29,116 @@
           </add_category_mapping_to_index>
       </observers>
     </smile_elasticsearch_index_install_before>
-    <cms_page_save_after>
+    <cms_page_save_commit_after>
       <observers>
         <reindex_cms_page>
           <class>my_module/observer</class>
           <method>reindexCmsPage</method>
         </reindex_cms_page>
       </observers>
-    </cms_page_save_after>
-    <cms_page_delete_commit_after>
-      <observers>
-        <search_delete_cms_page>
-          <class>my_module/observer</class>
-          <method>deteleCmsPage</method>
-        </search_delete_cms_page>
-      </observers>
-    </cms_page_delete_commit_after>
+    </cms_page_save_commit_after>
   </events>
 ```
 
 ### Observer.php
 
+The first method allows to publish the schema of your document type cms_page into ES :
+
 ```php
-   /**
-     * Index category mapping setup
-     *
-     * @param Varien_Event_Observer $observer Event data
-     *
-     * @return Modyf_Search_Model_Observer
-     */
-    public function addCategoryMappingToIndex(Varien_Event_Observer $observer)
-    {
-        $indexProperties = $observer->getIndexProperties();
-        $indexPropertiesData = $indexProperties->getData();
-        $indexPropertiesData['body']['mappings']['category']['properties'] = array();
-        $categoryMapping = &$indexPropertiesData['body']['mappings']['category']['properties'];
-        $helper = Mage::helper('smile_elasticsearch');
+public function addCmsPageMappingToIndex(Varien_Event_Observer $observer)
+{
+    $indexProperties = $observer->getIndexProperties();
+    $indexPropertiesData = $indexProperties->getData();
+    $properties = array();
+    $categoryMapping = &$indexPropertiesData['body']['mappings']['cms_page']['properties'];
+    $helper = Mage::helper('smile_elasticsearch');
+    
+    foreach (Mage::app()->getStores() as $store) {
+        $languageCode = $helper->getLanguageCodeByStore($store);
+
+        // String / text fields :
+        foreach (array('title', 'content') as $field) {
+          $field = $field . '_' . $languageCode;
+          $properties[$field] = array(
+            'type' => 'multi_field',
+            'fields' => array(
+              $field => array(
+                'type' => 'string',
+                'boost' => $weight > 0 ? $weight : 1,
+              ),
+              'untouched' => array(
+                'type' => 'string',
+                'index' => 'not_analyzed',
+               ),
+            ),
+          );
+        }
         
+        // Other field :
+        $properties['example_field'] = array(
+          'type' => 'int|float|date'
+        )
+        
+    }
+
+    $indexPropertiesData['body']['mappings']['cms_page']['properties'] = $properties;
+    $indexProperties->setData($indexPropertiesData);
+
+    return $this;
+})
+```
+
+The second method allows to index page from the CMS during full reindexing :
+
+```php
+public function cmsPageFullReindex(Varien_Event_Observer $observer)
+{
+  
+    $engine = Mage::helper('catalogsearch')->getEngine();
+
+    if ($engine instanceof Smile_ElasticSearch_Model_Resource_Engine_ElasticSearch) {
+
         foreach (Mage::app()->getStores() as $store) {
             $languageCode = $helper->getLanguageCodeByStore($store);
-            $categoryMapping[$helper->getSuggestFieldName($store)] = array(
-                'type'     => 'completion',
-                'payloads' => true,
-                'max_input_length' => 500,
-                'index_analyzer' => 'analyzer_' . $languageCode,
-                'search_analyzer' => 'analyzer_' . $languageCode,
-                'preserve_separators' => false
-            );
+            $data = array();
+
+            $pages = Mage::getResourceModel('cms/page_collection')
+                ->addStoreFilter($store);
+                  
+            foreach ($pages as $page) {
+                $data[] = array(
+                    'title_' . $languageCode       => $page->getTitle(),
+                    'description_' . $languageCode => $page->getDescription(),
+                    // ... Other indexed fields
+                );
+            }
+
+            $engine->saveEntityIndexes($store->getId(), $data, 'cms_page');
         }
+    }
 
-        $indexProperties->setData($indexPropertiesData);
+    return $this;
+      
+}
 
-        return $this;
-    })
+The third part is in charge of reindexing a page when saving it :
+```php
+public function reindexCmsPage(Varien_Event_Observer $observer)
+{
+  $page = $observer->getDataObject();
+  $data = array(
+    array(
+        'title_' . $languageCode       => $page->getTitle(),
+        'description_' . $languageCode => $page->getDescription(),
+        // ... Other indexed fields
+    )
+  );
+  
+  $engine->saveEntityIndexes($store->getId(), $data, 'cms_page');
+}
 ```
+
+You should be able to see indexed page at the URL : http://localhost:9200/magento/cms_page/_search
 
 ## Querying custom content
 
