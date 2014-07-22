@@ -9,7 +9,6 @@
 * smile_elasticsearch_index_create_before  : Create the index mapping before it is published
 * smile_elasticsearch_index_install_before : CMS page full reindex when reindexing the whole search engine
 * cms_page_save_after                      : Index a single page
-* cms_page_delete_commit_after             : Delete the page
 
 ``` xml
   <events>
@@ -120,6 +119,7 @@ public function cmsPageFullReindex(Varien_Event_Observer $observer)
     return $this;
       
 }
+```
 
 The third part is in charge of reindexing a page when saving it :
 ```php
