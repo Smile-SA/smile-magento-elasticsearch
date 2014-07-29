@@ -33,6 +33,13 @@
             <smile_elasticsearch_resource>
                 <class>Smile_ElasticSearch_Model_Resource</class>
             </smile_elasticsearch_resource>
+            <enterprise_catalogsearch>
+                <rewrite>
+                    <index_action_fulltext_refresh>Smile_ElasticSearch_Model_Index_Action_Fulltext_Refresh</index_action_fulltext_refresh>
+                    <index_action_fulltext_refresh_row>Smile_ElasticSearch_Model_Index_Action_Fulltext_Refresh_Row</index_action_fulltext_refresh_row>
+                    <index_action_fulltext_refresh_changelog>Smile_ElasticSearch_Model_Index_Action_Fulltext_Refresh_Changelog</index_action_fulltext_refresh_changelog>
+                </rewrite>
+            </enterprise_catalogsearch>
         </models>
         <helpers>
             <smile_elasticsearch>
@@ -52,32 +59,18 @@
                 </setup>
             </smile_elasticsearch_setup>
         </resources>
+        <index>
+            <indexer>
+                <catalogsearch_fulltext>
+                    <model>smile_elasticsearch/indexer_fulltext</model>
+                    <action_model>
+                        <changelog>smile_elasticsearch/index_action_fulltext_refresh_changelog</changelog>
+                        <all>smile_elasticsearch/index_action_fulltext_refresh</all>
+                    </action_model>
+                </catalogsearch_fulltext>
+            </indexer>
+        </index>
         <events>
-            <catalogsearch_index_process_start>
-                <observers>
-                    <smile_elasticsearch>
-                        <class>smile_elasticsearch/observer</class>
-                        <method>beforeIndexProcessStart</method>
-                    </smile_elasticsearch>
-                </observers>
-            </catalogsearch_index_process_start>
-            <catalogsearch_index_process_complete>
-            
-                <observers>
-                    <smile_elasticsearch>
-                        <class>smile_elasticsearch/observer</class>
-                        <method>installIndex</method>
-                    </smile_elasticsearch>
-                </observers>
-            </catalogsearch_index_process_complete>
-            <smile_elasticsearch_index_install_before>
-                <observers>
-                    <reindex_categories>
-                        <class>smile_elasticsearch/observer</class>
-                        <method>reindexCategories</method>
-                    </reindex_categories>
-                </observers>
-            </smile_elasticsearch_index_install_before>
             <catalog_entity_attribute_save_after>
                 <observers>
                     <smile_elasticsearch>
@@ -94,15 +87,33 @@
                     </smile_elasticsearch>
                 </observers>
             </catalog_category_save_commit_after>
-            <smile_elasticsearch_index_create_before>
+            <enterprise_index_exclude_process_before>
                 <observers>
-                    <add_category_mapping_to_index>
+                    <enterprise_catalogsearch_fulltext>
                         <class>smile_elasticsearch/observer</class>
-                        <method>addCategoryMappingToIndex</method>
-                    </add_category_mapping_to_index>
+                        <method>addExcludeProcess</method>
+                    </enterprise_catalogsearch_fulltext>
                 </observers>
-            </smile_elasticsearch_index_create_before>
+            </enterprise_index_exclude_process_before>
+            <catalogsearch_fulltext_shell_reindex_after>
+                <observers>
+                    <enterprise_index>
+                        <class>smile_elasticsearch/observer</class>
+                        <method>processShellFulltextReindexEvent</method>
+                    </enterprise_index>
+                </observers>
+            </catalogsearch_fulltext_shell_reindex_after>
         </events>
+        <smile_elasticsearch>
+            <mapping>
+                <product>
+                    <model>smile_elasticsearch/engine_elasticsearch_mapping_product</model>
+                </product>
+                <category>
+                    <model>smile_elasticsearch/engine_elasticsearch_mapping_category</model>
+                </category>
+            </mapping>
+        </smile_elasticsearch>
     </global>
     <admin>
         <routers>

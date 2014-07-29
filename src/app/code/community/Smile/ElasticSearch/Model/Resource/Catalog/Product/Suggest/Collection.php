@@ -89,8 +89,8 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
             $idsFilter = array();
 
             foreach ($suggestions as $suggestion) {
-                if (isset($suggestion['payload']) && isset($suggestion['payload']['product_id'])) {
-                    $idsFilter[] = $suggestion['payload']['product_id'];
+                if (isset($suggestion['payload']) && isset($suggestion['payload']['entity_id'])) {
+                    $idsFilter[] = $suggestion['payload']['entity_id'];
                 }
             }
 

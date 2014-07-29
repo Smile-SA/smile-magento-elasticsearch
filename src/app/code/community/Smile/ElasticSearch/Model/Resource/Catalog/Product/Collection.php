@@ -209,6 +209,11 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
     {
         if ($this->_searchEngineQuery === null) {
             $this->_searchEngineQuery = $this->_engine->createQuery('product');
+
+            if ($this->getStoreId()) {
+                $store = Mage::app()->getStore();
+                $this->_searchEngineQuery->setLanguageCode(Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store));
+            }
         }
 
         return $this->_searchEngineQuery;

@@ -24,10 +24,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
      */
     const COPY_DATA_BULK_SIZE = 1000;
 
+    const MAPPING_CONF_ROOT_NODE = 'global/smile_elasticsearch/mapping';
+
     /**
      * @var string
      */
     protected $_name;
+
+    protected $_mappings = array();
 
     /**
      * @var boolean
@@ -59,6 +63,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         'German', 'Hungarian', 'Italian', 'Kp', 'Lovins', 'Norwegian', 'Porter', 'Portuguese',
         'Romanian', 'Russian', 'Spanish', 'Swedish', 'Turkish',
     );
+
+
+    public function __construct()
+    {
+        $mappingConfig = Mage::getConfig()->getNode(self::MAPPING_CONF_ROOT_NODE)->asArray();
+        foreach ($mappingConfig as $type => $config) {
+            $this->_mappings[$type] = Mage::getResourceSingleton($config['model']);
+            $this->_mappings[$type]->setType($type);
+        }
+    }
 
     /**
      * Set current index name.
@@ -97,149 +111,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             $indices->refresh($params);
         }
         return $this;
-    }
-
-    /**
-     * Builds index properties for indexation according to available attributes and stores.
-     *
-     * @return array
-     */
-    public function getProperties()
-    {
-        $cacheId = Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch::CACHE_INDEX_PROPERTIES_ID;
-        if ($properties = Mage::app()->loadCache($cacheId)) {
-            return unserialize($properties);
-        }
-
-        /** @var $helper Smile_ElasticSearch_Helper_Data */
-        $helper = $this->_getHelper();
-        $indexSettings = $this->_getSettings();
-        $properties = array();
-
-        $attributes = $helper->getSearchableAttributes(array('varchar', 'int'));
-        foreach ($attributes as $attribute) {
-            /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
-            if ($this->_isAttributeIndexable($attribute)) {
-                foreach (Mage::app()->getStores() as $store) {
-                    /** @var $store Mage_Core_Model_Store */
-                    $locale = $helper->getLocaleCode($store);
-                    $key = $helper->getAttributeFieldName($attribute, $locale);
-                    $type = $this->_getAttributeType($attribute);
-                    if ($type !== 'string') {
-                        $properties[$key] = array(
-                            'type' => $type,
-                        );
-                    } else {
-                        $weight = $attribute->getSearchWeight();
-                        $properties[$key] = array(
-                            'type' => 'multi_field',
-                            'fields' => array(
-                                $key => array(
-                                    'type' => $type,
-                                    'boost' => $weight > 0 ? $weight : 1,
-                                ),
-                                'untouched' => array(
-                                    'type' => $type,
-                                    'index' => 'not_analyzed',
-                                ),
-                            ),
-                        );
-                        foreach (array_keys($indexSettings['analysis']['analyzer']) as $analyzer) {
-                            $properties[$key]['fields'][$analyzer] = array(
-                                'type' => 'string',
-                                'analyzer' => $analyzer,
-                                'boost' => $attribute->getSearchWeight(),
-                            );
-                        }
-                    }
-                }
-            }
-        }
-
-        $attributes = $helper->getSearchableAttributes('text');
-        foreach ($attributes as $attribute) {
-            /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
-            foreach (Mage::app()->getStores() as $store) {
-                /** @var $store Mage_Core_Model_Store */
-                $languageCode = $helper->getLanguageCodeByStore($store);
-                $locale = $helper->getLocaleCode($store);
-                $key = $helper->getAttributeFieldName($attribute, $locale);
-                $weight = $attribute->getSearchWeight();
-                $properties[$key] = array(
-                    'type' => 'string',
-                    'boost' => $weight > 0 ? $weight : 1,
-                    'analyzer' => 'analyzer_' . $languageCode,
-                );
-            }
-        }
-
-        $attributes = $helper->getSearchableAttributes(array('static', 'varchar', 'decimal', 'datetime'));
-        foreach ($attributes as $attribute) {
-            /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
-            $key = $helper->getAttributeFieldName($attribute);
-            if ($this->_isAttributeIndexable($attribute) && !isset($properties[$key])) {
-                $weight = $attribute->getSearchWeight();
-                $properties[$key] = array(
-                    'type' => $this->_getAttributeType($attribute),
-                    'boost' => $weight > 0 ? $weight : 1,
-                );
-                if ($attribute->getBackendType() == 'datetime') {
-                    $properties[$key]['format'] = $this->_dateFormat;
-                }
-            }
-        }
-
-        // Handle sortable attributes
-        $attributes = $helper->getSortableAttributes();
-        foreach ($attributes as $attribute) {
-            /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
-            $type = 'string';
-            if ($attribute->getBackendType() == 'decimal') {
-                $type = 'double';
-            } elseif ($attribute->getBackendType() == 'datetime') {
-                $type = 'date';
-                $format = $this->_dateFormat;
-            }
-            foreach (Mage::app()->getStores() as $store) {
-                /** @var $store Mage_Core_Model_Store */
-                $locale = $helper->getLocaleCode($store);
-                $key = $helper->getSortableAttributeFieldName($attribute, $locale);
-                if (!array_key_exists($key, $properties)) {
-                    $properties[$key] = array(
-                        'type' => $type,
-                        'analyzer' => 'sortable',
-                    );
-                    if (isset($format)) {
-                        $properties[$key]['format'] = $format;
-                    }
-                }
-            }
-        }
-
-        // Custom attributes indexation
-        $properties['visibility'] = array('type' => 'integer');
-        $properties['store_id']   = array('type' => 'integer');
-        $properties['in_stock']   = array('type' => 'boolean');
-
-
-        foreach (Mage::app()->getStores() as $store) {
-            $languageCode = $helper->getLanguageCodeByStore($store);
-            $properties[$helper->getSuggestFieldName($store)] = array(
-                'type'     => 'completion',
-                'payloads' => true,
-                'max_input_length' => 500,
-                'index_analyzer' => 'analyzer_' . $languageCode,
-                'search_analyzer' => 'analyzer_' . $languageCode,
-                'preserve_separators' => false
-            );
-        }
-
-        if (Mage::app()->useCache('config')) {
-            $lifetime = $this->_getHelper()->getCacheLifetime();
-            Mage::app()->saveCache(serialize($properties), $cacheId, array('config'), $lifetime);
-        }
-
-        return $properties;
     }
 
 
@@ -285,6 +156,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         $indexSettings['analysis']['filter'] = array(
             'shingle' => array(
                 'type' => 'shingle',
+                'min_shingle_size' => 2,
                 'max_shingle_size' => 20,
                 'output_unigrams' => true,
             ),
@@ -345,6 +217,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         return $indexSettings;
     }
 
+    public function getMapping($type)
+    {
+        return $this->_mappings[$type];
+    }
+
+    public function getAllMappings()
+    {
+        return $this->_mappings;
+    }
+
     /**
      * Creates or updates Elasticsearch index.
      *
@@ -371,14 +253,20 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                 $indices->putSettings($settingsParams);
 
                 $mapping = $params;
-                $mapping['body']['mappings']['product']['properties'] = $this->getProperties();
+                foreach ($this->_mappings as $type => $mappingModel) {
+                    $mapping['body']['mappings'][$type] = $mappingModel->getMappingProperties(false);
+                }
+
                 $indices->putMapping($mapping);
 
                 $indices->open();
             } else {
                 $params['body']['settings'] = $this->_getSettings();
                 $params['body']['settings']['number_of_shards'] = (int) $this->getConfig('number_of_shards');
-                $params['body']['mappings']['product']['properties'] = $this->getProperties();
+                foreach ($this->_mappings as $type => $mappingModel) {
+                    $mappingModel->setType($type);
+                    $params['body']['mappings'][$type] = $mappingModel->getMappingProperties(false);
+                }
 
                 $properties = new Varien_Object($params);
                 Mage::dispatchEvent('smile_elasticsearch_index_create_before', array('index_properties' => $properties ));
@@ -393,6 +281,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         return $this;
     }
 
+
     /**
      * Checks if ICU folding is enabled.
      *
@@ -402,31 +291,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     public function isIcuFoldingEnabled()
     {
         return (bool) $this->getConfig('enable_icu_folding');
-    }
-
-    /**
-     * Returns attribute type for indexation.
-     *
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute Attribute
-     *
-     * @return string
-     */
-    protected function _getAttributeType($attribute)
-    {
-        $type = 'string';
-        if ($attribute->getBackendType() == 'int') {
-            $type = 'integer';
-        } elseif ($attribute->getBackendType() == 'decimal') {
-            $type = 'double';
-        } elseif ($attribute->getSourceModel() == 'eav/entity_attribute_source_boolean') {
-            $type = 'boolean';
-        } elseif ($attribute->getBackendType() == 'datetime') {
-            $type = 'date';
-        } elseif ($attribute->usesSource() || $attribute->getFrontendClass() == 'validate-digits') {
-            $type = 'string';
-        }
-
-        return $type;
     }
 
     /**
@@ -557,8 +421,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
 
         return $this;
     }
-
-
 
     /**
      * Copy all data of a type from an index to the current one

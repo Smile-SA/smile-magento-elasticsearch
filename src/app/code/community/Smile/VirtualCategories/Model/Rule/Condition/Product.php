@@ -79,7 +79,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
      */
     public function getSearchQuery($excludedCategories)
     {
-        return $this->_getSearchQuery($this->getFilterField(), $this->getEscapedValue(), $this->getOperator(), $excludedCategories);
+        return $this->_getSearchQuery($this->getAttribute(), $this->getEscapedValue(), $this->getOperator(), $excludedCategories);
     }
 
     /**
@@ -140,6 +140,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
         if ($attribute == 'category_ids') {
             $query = $this->_getCategoriesSearchQuery($value, substr($operator, 0, 1) == '!', $excludedCategories);
         } else if ($operator == '()' || $operator == '!()') {
+            $attribute = $this->getMapping()->getFilterField($attribute, $this->getLocaleCode(), 'filter');
             $template = $this->_queryTemplates['=='];
             $query = array();
             $values = explode(',', $value);
@@ -197,7 +198,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
      */
     public function getFilterField()
     {
-        $fieldName = Mage::helper('smile_elasticsearch')->getAttributeFieldName($this->getAttribute(), null, 'facet');
+        $fieldName = $this->getMapping()->getFieldName($this->getAttribute(), $this->getLocaleCode(), 'filter');
 
         if ($this->getAttribute() == 'price') {
             $websiteId = Mage::app()->getStore()->getWebsiteId();
@@ -259,5 +260,18 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
         }
 
         return $this;
+    }
+
+    public function getMapping()
+    {
+        $currentIndex = Mage::helper('catalogsearch')->getEngine()->getCurrentIndex();
+        return $currentIndex->getMapping('product');
+    }
+
+    public function getLocaleCode()
+    {
+        $store = Mage::app()->getStore();
+        $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
+        return $languageCode;
     }
 }

@@ -27,20 +27,6 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
     protected $_languageCodes = array();
 
     /**
-     * Searchable attributes.
-     *
-     * @var array
-     */
-    protected $_searchableAttributes;
-
-    /**
-     * Sortable attributes.
-     *
-     * @var array
-     */
-    protected $_sortableAttributes;
-
-    /**
      * Text field types.
      *
      * @var array
@@ -49,52 +35,6 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
         'text',
         'varchar',
     );
-
-    /**
-     * Unlocalized field types.
-     *
-     * @var array
-     */
-    protected $_unlocalizedFieldTypes = array(
-        'datetime',
-        'decimal',
-    );
-
-    /**
-     * Returns attribute ES field name (localized if needed).
-     *
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute  Attribute we want the ES field
-     * @param string                                    $localeCode Locale used
-     * @param string                                    $type       Can specify a type (ex: facet)
-     *
-     * @return string
-     */
-    public function getAttributeFieldName($attribute, $localeCode = null, $type=false)
-    {
-        if (is_string($attribute)) {
-            $this->getSearchableAttributes(); // populate searchable attributes if not already set
-            if (!isset($this->_searchableAttributes[$attribute])) {
-                return $attribute;
-            }
-            $attribute = $this->_searchableAttributes[$attribute];
-        }
-        $attributeCode = $attribute->getAttributeCode();
-        $backendType = $attribute->getBackendType();
-
-        if ($attributeCode != 'score' && in_array($backendType, $this->_textFieldTypes)) {
-            if (null === $localeCode) {
-                $localeCode = $this->getLocaleCode();
-            }
-            $languageCode = $this->getLanguageCodeByLocaleCode($localeCode);
-            $languageSuffix = $languageCode ? '_' . $languageCode : '';
-            $attributeCode .= $languageSuffix;
-            if ($type == "facet") {
-                $attributeCode = $attributeCode . '.untouched';
-            }
-        }
-
-        return $attributeCode;
-    }
 
     /**
      * Returns cache lifetime in seconds.
@@ -239,51 +179,6 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
-     * Retrieves all searchable product attributes.
-     * Possibility to filter attributes by backend type.
-     *
-     * @param array|null $backendType Filter on the backend type present into the array. Null for no filter
-     *
-     * @return array
-     */
-    public function getSearchableAttributes($backendType = null)
-    {
-        if (null === $this->_searchableAttributes) {
-            $this->_searchableAttributes = array();
-            $entityType = $this->getEavConfig()->getEntityType('catalog_product');
-            $entity = $entityType->getEntity();
-
-            /* @var $productAttributeCollection Mage_Catalog_Model_Resource_Product_Attribute_Collection */
-            $productAttributeCollection = Mage::getResourceModel('catalog/product_attribute_collection')
-                ->setEntityTypeFilter($entityType->getEntityTypeId())
-                ->addVisibleFilter()
-                ->addToIndexFilter(true);
-
-            $attributes = $productAttributeCollection->getItems();
-            foreach ($attributes as $attribute) {
-                /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
-                $attribute->setEntity($entity);
-                $this->_searchableAttributes[$attribute->getAttributeCode()] = $attribute;
-            }
-        }
-
-        if (null !== $backendType) {
-            $backendType = (array) $backendType;
-            $attributes = array();
-            foreach ($this->_searchableAttributes as $attribute) {
-                /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
-                if (in_array($attribute->getBackendType(), $backendType)) {
-                    $attributes[$attribute->getAttributeCode()] = $attribute;
-                }
-            }
-
-            return $attributes;
-        }
-
-        return $this->_searchableAttributes;
-    }
-
-    /**
      * Returns search config data field value.
      *
      * @param string $field Name of the fied (ie: elasticsearch_servers)
@@ -298,54 +193,6 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
         return Mage::getStoreConfig($path, $store);
     }
 
-    /**
-     * Returns sortable attribute field name (localized if needed).
-     *
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute|string $attribute Attribute we want the name of the sort field
-     * @param string                                           $locale    Locale code to sort on
-     *
-     * @return string
-     */
-    public function getSortableAttributeFieldName($attribute, $locale = null)
-    {
-        if (is_string($attribute)) {
-            $this->getSortableAttributes(); // populate sortable attributes if not already set
-            if (!isset($this->_sortableAttributes[$attribute])) {
-                return $attribute;
-            }
-            $attribute = $this->_sortableAttributes[$attribute];
-        }
-
-        $attributeCode = $attribute->getAttributeCode();
-
-        if ($attributeCode != 'score' && !in_array($attribute->getBackendType(), $this->_unlocalizedFieldTypes)) {
-            if (null === $locale) {
-                $locale = $this->getLocaleCode();
-            }
-            $languageCode = $this->getLanguageCodeByLocaleCode($locale);
-            $languageSuffix = $languageCode ? '_' . $languageCode : '';
-            $attributeCode .= $languageSuffix;
-        }
-
-        return 'sort_by_' . $attributeCode;
-    }
-
-    /**
-     * Retrieves all sortable product attributes.
-     *
-     * @return array
-     */
-    public function getSortableAttributes()
-    {
-        if (null === $this->_sortableAttributes) {
-            $this->_sortableAttributes = Mage::getSingleton('catalog/config')->getAttributesUsedForSortBy();
-            if (array_key_exists('price', $this->_sortableAttributes)) {
-                unset($this->_sortableAttributes['price']); // Price sorting is handled with searchable attribute.
-            }
-        }
-
-        return $this->_sortableAttributes;
-    }
 
     /**
      * Defines supported languages for snowball filter.
@@ -506,5 +353,9 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
     {
         echo Mage::app()->getLayout()->createBlock('core/messages')
             ->addError($error)->getGroupedHtml();
+    }
+
+    public function isEnterpriseSupportEnabled() {
+        return Mage::helper('core')->isModuleEnabled('Enterprise_CatalogSearch');
     }
 }

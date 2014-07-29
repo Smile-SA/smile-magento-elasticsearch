@@ -39,12 +39,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
 
     /**
      *
-     * @var string List of advanced index fields prefix.
-     */
-    protected $_advancedIndexFieldsPrefix = '#';
-
-    /**
-     *
      * @var array List of default query parameters.
      */
     protected $_defaultQueryParams = array(
@@ -62,12 +56,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
         'ignore_handler' => false,
         'filters' => array()
     );
-
-    /**
-     *
-     * @var array List of indexable attribute parameters.
-     */
-    protected $_indexableAttributeParams = array();
 
     /**
      *
@@ -200,70 +188,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
      */
     public function saveEntityIndexes($storeId, $indexes, $type = 'product')
     {
-        if ($type == 'product') {
-            $indexes = $this->addAdvancedIndex($indexes, $storeId, array_keys($indexes));
-        }
-        $helper = $this->_getHelper();
-        $store = Mage::app()->getStore($storeId);
-        $localeCode = $helper->getLocaleCode($store);
-        $searchables = $helper->getSearchableAttributes();
-        $sortables = $helper->getSortableAttributes();
-
-        foreach ($indexes as &$data) {
-            foreach ($data as $key => &$value) {
-                if (is_array($value) && strpos($key, 'suggest') !== 0) {
-                    $value = array_values(array_filter(array_unique($value)));
-                }
-
-                if (array_key_exists($key, $searchables)) {
-                    /**
-                     * @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute
-                     */
-                    $attribute = $searchables[$key];
-                    if ($attribute->getBackendType() == 'datetime') {
-                        foreach ($value as &$date) {
-                            $date = $this->_getDate($store->getId(), $date);
-                        }
-                        unset($date);
-                    } elseif ($attribute->usesSource() && ! empty($value)) {
-                        if ($attribute->getFrontendInput() == 'multiselect') {
-                            $value = explode(',', is_array($value) ? $value[0] : $value);
-                        } elseif ($helper->isAttributeUsingOptions($attribute)) {
-                            $val = is_array($value) ? $value[0] : $value;
-                            if (!isset($data['_options'])) {
-                                $data['_options'] = array();
-                            }
-                            $option = $attribute->setStoreId($storeId)
-                                ->getFrontend()
-                                ->getOption($val);
-                            $data['_options'][] = $option;
-                        } else {
-                            $value = is_array($value) ? current($value) : $value;
-                        }
-                    }
-                }
-                if (array_key_exists($key, $sortables)) {
-                    $val = is_array($value) ? current($value) : $value;
-                    /**
-                     * @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute
-                     */
-                    $attribute = $sortables[$key];
-                    $attribute->setStoreId($store->getId());
-                    $key = $helper->getSortableAttributeFieldName($sortables[$key], $localeCode);
-                    if ($attribute->usesSource()) {
-                        $val = $attribute->getFrontend()->getOption($val);
-                    } elseif ($attribute->getBackendType() == 'decimal') {
-                        $val = (double) $val;
-                    }
-                    $data[$key] = $val;
-                }
-            }
-            unset($value);
-            $data['store_id'] = $store->getId();
-        }
-        unset($data);
-
-        $docs = $this->_prepareDocs($indexes, $type, $localeCode);
+        $docs = $this->_prepareDocs($indexes, $type);
         $this->getCurrentIndex()->addDocuments($docs);
 
         return $this;
@@ -375,31 +300,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
      */
     public function createQuery($type)
     {
-        $query = Mage::getResourceModel('smile_elasticsearch/engine_elasticsearch_query')->setAdapter($this)->setType($type);
+        $query = Mage::getResourceModel('smile_elasticsearch/engine_elasticsearch_query')
+            ->setAdapter($this)
+            ->setType($type);
 
         return $query;
-    }
-
-    /**
-     * Returns product visibility ids for search.
-     *
-     * @see Mage_Catalog_Model_Product_Visibility
-     *
-     * @return mixed
-     */
-    public function getAllowedVisibility()
-    {
-        return Mage::getSingleton('catalog/product_visibility')->getVisibleInSearchIds();
-    }
-
-    /**
-     * Returns advanced index fields prefix.
-     *
-     * @return string
-     */
-    public function getFieldsPrefix()
-    {
-        return $this->_advancedIndexFieldsPrefix;
     }
 
     /**
@@ -488,7 +393,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
      *
      * @return array
      */
-    protected function _prepareDocs($docsData, $type, $localeCode = null)
+    protected function _prepareDocs($docsData, $type)
     {
         if (! is_array($docsData) || empty($docsData)) {
             return array();
@@ -499,45 +404,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
         foreach ($docsData as $entityId => $index) {
             $index[self::UNIQUE_KEY] = $entityId . '|' . $index['store_id'];
             $index['id'] = $entityId;
-            $index = $this->_prepareIndexData($index, $localeCode);
             $docs[] = $this->getCurrentIndex()->createDocument($index[self::UNIQUE_KEY], $index, $type);
         }
 
         return $docs;
     }
 
-
-    /**
-     * Prepares index data before indexation.
-     *
-     * @param array  $data       Document data
-     * @param string $localeCode Current locale
-     *
-     * @return array
-     */
-    protected function _prepareIndexData($data, $localeCode = null)
-    {
-        if (! is_array($data) || empty($data)) {
-            return array();
-        }
-
-        foreach ($data as $key => $value) {
-            if (in_array($key, $this->_usedFields)) {
-                continue;
-            } elseif ($key == 'options') {
-                unset($data[$key]);
-                continue;
-            }
-            $field = $this->_getHelper()->getAttributeFieldName($key, $localeCode);
-            $field = str_replace($this->_advancedIndexFieldsPrefix, '', $field);
-            if ($field != $key) {
-                $data[$field] = $value;
-                unset($data[$key]);
-            }
-        }
-
-        return $data;
-    }
 
     /**
      * Indicates if connection to the search engine is up or not

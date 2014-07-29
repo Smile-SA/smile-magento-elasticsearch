@@ -58,6 +58,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
     protected $_sort = array();
 
     /**
+     * @var string
+     */
+    protected $_languageCode;
+
+    /**
      * @var array
      */
     protected $_facetModelNames = array(
@@ -85,6 +90,21 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
     public function setType($type)
     {
         $this->_type = $type;
+        return $this;
+    }
+
+    public function getLanguageCode()
+    {
+        if ($this->_languageCode == null) {
+            $currentStore        = Mage::app()->getStore();
+            $this->_languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
+        }
+        return $this->_languageCode;
+    }
+
+    public function setLanguageCode($languageCode)
+    {
+        $this->_languageCode = $languageCode;
         return $this;
     }
 
@@ -382,7 +402,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
                 $customerGroupId = Mage::getSingleton('customer/session')->getCustomerGroupId();
                 $sortField = 'price_'. $customerGroupId .'_'. $websiteId;
             } else {
-                $sortField = $this->_getHelper()->getSortableAttributeFieldName($sortField);
+                $sortField = $this->getMapping()->getFieldName($sortField, $this->getLanguageCode(), 'sort');
             }
             $result[] = array($sortField => trim(strtolower($sortType)));
         }
@@ -434,13 +454,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         if ($this->_fulltextQuery) {
             $query = array('dis_max' => array('queries' => array()));
             $searchFields = $this->getSearchFields();
-
             $query['dis_max'] =  array('tie_breaker' => 0);
             $query['dis_max']['queries'][] = array(
                 'multi_match' => array(
                     'query'       => $this->prepareFilterQueryText($this->_fulltextQuery),
                     'fields'      => $searchFields,
-                    'type'        => 'best_fields',
+                    'type'        => 'cross_fields',
                     "tie_breaker" => 0.9
                 )
             );
@@ -462,6 +481,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         return $query;
     }
 
+    public function getMapping()
+    {
+        return $this->getAdapter()->getCurrentIndex()->getMapping($this->_type);
+    }
+
     /**
      * Retrieves searchable fields according to text query.
      *
@@ -469,52 +493,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
      */
     public function getSearchFields()
     {
-        $properties = $this->getAdapter()->getCurrentIndex()->getProperties();
-
-        $fields = array();
-        foreach ($properties as $key => $property) {
-            if ($property['type'] == 'date' || ($property['type'] == 'multi_field' && $property['fields'][$key]['type'] == 'date')) {
-                continue;
-            }
-
-            if (!is_bool($this->_fulltextQuery) && ($property['type'] == 'boolean' ||
-                ($property['type'] == 'multi_field' && $property['fields'][$key]['type'] == 'boolean'))
-               ) {
-                continue;
-            }
-            if (!is_integer($this->_fulltextQuery) && ($property['type'] == 'integer' ||
-                ($property['type'] == 'multi_field' && $property['fields'][$key]['type'] == 'integer'))
-               ) {
-                continue;
-            }
-            if (!is_double($this->_fulltextQuery) && ($property['type'] == 'double' ||
-                ($property['type'] == 'multi_field' && $property['fields'][$key]['type'] == 'double'))
-               ) {
-                continue;
-            }
-
-            if ($property['type'] == 'multi_field') {
-                foreach ($property['fields'] as $field => $fieldProperties) {
-                    if (strpos($field, 'edge_ngram') !== 0 && strpos($field, 'suggest') !==0 ) {
-
-                        if (isset($fieldProperties['boost'])) {
-                            $field = $field . '^' . $fieldProperties['boost'];
-                        }
-
-                        $fields[] = $key . '.' . $field;
-                    }
-                }
-            } elseif (0 !== strpos($key, 'sort_by_')) {
-                $fields[] = $key;
-            }
-        }
-
-        if ($this->_getHelper()->shouldSearchOnOptions()) {
-            // Search on options labels too
-            $fields[] = '_options';
-        }
-
-        return $fields;
+        return $this->getMapping()->getSearchFields($this->getLanguageCode());
     }
 
     /**

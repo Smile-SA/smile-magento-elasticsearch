@@ -124,7 +124,11 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     {
         /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
         $attribute = $this->getAttributeModel();
-        $fieldName = Mage::helper('smile_elasticsearch')->getAttributeFieldName($attribute, null, 'facet');
+        $currentIndex = Mage::helper('catalogsearch')->getEngine()->getCurrentIndex();
+        $mapping = $currentIndex->getMapping('product');
+        $store = Mage::app()->getStore();
+        $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
+        $fieldName = $mapping->getFieldName($attribute->getAttributeCode(), $languageCode, 'filter');
         return $fieldName;
     }
 

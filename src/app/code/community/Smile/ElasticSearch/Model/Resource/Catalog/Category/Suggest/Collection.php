@@ -110,8 +110,8 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Category_Suggest_Collection
             $suggestions = $this->_engine->suggest($this->_suggestQuery);
             $idsFilter = array();
             foreach ($suggestions as $suggestion) {
-                if (isset($suggestion['payload']) && isset($suggestion['payload']['category_id'])) {
-                    $categoryId = $suggestion['payload']['category_id'];
+                if (isset($suggestion['payload']) && isset($suggestion['payload']['entity_id'])) {
+                    $categoryId = $suggestion['payload']['entity_id'];
                     $idsFilter[] = $categoryId;
                     $this->_suggestionsOutput[$categoryId] = $suggestion['text'];
                 }

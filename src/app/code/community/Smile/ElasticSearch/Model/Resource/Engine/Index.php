@@ -61,7 +61,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
             }
         }
 
-        $prefix = $this->_engine->getFieldsPrefix();
         $suggestionFiledName = $this->_suggestFieldNames[$storeId];
 
         $categoryData = $this->_getCatalogCategoryData($storeId, $productIds);
@@ -74,84 +73,20 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
                 $productData += $priceData[$productId];
             } else {
                 $productData += array(
-                    $prefix . 'categories' => array(),
-                    $prefix . 'show_in_categories' => array(),
-                    $prefix . 'visibility' => 0
+                    'categories' => array(),
+                    'show_in_categories' => array(),
+                    'visibility' => 0
                 );
             }
 
             if (isset($ratingData[$productId])) {
                 $productData += $ratingData[$productId];
             }
-
-            $suggestData = $this->_addSuggestionData($productId, $productData);
-            if ($suggestData) {
-                $productData[$suggestionFiledName] = $suggestData;
-            }
-
         }
 
         return $index;
     }
 
-    /**
-     * Data to be added to the index for product suggestion
-     *
-     * @param int   $productId    Current product id
-     * @param array &$productData Current product data
-     *
-     * @return false|array
-     */
-    protected function _addSuggestionData($productId, &$productData)
-    {
-        $suggestData = false;
-        $weight = $this->_getSuggestionWeight($productData);
-
-        $input = $productData['name'];
-        if (!is_array($input)) {
-            $input = array($input);
-        }
-
-        $input = explode(' ', implode(' ', $input));
-
-        if ($weight && !empty($input)) {
-            $suggestData = array(
-                'input' => array_values($input),
-                'payload' => array(
-                    'product_id' => $productId
-                ),
-                'weight' => $weight
-            );
-        }
-
-        return $suggestData;
-    }
-
-    /**
-     * Indicates if product should be suggested or not
-     *
-     * @param array $data Product data
-     *
-     * @return boolean
-     */
-    protected function _getSuggestionWeight($data)
-    {
-
-        return 3;
-        $prefix = $this->_engine->getFieldsPrefix();
-
-        $visibilityWeight = array(
-            Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE => 0,
-            Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_CATALOG  => 1,
-            Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH   => 1,
-            Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH        => 2
-        );
-
-        $result = isset($data[$prefix . 'visibility']) ? $visibilityWeight[$data[$prefix . 'visibility']] : 0;
-        $result = current($data['status']) == Mage_Catalog_Model_Product_Status::STATUS_ENABLED ? $result : 0;
-
-        return $result;
-    }
 
     /**
      * Returns first rating that can be applied for a given store
@@ -186,7 +121,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
      */
     function _getRatingData($storeId, $productIds)
     {
-        $prefix = $this->_engine->getFieldsPrefix();
         $adapter = $this->_getWriteAdapter();
         $indexedRatingId = $this->_getDefaultRatingId($storeId);
 
@@ -203,7 +137,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
                 if (!isset($result[$productId])) {
                     $result[$productId] = array();
                 }
-                $result[$productId][$prefix . 'rating_filter'] = (float) $row['percent'];
+                $result[$productId]['rating_filter'] = (float) $row['percent'];
             }
         }
 
@@ -223,7 +157,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
     protected function _getCatalogCategoryData($storeId, $productIds, $visibility = true)
     {
         $adapter = $this->_getWriteAdapter();
-        $prefix  = $this->_engine->getFieldsPrefix();
 
         $columns = array(
             'product_id' => 'product_id',
@@ -248,16 +181,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         $result = array();
         foreach ($adapter->fetchAll($select) as $row) {
             $data = array(
-                $prefix . 'categories'          => array_filter(explode(' ', $row['parents'])),
-                $prefix . 'show_in_categories'  => array_filter(explode(' ', $row['anchors'])),
+                'categories'          => array_values(array_filter(explode(' ', $row['parents']))),
+                'show_in_categories'  => array_values(array_filter(explode(' ', $row['anchors']))),
             );
             foreach (explode(' ', $row['positions']) as $value) {
                 list($categoryId, $position) = explode('_', $value);
-                $key = sprintf('%sposition_category_%d', $prefix, $categoryId);
+                $key = sprintf('position_category_%d', $categoryId);
                 $data[$key] = $position;
             }
             if ($visibility) {
-                $data[$prefix . 'visibility'] = $row['visibility'];
+                $data['visibility'] = $row['visibility'];
             }
 
             $result[$row['product_id']] = $data;
@@ -276,7 +209,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
     protected function _getCatalogProductPriceData($productIds = null)
     {
         $adapter = $this->_getWriteAdapter();
-        $prefix = $this->_engine->getFieldsPrefix();
+
         $select = $adapter->select()
             ->from(
                 $this->getTable('catalog/product_index_price'),
@@ -292,7 +225,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
             if (!isset($result[$row['entity_id']])) {
                 $result[$row['entity_id']] = array();
             }
-            $key = sprintf('%sprice_%s_%s', $prefix, $row['customer_group_id'], $row['website_id']);
+            $key = sprintf('price_%s_%s', $row['customer_group_id'], $row['website_id']);
             $result[$row['entity_id']][$key] = round($row['min_price'], 2);
         }
 

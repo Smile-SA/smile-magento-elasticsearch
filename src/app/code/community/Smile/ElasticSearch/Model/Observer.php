@@ -77,44 +77,6 @@ class Smile_ElasticSearch_Model_Observer
     }
 
     /**
-     * Deletes index if full catalog search reindexation is asked.
-     *
-     * @param Varien_Event_Observer $observer Event data
-     *
-     * @return Smile_ElasticSearch_Model_Observer Self Reference
-     */
-    public function beforeIndexProcessStart(Varien_Event_Observer $observer)
-    {
-        $storeId = $observer->getEvent()->getStoreId();
-        $productIds = $observer->getEvent()->getProductIds();
-        if (null === $storeId && null === $productIds) {
-            $engine = Mage::helper('catalogsearch')->getEngine();
-            if ($engine instanceof Smile_ElasticSearch_Model_Resource_Engine_ElasticSearch) {
-                $engine->getCurrentIndex()->prepareNewIndex();
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * Install new index when indexation is finished
-     *
-     * @param Varien_Event_Observer $observer $observer Event data
-     *
-     * @return Smile_ElasticSearch_Model_Observer Self Reference
-     */
-    public function installIndex(Varien_Event_Observer $observer)
-    {
-        $engine = Mage::helper('catalogsearch')->getEngine();
-        if ($engine instanceof Smile_ElasticSearch_Model_Resource_Engine_ElasticSearch) {
-            $engine->getCurrentIndex()->installNewIndex();
-        }
-
-        return $this;
-    }
-
-    /**
      * Reset search engine if it is enabled for catalog navigation
      *
      * @param Varien_Event_Observer $observer Event data
@@ -167,89 +129,45 @@ class Smile_ElasticSearch_Model_Observer
     {
         $category = $observer->getEvent()->getCategory();
         $productIds = $category->getProductCollection()->getAllIds();
-        $this->_getIndexer()->rebuildIndex(null, $productIds)->resetSearchResults();
+        $this->_getIndexer()->resetSearchResults();
+        $currentIndex = Mage::helper('catalogsearch')->getEngine()->getCurrentIndex();
+        $currentIndex->getMapping('product')->rebuildIndex(null, $productIds);
         Mage::dispatchEvent('smile_search_engine_reindex_category', array('category' => $category));
         return $this;
     }
 
     /**
-     * Index category mapping setup
+     * Exclude catalogsearch_fulltext indexer
      *
-     * @param Varien_Event_Observer $observer Event data
-     *
-     * @return Modyf_Search_Model_Observer
-     */
-    public function addCategoryMappingToIndex(Varien_Event_Observer $observer)
-    {
-        $indexProperties = $observer->getIndexProperties();
-        $indexPropertiesData = $indexProperties->getData();
-        $indexPropertiesData['body']['mappings']['category']['properties'] = array();
-        $categoryMapping = &$indexPropertiesData['body']['mappings']['category']['properties'];
-        $helper = Mage::helper('smile_elasticsearch');
-        foreach (Mage::app()->getStores() as $store) {
-            $languageCode = $helper->getLanguageCodeByStore($store);
-            $categoryMapping[$helper->getSuggestFieldName($store)] = array(
-                'type'     => 'completion',
-                'payloads' => true,
-                'max_input_length' => 500,
-                'index_analyzer' => 'analyzer_' . $languageCode,
-                'search_analyzer' => 'analyzer_' . $languageCode,
-                'preserve_separators' => false
-            );
-        }
-
-        $indexProperties->setData($indexPropertiesData);
-
-        return $this;
-    }
-
-    /**
-     * Reindex categories (auto suggest)
-     *
-     * @param Varien_Event_Observer $observer Event data
+     * @param Varien_Event_Observer $observer Event to observe.
      *
      * @return Smile_ElasticSearch_Model_Observer
      */
-    public function reindexCategories(Varien_Event_Observer $observer)
+    public function addExcludeProcess(Varien_Event_Observer $observer)
     {
-        $engine = Mage::helper('catalogsearch')->getEngine();
+        $helper = Mage::helper('smile_elasticsearch');
+        $collection = $observer->getEvent()->getCollection();
 
-        if ($engine instanceof Smile_ElasticSearch_Model_Resource_Engine_ElasticSearch) {
-
-            foreach (Mage::app()->getStores() as $store) {
-                $suggestFieldName = Mage::helper('smile_elasticsearch')->getSuggestFieldName($store);
-                $result = array();
-
-                $categories = Mage::getResourceModel('catalog/category_collection')
-                    ->addAttributeToFilter('level', array('gt' => 1))
-                    ->addAttributeToFilter('is_active', 1)
-                    ->addAttributeToSelect('name')
-                    ->setOrder('level', Varien_Data_Collection::SORT_ORDER_ASC);
-
-                foreach ($categories as $category) {
-                    $data = array(
-                        'input'   => $category->getName(),
-                        'output'  => $category->getName(),
-                        'payload' => array('category_id' => $category->getId()),
-                        'weight'  => $category->getLevel()
-                    );
-
-                    if (isset($result[$category->getParentId()])) {
-                        $data['output'] = $result[$category->getParentId()][$suggestFieldName]['output'] . ' > ' . $data['output'];
-                    }
-
-                    $result[$category->getId()] = array(
-                        'name'            => $category->getName(),
-                        'id'              => $category->getId(),
-                        'store_id'        => $store->getId(),
-                        $suggestFieldName => $data
-                    );
-                }
-
-                $engine->saveEntityIndexes($store->getId(), $result, 'category');
-            }
+        if (method_exists($collection, 'addExcludeProcessByCode') && $helper->isActiveEngine()) {
+            $observer->getEvent()->getCollection()
+                ->addExcludeProcessByCode('catalogsearch_fulltext');
         }
+    }
 
+    /**
+     * Process shell reindex catalog full text refresh event
+     *
+     * @param Varien_Event_Observer $observer
+     * @return Enterprise_CatalogSearch_Model_Observer
+     */
+    public function processShellFulltextReindexEvent(Varien_Event_Observer $observer)
+    {
+        $helper = Mage::helper('smile_elasticsearch');
+        if ($helper->isEnterpriseSupportEnabled() == true && $helper->isActiveEngine() == false) {
+            $client = $this->_factory->getModel('enterprise_mview/client', array(array('factory' => $this->_factory)));
+            $client->init('catalogsearch_fulltext');
+            $client->execute('enterprise_catalogsearch/index_action_fulltext_refresh');
+        }
         return $this;
     }
 }
