@@ -65,6 +65,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
 
         $categoryData = $this->_getCatalogCategoryData($storeId, $productIds);
         $priceData = $this->_getCatalogProductPriceData($productIds);
+
         $ratingData = $this->_getRatingData($storeId, $productIds);
 
         foreach ($index as $productId => &$productData) {
@@ -213,7 +214,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         $select = $adapter->select()
             ->from(
                 $this->getTable('catalog/product_index_price'),
-                array('entity_id', 'customer_group_id', 'website_id', 'min_price')
+                array(
+                    'entity_id',
+                    'customer_group_id',
+                    'website_id',
+                    'min_price',
+                    'has_discount' => new Zend_Db_Expr('COALESCE((price - min_price) > 0, 0)')
+                )
             );
 
         if ($productIds) {
@@ -225,8 +232,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
             if (!isset($result[$row['entity_id']])) {
                 $result[$row['entity_id']] = array();
             }
-            $key = sprintf('price_%s_%s', $row['customer_group_id'], $row['website_id']);
-            $result[$row['entity_id']][$key] = round($row['min_price'], 2);
+            $priceKey = sprintf('price_%s_%s', $row['customer_group_id'], $row['website_id']);
+            $result[$row['entity_id']][$priceKey] = round($row['min_price'], 2);
+
+            $discountKey = sprintf('has_discount_%s_%s', $row['customer_group_id'], $row['website_id']);
+            $result[$row['entity_id']][$discountKey] = $row['has_discount'];
         }
 
         return $result;

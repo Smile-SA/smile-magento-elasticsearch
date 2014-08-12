@@ -20,8 +20,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Catalog_Eav_Abstract
 {
 
+    /**
+     * @var string
+     */
     protected $_attributeCollectionModel = 'catalog/product_attribute_collection';
 
+    /**
+     * @var array
+     */
     protected $_authorizedBackendModels = array(
         'catalog/product_attribute_backend_sku',
         'eav/entity_attribute_backend_array',
@@ -35,8 +41,18 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         'catalog/visibility'
     );
 
+    /**
+     * @var string
+     */
     protected $_entityType = 'catalog_product';
 
+    /**
+     * Get mapping properties as stored into the index
+     *
+     * @param string $useCache Indicates if the cache should be used or if the mapping should be rebuilt.
+     *
+     * @return array
+     */
     public function getMappingProperties($useCache = true)
     {
         parent::getMappingProperties(true);
@@ -45,6 +61,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         return $this->_mapping;
     }
 
+    /**
+     * Retrive a bucket of indexable entities.
+     *
+     * @param int         $storeId Store id
+     * @param string|null $ids     Ids filter
+     * @param int         $lastId  First id
+     * @param int         $limit   Size of the bucket
+     *
+     * @return array
+     */
     protected function _getSearchableEntities($storeId, $ids = null, $lastId = 0, $limit = 100)
     {
         $websiteId = Mage::app()->getStore($storeId)->getWebsiteId();
@@ -99,15 +125,31 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         return $result;
     }
 
+    /**
+     * Save docs to the index
+     *
+     * @param int   $storeId       Store id
+     * @param array $entityIndexes Doc values.
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Catalog_Eav_Abstract
+     */
     protected function _saveIndexes($storeId, $entityIndexes)
     {
         $productIds = array_keys($entityIndexes);
-        $entityIndexes = Mage::getResourceSingleton('smile_elasticsearch/engine_index')->addAdvancedIndex($entityIndexes, $storeId, $productIds);
+        $entityIndexes = Mage::getResourceSingleton('smile_elasticsearch/engine_index');
+        $entityIndexes->addAdvancedIndex($entityIndexes, $storeId, $productIds);
         return parent::_saveIndexes($storeId, $entityIndexes);
     }
 
-
-    public function getSearchFields($localeCode) {
+    /**
+     * Return a list of all searchable field for the current type (by locale code).
+     *
+     * @param string $localeCode Locale code
+     *
+     * @return array.
+     */
+    public function getSearchFields($localeCode)
+    {
 
         if ($this->_searchFields == null) {
 
@@ -135,6 +177,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         return $this->_searchFields;
     }
 
+    /**
+     * Retrieve entities children ids (simple products for configurable, grouped and bundles).
+     *
+     * @param array $entityIds Parent entities ids.
+     * @param int   $websiteId Current website ids
+     *
+     * @return array
+     */
     protected function _getChildrenIds($entityIds, $websiteId = null)
     {
         $children = array();
@@ -153,18 +203,18 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
                     ->select()
                     ->from(
                         array('main' => $this->getTable($relation->getTable())),
-                        array($relation->getParentFieldName(), $relation->getChildFieldName()))
+                        array($relation->getParentFieldName(), $relation->getChildFieldName())
+                    )
                     ->where("main.{$relation->getParentFieldName()} in (?)", $entityIds);
 
-                    if (!is_null($relation->getWhere())) {
-                        $select->where($relation->getWhere());
-                    }
+                if (!is_null($relation->getWhere())) {
+                    $select->where($relation->getWhere());
+                }
 
-                Mage::dispatchEvent('prepare_product_children_id_list_select', array(
-                    'select'        => $select,
-                    'entity_field'  => 'main.product_id',
-                    'website_field' => $websiteId
-                ));
+                Mage::dispatchEvent(
+                    'prepare_product_children_id_list_select',
+                    array('select' => $select, 'entity_field' => 'main.product_id', 'website_field' => $websiteId)
+                );
 
                 $data = $this->getConnection()->fetchAll($select);
 
@@ -172,7 +222,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
                     $parentId = $link[$relation->getParentFieldName()];
                     $childId  = $link[$relation->getChildFieldName()];
                     if (!isset($children[$parentId])) {
-                    	$children[$parentId] = array();
+                        $children[$parentId] = array();
                     }
                     $children[$parentId][] = $childId;
                 }

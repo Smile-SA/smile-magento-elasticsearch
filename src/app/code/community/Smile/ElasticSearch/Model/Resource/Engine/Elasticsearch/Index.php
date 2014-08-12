@@ -64,7 +64,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         'Romanian', 'Russian', 'Spanish', 'Swedish', 'Turkish',
     );
 
-
+    /**
+     * Init mappings while the index is init
+     */
     public function __construct()
     {
         $mappingConfig = Mage::getConfig()->getNode(self::MAPPING_CONF_ROOT_NODE)->asArray();
@@ -217,11 +219,23 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         return $indexSettings;
     }
 
+    /**
+     * Return a mapping used to index entities.
+     *
+     * @param string $type Retrieve mapping for a type (product, category, ...).
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract
+     */
     public function getMapping($type)
     {
         return $this->_mappings[$type];
     }
 
+    /**
+     * Return all available mappings.
+     *
+     * @return array
+     */
     public function getAllMappings()
     {
         return $this->_mappings;

@@ -19,13 +19,35 @@
 class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Category
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Catalog_Eav_Abstract
 {
+    /**
+     * @var string
+     */
     protected $_attributeCollectionModel = 'catalog/category_attribute_collection';
+
+    /**
+     * @var string
+     */
     protected $_entityType = 'catalog_category';
 
-    public function getSearchFields($localeCode) {
+    /**
+     * Return a list of all searchable field for the current type (by locale code).
+     *
+     * @param string $localeCode Locale code
+     *
+     * @return array.
+     */
+    public function getSearchFields($localeCode)
+    {
         return array('name', $localeCode);
     }
 
+    /**
+     * Get mapping properties as stored into the index
+     *
+     * @param string $useCache Indicates if the cache should be used or if the mapping should be rebuilt.
+     *
+     * @return array
+     */
     public function getMappingProperties($useCache = true)
     {
         parent::getMappingProperties(true);
@@ -33,6 +55,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Category
         return $this->_mapping;
     }
 
+    /**
+     * Retrive a bucket of indexable entities.
+     *
+     * @param int         $storeId Store id
+     * @param string|null $ids     Ids filter
+     * @param int         $lastId  First id
+     * @param int         $limit   Size of the bucket
+     *
+     * @return array
+     */
     protected function _getSearchableEntities($storeId, $ids = null, $lastId = 0, $limit = 100)
     {
         $rootCategoryId = Mage::app()->getStore($storeId)->getRootCategoryId();

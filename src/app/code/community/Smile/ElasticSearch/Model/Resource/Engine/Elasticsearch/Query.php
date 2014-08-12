@@ -93,6 +93,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         return $this;
     }
 
+    /**
+     * Return the current query language code.
+     *
+     * @return string
+     */
     public function getLanguageCode()
     {
         if ($this->_languageCode == null) {
@@ -102,6 +107,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         return $this->_languageCode;
     }
 
+    /**
+     * Set the query language code.
+     *
+     * @param string $languageCode Language code
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     */
     public function setLanguageCode($languageCode)
     {
         $this->_languageCode = $languageCode;
@@ -481,6 +493,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         return $query;
     }
 
+    /**
+     * Retrive mapping for the current query type.
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract
+     */
     public function getMapping()
     {
         return $this->getAdapter()->getCurrentIndex()->getMapping($this->_type);

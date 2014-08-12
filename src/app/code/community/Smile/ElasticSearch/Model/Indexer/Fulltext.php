@@ -1,10 +1,29 @@
 <?php
+/**
+ * Smile_ElasticSearch custom indexer for search.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * This work is a fork of Johann Reinke <johann@bubblecode.net> previous module
+ * available at https://github.com/jreinke/magento-elasticsearch
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */
 class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Model_Indexer_Fulltext
 {
     /**
      * Process event
      *
-     * @param Mage_Index_Model_Event $event
+     * @param Mage_Index_Model_Event $event Event to be indexed.
+     *
+     * @return void
      */
     protected function _processEvent(Mage_Index_Model_Event $event)
     {
@@ -86,13 +105,24 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
         }
     }
 
-    public function _getMapping($type)
+    /**
+     * Return a mapping used to index entities.
+     *
+     * @param string $type Retrieve mapping for a type (product, category, ...).
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract
+     */
+    protected function _getMapping($type)
     {
         $index = $this->getCurrentIndex();
         return $index->getMapping($type);
     }
 
-
+    /**
+     * Return the current index where to put new documents.
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
+     */
     public function getCurrentIndex()
     {
         $engine = Mage::helper('catalogsearch')->getEngine();
@@ -102,6 +132,7 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
     /**
      * Rebuild all index data
      *
+     * @return void
      */
     public function reindexAll()
     {
@@ -109,7 +140,7 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
         $index = $this->getCurrentIndex();
 
         $index->prepareNewIndex();
-        foreach($index->getAllMappings() as $mapping) {
+        foreach ($index->getAllMappings() as $mapping) {
             $mapping->rebuildIndex();
         }
         $index->installNewIndex();

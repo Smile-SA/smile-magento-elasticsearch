@@ -27,28 +27,54 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
     const FIELD_TYPE_FILTER = 'filter';
     const FIELD_TYPE_SORT   = 'sort';
 
+    /**
+     * @var string
+     */
     protected $_type;
+
+    /**
+     * @var array
+     */
     protected $_searchFields = null;
 
+    /**
+     * Set index type for the current mapping.
+     *
+     * @param string $type The new type.
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract
+     */
     public function setType($type)
     {
         $this->_type = $type;
         return $this;
     }
 
+    /**
+     * Return a list of all searchable field for the current type (by locale code).
+     *
+     * @param string $localeCode Locale code.
+     *
+     * @return array.
+     */
     abstract public function getSearchFields($localeCode);
 
     /**
+     * Return the ES field name
      *
-     * @param string $field
-     * @param string $localeCode
-     * @param string $type
+     * @param string $field      Magento field.
+     * @param string $localeCode Locale code we want the field for.
+     * @param string $type       How the field will be used : search, facet, sort
+     *
+     * @return string
      */
     public function getFieldName($field, $localeCode, $type = self::FIELD_TYPE_SEARCH)
     {
         $mapping = $this->getMappingProperties();
 
-        if (in_array($type, array(self::FIELD_TYPE_SEARCH, self::FIELD_TYPE_SORT)) && isset($mapping['properties']['options_' . $field . '_' . $localeCode])) {
+        if (in_array($type, array(self::FIELD_TYPE_SEARCH, self::FIELD_TYPE_SORT)) &&
+            isset($mapping['properties']['options_' . $field . '_' . $localeCode])
+            ) {
             $field = 'options_' . $field . '_' . $localeCode;
         } else {
             if (isset($mapping['properties'][$field . '_' . $localeCode])) {
@@ -56,7 +82,9 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
             }
             if (isset($mapping['properties'][$field]['type'])) {
 
-                if (!in_array($mapping['properties'][$field]['type'], array('string', 'multi_field')) && $type == self::FIELD_TYPE_SEARCH) {
+                if (!in_array($mapping['properties'][$field]['type'], array('string', 'multi_field')) &&
+                    $type == self::FIELD_TYPE_SEARCH
+                    ) {
                     $field = false;
                 }
 
@@ -70,12 +98,21 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
     }
 
     /**
+     * Get mapping properties as stored into the index
      *
-     * @param string $rebuild
+     * @param string $useCache Indicates if the cache should be used or if the mapping should be rebuilt.
      *
-     * return array
+     * @return array
      */
     abstract public function getMappingProperties($useCache = true);
 
-    abstract public function rebuildIndex($storeId = null, $ids);
+    /**
+     * Rebuild the index (full or diff).
+     *
+     * @param int|null   $storeId Store id the index should be rebuilt for. If null, all store id will be rebuilt.
+     * @param array|null $ids     Ids the index should be rebuilt for. If null, processing a fulll reindex
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract
+     */
+    abstract public function rebuildIndex($storeId = null, $ids = null);
 }

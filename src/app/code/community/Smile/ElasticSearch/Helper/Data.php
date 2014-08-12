@@ -355,7 +355,13 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
             ->addError($error)->getGroupedHtml();
     }
 
-    public function isEnterpriseSupportEnabled() {
+    /**
+     * Indicates if the current Magento instance is a Enterprise one.
+     *
+     * @return bool
+     */
+    public function isEnterpriseSupportEnabled()
+    {
         return Mage::helper('core')->isModuleEnabled('Enterprise_CatalogSearch');
     }
 }

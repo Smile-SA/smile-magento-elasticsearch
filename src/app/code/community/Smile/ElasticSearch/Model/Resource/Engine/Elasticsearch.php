@@ -387,9 +387,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     /**
      * Perpare document to be indexed
      *
-     * @param array  $docsData   Source document data to be indexed
-     * @param string $type       Document type
-     * @param string $localeCode Locale indexed
+     * @param array  $docsData Source document data to be indexed
+     * @param string $type     Document type
      *
      * @return array
      */

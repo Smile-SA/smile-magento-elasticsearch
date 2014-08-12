@@ -1,14 +1,56 @@
 <?php
-
+/**
+ * Abstract class that define a type mapping of EAV entities.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * This work is a fork of Johann Reinke <johann@bubblecode.net> previous module
+ * available at https://github.com/jreinke/magento-elasticsearch
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */
 abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Catalog_Eav_Abstract
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract
 {
+    /**
+     * @var Mage_Eav_Model_Resource_Attribute_Collection
+     */
     protected $_attributeCollectionModel;
+
+    /**
+     * @var array
+     */
     protected $_mapping                  = null;
+
+    /**
+     * @var array
+     */
     protected $_authorizedBackendModels  = array();
+
+    /**
+     * @var array
+     */
     protected $_suggestInputAttributes   = array('name');
+
+    /**
+     * @var array
+     */
     protected $_suggestPayloadAttributes = array('entity_id');
 
+    /**
+     * Get mapping properties as stored into the index
+     *
+     * @param string $useCache Indicates if the cache should be used or if the mapping should be rebuilt.
+     *
+     * @return array
+     */
     public function getMappingProperties($useCache = true)
     {
         $cacheKey = 'SEARCH_ENGINE_MAPPING_' . $this->_type;
@@ -62,7 +104,13 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         return $this->_mapping;
     }
 
-
+    /**
+     * Return mapping for an attribute.
+     *
+     * @param Mage_Eav_Model_Attribute $attribute Attribute we want the mapping for.
+     *
+     * @return array
+     */
     protected function _getAttributeMapping($attribute)
     {
         $mapping = array();
@@ -84,7 +132,10 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     }
                 }
             } else if ($type === 'date') {
-                $mapping[$attributeCode] = array('type' => $type, 'format' => Varien_Date::DATETIME_INTERNAL_FORMAT);
+                $mapping[$attributeCode] = array(
+                    'type' => $type,
+                    'format' => implode('||', array(Varien_Date::DATETIME_INTERNAL_FORMAT, Varien_Date::DATE_INTERNAL_FORMAT))
+                );
             } else {
                 $mapping[$attributeCode] = array('type' => $type);
             }
@@ -131,6 +182,13 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         return $type;
     }
 
+    /**
+     * Indicates if an attribute can be indexed or not.
+     *
+     * @param Mage_Eav_Model_Attribute $attribute Attribute
+     *
+     * @return boolean
+     */
     protected function _canIndexAttribute($attribute)
     {
         $canIndex = true;
@@ -143,9 +201,17 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     }
 
 
+    /**
+     * Rebuild the index (full or diff).
+     *
+     * @param int|null   $storeId Store id the index should be rebuilt for. If null, all store id will be rebuilt.
+     * @param array|null $ids     Ids the index should be rebuilt for. If null, processing a fulll reindex
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract
+     */
     public function rebuildIndex($storeId = null, $ids = null)
     {
-       if (is_null($storeId)) {
+        if (is_null($storeId)) {
             $storeIds = array_keys(Mage::app()->getStores());
             foreach ($storeIds as $storeId) {
                 $this->_rebuildStoreIndex($storeId, $ids);
@@ -157,16 +223,36 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         return $this;
     }
 
+    /**
+     * Returns the main entity table.
+     *
+     * @param string $modelEntity Entity name
+     *
+     * @return string
+     */
     public function getTable($modelEntity)
     {
         return Mage::getSingleton('core/resource')->getTableName($modelEntity);
     }
 
+    /**
+     * Return DB connection.
+     *
+     * @return Varien_Db_Adapter_Interface
+     */
     public function getConnection()
     {
         return Mage::getSingleton('core/resource')->getConnection('write');;
     }
 
+    /**
+     * Rebuild the index (full or diff).
+     *
+     * @param int        $storeId   Store id the index should be rebuilt for.
+     * @param array|null $entityIds Ids the index should be rebuilt for. If null, processing a fulll reindex
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract
+     */
     protected function _rebuildStoreIndex($storeId, $entityIds = null)
     {
         $store = Mage::app()->getStore($storeId);
@@ -240,6 +326,16 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         return $this;
     }
 
+    /**
+     * Return the indexed attribute value.
+     *
+     * @param Mage_Eav_Model_Attribute $attribute    Attribute we want the value for.
+     * @param mixed                    $value        Raw value
+     * @param int                      $storeId      Store id
+     * @param string                   $languageCode Locale code
+     *
+     * @return mixed.
+     */
     protected function _getAttributeIndexValues($attribute, $value, $storeId, $languageCode)
     {
         $attrs = array();
@@ -262,6 +358,11 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         return $attrs;
     }
 
+    /**
+     * Load all entity attributes by ids.
+     *
+     * @return array.
+     */
     protected function _getAttributesById()
     {
         $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
@@ -279,7 +380,19 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         return $attributesById;
     }
 
-    protected function _addChildrenData($entityIndexes, $entityAttributes, $entityRelations, $storeId, $languageCode) {
+    /**
+     * Append children attributes to parents doc.
+     *
+     * @param array  $entityIndexes    Final index results
+     * @param array  $entityAttributes Attributes values by entity id
+     * @param array  $entityRelations  Array of the entities relations
+     * @param int    $storeId          Store id
+     * @param string $languageCode     Locale
+     *
+     * @return array
+     */
+    protected function _addChildrenData($entityIndexes, $entityAttributes, $entityRelations, $storeId, $languageCode)
+    {
 
         $attributesById = $this->_getAttributesById();
 
@@ -290,7 +403,9 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             foreach ($childrenIds as $childrenId) {
                 if (isset($entityAttributes[$childrenId])) {
                     foreach ($entityAttributes[$childrenId] as $attributeId => $value) {
-                        if (isset($attributesById[$attributeId])) {
+                        if (isset($attributesById[$attributeId]) &&
+                            in_array($attributesById[$attributeId]->getFrontendInput(), array('select', 'multiselect'))
+                           ) {
                             $attribute = $attributesById[$attributeId];
                             $childrenValues = $this->_getAttributeIndexValues($attribute, $value, $storeId, $languageCode);
                             foreach ($childrenValues as $field => $fieldValue) {
@@ -316,17 +431,42 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         return $entityIndexes;
     }
 
+    /**
+     * Retrieve entities children ids
+     *
+     * @param array $entityIds Parent entities ids.
+     * @param int   $websiteId Current website ids
+     *
+     * @return array
+     */
     protected function _getChildrenIds($entityIds, $websiteId = null)
     {
         return array();
     }
 
+    /**
+     * Save docs to the index
+     *
+     * @param int   $storeId       Store id
+     * @param array $entityIndexes Doc values.
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Catalog_Eav_Abstract
+     */
     protected function _saveIndexes($storeId, $entityIndexes)
     {
         Mage::helper('catalogsearch')->getEngine()->saveEntityIndexes($storeId, $entityIndexes, $this->_type);
         return $this;
     }
 
+    /**
+     * Retrieve values for attributes.
+     *
+     * @param int   $storeId        Store id.
+     * @param array $entityIds      Entities ids.
+     * @param array $attributeTypes Attributes to be indexed.
+     *
+     * @return array
+     */
     protected function _getAttributes($storeId, array $entityIds, array $attributeTypes)
     {
         $result  = array();
@@ -338,20 +478,20 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         foreach ($attributeTypes as $tableName => $attributeIds) {
             if ($attributeIds) {
                 $select = $adapter->select()
-                ->from(
-                    array('t_default' => $tableName),
-                    array('entity_id', 'attribute_id'))
-                    ->joinLeft(
-                        array('t_store' => $tableName),
-                        $adapter->quoteInto(
-                            't_default.entity_id=t_store.entity_id' .
-                            ' AND t_default.attribute_id=t_store.attribute_id' .
-                            ' AND t_store.store_id=?',
-                            $storeId),
-                        array('value' => new Zend_Db_Expr('COALESCE(t_store.value, t_default.value)')))
-                        ->where('t_default.store_id=?', 0)
-                        ->where('t_default.attribute_id IN (?)', $attributeIds)
-                        ->where('t_default.entity_id IN (?)', $entityIds);
+                ->from(array('t_default' => $tableName), array('entity_id', 'attribute_id'))
+                ->joinLeft(
+                    array('t_store' => $tableName),
+                    $adapter->quoteInto(
+                        't_default.entity_id=t_store.entity_id' .
+                        ' AND t_default.attribute_id=t_store.attribute_id' .
+                        ' AND t_store.store_id=?',
+                        $storeId
+                    ),
+                    array('value' => new Zend_Db_Expr('COALESCE(t_store.value, t_default.value)'))
+                )
+                ->where('t_default.store_id=?', 0)
+                ->where('t_default.attribute_id IN (?)', $attributeIds)
+                ->where('t_default.entity_id IN (?)', $entityIds);
 
                 /**
                  * Add additional external limitation
@@ -382,6 +522,15 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         return $result;
     }
 
+    /**
+     * Return the indexed attribute value.
+     *
+     * @param Mage_Eav_Model_Attribute $attribute Attribute we want the value for.
+     * @param mixed                    $value     Raw value
+     * @param int                      $storeId   Store id
+     *
+     * @return mixed.
+     */
     protected function _getAttributeValue($attribute, $value, $storeId)
     {
         if ($attribute->usesSource()) {
@@ -401,7 +550,14 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         return $value;
     }
 
-
+    /**
+     * Retrieve the field name for an attributes.
+     *
+     * @param Mage_Eav_Model_Attribute $attribute    Attribute we want the value for.
+     * @param string                   $languageCode Language code
+     *
+     * @return string
+     */
     protected function _getAttributeFieldName($attribute, $languageCode)
     {
 
@@ -419,7 +575,17 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         return $fieldName;
     }
 
-    protected function _addSuggestField($entityIndexes, $storeId, $languageCode) {
+    /**
+     * Append suggest data to the index
+     *
+     * @param array  $entityIndexes Index data
+     * @param int    $storeId       Store id
+     * @param string $languageCode  Language code
+     *
+     * @return array
+     */
+    protected function _addSuggestField($entityIndexes, $storeId, $languageCode)
+    {
         $store = Mage::app()->getStore($storeId);
         $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
         $fieldName = Mage::helper('smile_elasticsearch')->getSuggestFieldName($store);
@@ -475,6 +641,15 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         return $entityIndexes;
     }
 
+    /**
+     * Return the text value for an atribute using source model.
+     *
+     * @param Mage_Eav_Model_Attribute $attribute Attribute we want the value for.
+     * @param mixed                    $value     Raw value
+     * @param int                      $storeId   Store id
+     *
+     * @return mixed.
+     */
     protected function _getOptionsText($attribute, $value, $storeId)
     {
         $attribute->setStoreId($storeId);
@@ -482,6 +657,15 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         return $value;
     }
 
-
+    /**
+     * Retrive a bucket of indexable entities.
+     *
+     * @param int         $storeId Store id
+     * @param string|null $ids     Ids filter
+     * @param int         $lastId  First id
+     * @param int         $limit   Size of the bucket
+     *
+     * @return array
+     */
     abstract protected function _getSearchableEntities($storeId, $ids = null, $lastId = 0, $limit = 100);
 }

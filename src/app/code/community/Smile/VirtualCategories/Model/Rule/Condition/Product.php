@@ -32,7 +32,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
      */
     protected $_queryTemplates = array(
         '=='  => '#{field}:#{value}',
-        '!='  => '-#{field}:#{value}',
+        '!='  => '-(#{field}:#{value})',
         '>='  => '#{field}:[#{value} TO *]',
         '<='  => '#{field}:[* TO #{value}]',
         '>'   => '#{field}:{#{value} TO *]',
@@ -125,6 +125,39 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
     }
 
     /**
+     * Create query for has_image filter.
+     *
+     * @param array $excludedCategories Categories that should not beein used during query building.
+     *
+     * @return string
+     */
+    protected function _getHasImageQuery($excludedCategories)
+    {
+        $value = 'no_selection';
+        $attribute = 'image';
+        $operator = '!=';
+        return $this->_getSearchQuery($attribute, $value, $operator, $excludedCategories);
+    }
+
+    /**
+     * Create query for is_new filter.
+     *
+     * @param array $excludedCategories Categories that should not beein used during query building.
+     *
+     * @return string
+     */
+    protected function _getIsNewQuery($excludedCategories)
+    {
+        $today = Mage::getSingleton('core/date')->gmtDate(Varien_Date::DATE_PHP_FORMAT);
+        $parts = array(
+            "(news_from_date:[* TO *] OR news_to_date:[* TO *])",
+            "((-news_from_date:[* TO *]) OR news_from_date:[* TO $today])",
+            "((-news_to_date:[* TO *]) OR news_to_date:[$today TO *])"
+        );
+        return '(' . implode(' AND ', $parts) . ')';
+    }
+
+    /**
      * Build search query for the rule (category field implementation)
      *
      * @param string $attribute          Attribute to filter.
@@ -139,6 +172,19 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
         $query = false;
         if ($attribute == 'category_ids') {
             $query = $this->_getCategoriesSearchQuery($value, substr($operator, 0, 1) == '!', $excludedCategories);
+        } elseif ($attribute == 'has_image') {
+            if ($value == 1 && $operator == "==") {
+                $query = $this->_getHasImageQuery($excludedCategories);
+            }
+        } elseif ($attribute == 'is_new') {
+            if ($value == 1 && $operator == "==") {
+                $query = $this->_getIsNewQuery($excludedCategories);
+            }
+        } elseif ($attribute == 'has_discount') {
+            if ($value == 1 && $operator == "==") {
+                $attribute = $this->getFilterField($attribute);
+                $query = $this->_getSearchQuery($attribute, $value, $operator, $excludedCategories);
+            }
         } else if ($operator == '()' || $operator == '!()') {
             $attribute = $this->getMapping()->getFilterField($attribute, $this->getLocaleCode(), 'filter');
             $template = $this->_queryTemplates['=='];
@@ -188,7 +234,10 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
     protected function _addSpecialAttributes(array &$attributes)
     {
         $attributes['category_ids'] = Mage::helper('catalogrule')->__('Category');
-        $attributes['in_stock'] = Mage::helper('cataloginventory')->__('In stock');
+        $attributes['in_stock'] = Mage::helper('smile_virtualcategories')->__('Only in stock products');
+        $attributes['has_image'] = Mage::helper('smile_virtualcategories')->__('Only products with images');
+        $attributes['has_discount'] = Mage::helper('smile_virtualcategories')->__('Only discounted products');
+        $attributes['is_new'] = Mage::helper('smile_virtualcategories')->__('Only new products');
     }
 
     /**
@@ -200,10 +249,10 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
     {
         $fieldName = $this->getMapping()->getFieldName($this->getAttribute(), $this->getLocaleCode(), 'filter');
 
-        if ($this->getAttribute() == 'price') {
+        if ($this->getAttribute() == 'price' || $this->getAttribute() == 'has_discount') {
             $websiteId = Mage::app()->getStore()->getWebsiteId();
             $customerGroupId = Mage::getSingleton('customer/session')->getCustomerGroupId();
-            $fieldName = 'price_' . $customerGroupId . '_' . $websiteId;
+            $fieldName = $this->getAttribute() . '_' . $customerGroupId . '_' . $websiteId;
         }
 
         return $fieldName;
@@ -216,7 +265,8 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
      */
     public function getInputType()
     {
-        if ($this->getAttribute() == 'in_stock') {
+        $specialAttributes = array('in_stock', 'has_image', 'has_discount', 'is_new');
+        if (in_array($this->getAttribute(), $specialAttributes)) {
             return 'select';
         }
         return parent::getInputType();
@@ -229,7 +279,8 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
      */
     public function getValueElementType()
     {
-        if ($this->getAttribute() == 'in_stock') {
+        $specialAttributes = array('in_stock', 'has_image', 'has_discount', 'is_new');
+        if (in_array($this->getAttribute(), $specialAttributes)) {
             return 'select';
         }
         return parent::getValueElementType();
@@ -242,18 +293,18 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
      */
     protected function _prepareValueOptions()
     {
-        if ($this->getAttribute() == 'in_stock') {
+        $specialAttributes = array('in_stock', 'has_image', 'has_discount', 'is_new');
+        if (in_array($this->getAttribute(), $specialAttributes)) {
             $this->setData(
                 'value_select_options',
                 array(
-                    array('value' => '1', 'label' => Mage::helper('adminhtml')->__('Yes')),
-                    array('value' => '0', 'label' => Mage::helper('adminhtml')->__('No')),
+                    array('value' => '1', 'label' => Mage::helper('adminhtml')->__('Yes'))
                 )
             );
 
             $this->setData(
                 'value_option',
-                array('1' => Mage::helper('adminhtml')->__('Yes'), '0' => Mage::helper('adminhtml')->__('No'))
+                array('1' => Mage::helper('adminhtml')->__('Yes'))
             );
         } else {
             parent::_prepareValueOptions();
@@ -262,12 +313,22 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
         return $this;
     }
 
+    /**
+     * Retrieve the product mapping.
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
+     */
     public function getMapping()
     {
         $currentIndex = Mage::helper('catalogsearch')->getEngine()->getCurrentIndex();
         return $currentIndex->getMapping('product');
     }
 
+    /**
+     * Return locale code for the current store.
+     *
+     * @return string
+     */
     public function getLocaleCode()
     {
         $store = Mage::app()->getStore();
