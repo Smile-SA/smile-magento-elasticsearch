@@ -21,7 +21,9 @@
             <div class="ratings"><div class="rating-box">
                 <div class="rating" style="width:<?php echo $_item->getLabel(); ?>%"></div>
             </div></div>
-            <span><?php echo $this->__('and more')?></span>
+            <?php if ($_item->getLabel() < 100) : ?>
+                <span><?php echo $this->__('and more')?></span>
+            <?php endif; ?>
         </a>
         <?php else: echo $_item->getLabel() ?>
         <?php endif; ?>
