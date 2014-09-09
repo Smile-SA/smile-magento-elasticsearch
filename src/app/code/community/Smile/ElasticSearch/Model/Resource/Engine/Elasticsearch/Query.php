@@ -292,7 +292,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
     {
         $words = explode(' ', $text);
         if (count($words) > 1) {
-            $text = $this->_phrase($text);
+            $text = $this->_escapePhrase($text);
         } else {
             $text = $this->_escape($text);
         }

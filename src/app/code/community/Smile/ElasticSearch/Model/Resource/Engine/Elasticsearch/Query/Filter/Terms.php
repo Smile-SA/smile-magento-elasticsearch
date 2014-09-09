@@ -19,6 +19,8 @@
 class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Filter_Terms
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Filter_Abstract
 {
+    protected $_parsedFilter = false;
+
     /**
      * Transform the filter into an ES syntax compliant array.
      *
@@ -26,16 +28,20 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Filter_Terms
      */
     public function getFilterQuery()
     {
-        $options = $this->_options;
-        foreach ($this->_options as $field => &$values) {
-            if (!is_array($values)) {
-                $values = array($values);
+        if ($this->_parsedFilter === false) {
+            foreach ($this->_options as $field => &$values) {
+                if (!is_array($values)) {
+                    $values = array($values);
+                }
+
+                foreach ($values as &$values) {
+                    $values = $this->_query->prepareFilterQueryText($values);
+                }
             }
 
-            foreach ($values as &$values) {
-                $values = $this->_query->prepareFilterQueryText($values);
-            }
+            $this->_parsedFilter = true;
         }
+
         return array('terms' => $this->_options);
     }
 }
