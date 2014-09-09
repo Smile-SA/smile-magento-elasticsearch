@@ -404,7 +404,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
                 $hasRelevance = true;
             } elseif ($sortField == 'position') {
                 $category = Mage::registry('current_category');
-                if ($category && $category->getProductCount() > 0) {
+                if ($category) {
                     $sortField = 'position_category_' . Mage::registry('current_category')->getId();
                 } else {
                     $sortField = '_score';
@@ -417,7 +417,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
             } else {
                 $sortField = $this->getMapping()->getFieldName($sortField, $this->getLanguageCode(), 'sort');
             }
-            $result[] = array($sortField => trim(strtolower($sortType)));
+
+            $result[] = array(
+                $sortField => array('order' => trim(strtolower($sortType)), 'missing' => '_last', 'ignore_unmapped' => true)
+            );
         }
 
         if (!$hasRelevance) {
