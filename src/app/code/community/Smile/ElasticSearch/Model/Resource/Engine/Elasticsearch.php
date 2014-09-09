@@ -222,7 +222,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     /**
      * Run autocomplete for products on the search engigne
      *
-     * @param string $text Text to be autocompleted
+     * @param string $text    Text to be autocompleted
+     * @param array  $context Context of the autocomplete (store_id, visibility, ...)
      *
      * @return array
      */

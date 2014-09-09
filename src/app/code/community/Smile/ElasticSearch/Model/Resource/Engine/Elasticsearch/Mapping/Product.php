@@ -65,14 +65,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
             $this->_mapping['properties']['categories'] = array('type' => 'long');
             $this->_mapping['properties']['in_stock']   = array('type' => 'integer');
             $this->_mapping['properties']['category_name']   = array('type' => 'string');
-
-            // Append visibility to context
-            foreach (Mage::app()->getStores() as $store) {
-                $suggestField = Mage::helper('smile_elasticsearch')->getSuggestFieldName($store);
-                /*$this->_mapping['properties'][$suggestField]['context']['visibility'] = array(
-                    'type' => 'category', 'default' => '1', 'path' => 'visibility'
-                );*/
-            }
         }
 
         return $this->_mapping;
@@ -109,26 +101,26 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         $adapter   = $this->getConnection();
 
         $select = $adapter->select()
-        ->useStraightJoin(true)
-        ->from(
-            array('e' => $this->getTable('catalog/product'))
-        )
-        ->join(
-            array('website' => $this->getTable('catalog/product_website')),
-            $adapter->quoteInto(
-                'website.product_id=e.entity_id AND website.website_id=?',
-                $websiteId
-            ),
-            array()
-        )
-        ->joinLeft(
-            array('stock_status' => $this->getTable('cataloginventory/stock_status')),
-            $adapter->quoteInto(
-                'stock_status.product_id=e.entity_id AND stock_status.website_id=?',
-                $websiteId
-            ),
-            array('in_stock' => new Zend_Db_Expr("COALESCE(stock_status.stock_status, 0)"))
-        );
+            ->useStraightJoin(true)
+            ->from(
+                array('e' => $this->getTable('catalog/product'))
+            )
+            ->join(
+                array('website' => $this->getTable('catalog/product_website')),
+                $adapter->quoteInto(
+                    'website.product_id=e.entity_id AND website.website_id=?',
+                    $websiteId
+                ),
+                array()
+            )
+            ->joinLeft(
+                array('stock_status' => $this->getTable('cataloginventory/stock_status')),
+                $adapter->quoteInto(
+                    'stock_status.product_id=e.entity_id AND stock_status.website_id=?',
+                    $websiteId
+                ),
+                array('in_stock' => new Zend_Db_Expr("COALESCE(stock_status.stock_status, 0)"))
+            );
 
         if (!is_null($ids)) {
             $select->where('e.entity_id IN(?)', $ids);

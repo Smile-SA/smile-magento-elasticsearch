@@ -640,7 +640,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             }
 
             $suggest['context']['store_id'] = $storeId;
-            $inputs = explode(' ', $suggest['input'] );
+            $inputs = explode(' ', $suggest['input']);
             $suggest['input'] = array_merge(array($suggest['input']), $inputs);
 
 
