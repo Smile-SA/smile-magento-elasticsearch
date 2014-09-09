@@ -251,7 +251,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
 
         $data = array();
 
-        if (! isset($response['error']) && isset($response['suggestions'])) {
+        if (!isset($response['error']) && isset($response['suggestions'])) {
             $suggestions = current($response['suggestions']);
             foreach ($suggestions['options'] as $suggestion) {
                 $data[] = $suggestion;
