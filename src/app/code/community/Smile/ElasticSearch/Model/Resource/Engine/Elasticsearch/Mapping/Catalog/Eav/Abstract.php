@@ -82,12 +82,17 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             foreach (Mage::app()->getStores() as $store) {
                 $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
                 $this->_mapping['properties'][Mage::helper('smile_elasticsearch')->getSuggestFieldName($store)] = array(
-                    'type'     => 'completion',
+                    'type' => 'completion',
                     'payloads' => true,
-                    'index_analyzer' => 'shingle',
+                    'index_analyzer'  => 'shingle',
                     'search_analyzer' => 'shingle',
                     'preserve_separators' => false,
-                    'preserve_position_increments' => false
+                    'preserve_position_increments' => false,
+                    'context' => array(
+                        'store_id'   => array('type' => 'category', 'default' => '0'),
+                        'type'       => array('type' => 'category', 'default' => $this->_type),
+                        'visibility' => array('type' => 'category', 'default' => 1)
+                    )
                 );
             }
 
@@ -287,7 +292,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 $ids[]  = $entityData['entity_id'];
             }
 
-            $entityRelations = $this->_getChildrenIds($ids);
+            $entityRelations = $this->_getChildrenIds($ids, $websiteId);
             foreach ($entityRelations as $childrenIds) {
                 $ids = array_merge($ids, $childrenIds);
             }
@@ -439,7 +444,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      *
      * @return array
      */
-    protected function _getChildrenIds($entityIds, $websiteId = null)
+    protected function _getChildrenIds($entityIds, $websiteId)
     {
         return array();
     }
@@ -634,11 +639,30 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 }
             }
 
-            $suggest['input']  = explode(' ', $suggest['input']);
+            $suggest['context']['store_id'] = $storeId;
+            $inputs = explode(' ', $suggest['input'] );
+            $suggest['input'] = array_merge(array($suggest['input']), $inputs);
+
+
+            $suggest = $this->_appendCustomSuggestData($index, $suggest);
+
             $entityIndexes[$index['entity_id']][$fieldName] = $suggest;
         }
 
         return $entityIndexes;
+    }
+
+    /**
+     * Append custom data for an entity
+     *
+     * @param array $entityData  Data for current entity
+     * @param array $suggestData Suggest data for the entity
+     *
+     * @return array
+     */
+    protected function _appendCustomSuggestData($entityData, $suggestData)
+    {
+        return $suggestData;
     }
 
     /**

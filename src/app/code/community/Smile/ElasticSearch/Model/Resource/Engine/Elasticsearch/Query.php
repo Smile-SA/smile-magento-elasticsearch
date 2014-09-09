@@ -19,7 +19,7 @@
 class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Abstract
 {
-    const DEFAULT_ROWS_LIMIT = 20;
+    const DEFAULT_ROWS_LIMIT = 10000;
 
     /**
      * @var string
@@ -182,8 +182,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
             );
 
             foreach ($response['hits']['hits'] as $doc) {
-                $result['docs'][] = $doc['_source'];
-                $result['ids'][] = $doc['_source']['id'];
+                $result['docs'][] = $doc['fields'];
+                $result['ids'][] = (int) current($doc['fields']['entity_id']);
             }
 
             if (isset($response['facets'])) {
@@ -313,7 +313,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         $page = ($currentPage  > 0) ? (int) $currentPage  : 1;
         $rowCount = ($pageSize > 0) ? (int) $pageSize : 1;
         $this->_page['from'] = $rowCount * ($page - 1);
-        $this->_page['size'] = $rowCount;
+        $this->_page['size'] = $pageSize;
 
         return $this;
     }
@@ -376,6 +376,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         }
         // Patch : score not computed when using another sort order than score
         //         as primary sort order
+        $query['body']['fields'] = array('entity_id');
         $query['body']['track_scores'] = true;
         $query['body']['sort'] = $this->_prepareSortCondition();
         $query['body'] = array_merge($query['body'], $this->_page);
@@ -469,15 +470,27 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
             $query['dis_max'] =  array('tie_breaker' => 0);
             $query['dis_max']['queries'][] = array(
                 'multi_match' => array(
-                    'query'       => $this->prepareFilterQueryText($this->_fulltextQuery),
-                    'fields'      => $searchFields,
-                    'type'        => 'cross_fields',
-                    "tie_breaker" => 0.9
+                    'query'                => $this->prepareFilterQueryText($this->_fulltextQuery),
+                    'fields'               => $searchFields,
+                    'type'                 => 'cross_fields',
+                    "tie_breaker"          => 0.1,
+                    'minimum_should_match' => '2<100% 100<50%'
                 )
             );
 
             if ((bool) $this->getConfig('enable_fuzzy_query')) {
-                $fuzzyQuery = array(
+                $query['dis_max']['queries'][] = array(
+                    'multi_match' => array(
+                        'query'       => $this->prepareFilterQueryText($this->_fulltextQuery),
+                        'fields'      => $searchFields,
+                        'type'        => 'best_fields',
+                        'tie_breaker' => 0.9,
+                        'fuzziness'   => min(0.99, max(0, (float) $this->getConfig('fuzzy_min_similarity'))),
+                        'boost'       => 0.1, //(float) $this->getConfig('fuzzy_query_boost'),
+                        'minimum_should_match' => '2<100% 100<50%'
+                    )
+                );
+                /*$fuzzyQuery = array(
                     'fields'          => $this->getSearchFields(),
                     'like_text'       => $this->_fulltextQuery,
                     'min_similarity'  => min(0.99, max(0, (float) $this->getConfig('fuzzy_min_similarity'))),
@@ -485,8 +498,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
                     'max_query_terms' => (int) $this->getConfig('fuzzy_max_query_terms'),
                     'boost'           => (float) $this->getConfig('fuzzy_query_boost'),
                     'ignore_tf'       => true
-                );
-                $query['dis_max']['queries'][] = array('fuzzy_like_this' => $fuzzyQuery);
+                );*/
+                //$query['dis_max']['queries'][] = array('fuzzy_like_this' => $fuzzyQuery);
             }
         }
 

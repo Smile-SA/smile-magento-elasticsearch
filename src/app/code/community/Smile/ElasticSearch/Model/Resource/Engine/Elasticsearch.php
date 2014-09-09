@@ -226,21 +226,24 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
      *
      * @return array
      */
-    public function suggest($text)
+    public function suggest($text, $context)
     {
         $suggestFieldName = $this->_getHelper()->getSuggestFieldName();
         $params = array(
             'index' => $this->_currentIndex->getCurrentName()
         );
+
         $params['body']['suggestions'] = array(
             'text' => $text,
             'completion' => array(
+                'size'  => 20,
                 'field' => $suggestFieldName,
                 'fuzzy' => array(
-                    'fuzziness' => 1,
+                    'fuzziness' => 0.7,
                     'unicode_aware' => true
-                )
-            )
+                ),
+                'context' => $context
+            ),
         );
 
         $response = $this->_client->suggest($params);

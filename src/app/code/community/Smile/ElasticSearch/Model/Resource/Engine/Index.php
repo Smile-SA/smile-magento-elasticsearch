@@ -69,6 +69,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         $ratingData = $this->_getRatingData($storeId, $productIds);
 
         foreach ($index as $productId => &$productData) {
+
             if (isset($categoryData[$productId]) && isset($priceData[$productId])) {
                 $productData += $categoryData[$productId];
                 $productData += $priceData[$productId];
@@ -159,24 +160,31 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
     {
         $adapter = $this->_getWriteAdapter();
 
-        $columns = array(
-            'product_id' => 'product_id',
-        );
+        $columns = array('product_id' => 'product_id');
 
         if ($visibility) {
             $columns[] = 'visibility';
         }
 
+        $nameAttr = Mage::getModel('eav/entity_attribute')->loadByCode('catalog_category', 'name');
+        $joinCond = $adapter->quoteInto(
+            'cat.category_id = name.entity_id AND name.attribute_id = ? AND name.store_id IN(0, cat.store_id)',
+            $nameAttr->getAttributeId()
+        );
+
         $select = $adapter->select()
-            ->from(array($this->getTable('catalog/category_product_index')), $columns)
+            ->from(array('cat'  => $this->getTable('catalog/category_product_index')), $columns)
+            ->join(array('name' => $nameAttr->getBackendTable()), $joinCond, array())
             ->where('product_id IN (?)', $productIds)
-            ->where('store_id = ?', $storeId)
+            ->where('cat.store_id = ?', $storeId)
             ->group('product_id');
 
         $helper = Mage::getResourceHelper('core');
         $helper->addGroupConcatColumn($select, 'parents', 'category_id', ' ', ',', 'is_parent = 1');
         $helper->addGroupConcatColumn($select, 'anchors', 'category_id', ' ', ',', 'is_parent = 0');
         $helper->addGroupConcatColumn($select, 'positions', array('category_id', 'position'), ' ', '_');
+        $helper->addGroupConcatColumn($select, 'category_name', new Zend_Db_Expr('IF(cat.category_id = 2, "", name.value)'), '|');
+
         $select  = $helper->getQueryUsingAnalyticFunction($select);
 
         $result = array();
@@ -184,7 +192,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
             $data = array(
                 'categories'          => array_values(array_filter(explode(' ', $row['parents']))),
                 'show_in_categories'  => array_values(array_filter(explode(' ', $row['anchors']))),
+                'category_name'       => array_values(array_filter(explode('|', $row['category_name']))),
             );
+
             foreach (explode(' ', $row['positions']) as $value) {
                 list($categoryId, $position) = explode('_', $value);
                 $key = sprintf('position_category_%d', $categoryId);

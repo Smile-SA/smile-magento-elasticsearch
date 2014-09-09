@@ -47,6 +47,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
     protected $_entityType = 'catalog_product';
 
     /**
+     * @var array
+     */
+    protected $_suggestInputAttributes   = array('name', 'category_name');
+
+    /**
      * Get mapping properties as stored into the index
      *
      * @param string $useCache Indicates if the cache should be used or if the mapping should be rebuilt.
@@ -55,10 +60,37 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
      */
     public function getMappingProperties($useCache = true)
     {
-        parent::getMappingProperties(true);
-        $this->_mapping['properties']['categories'] = array('type' => 'long');
-        $this->_mapping['properties']['in_stock']   = array('type' => 'integer');
+        if ($this->_mapping === null) {
+            parent::getMappingProperties(true);
+            $this->_mapping['properties']['categories'] = array('type' => 'long');
+            $this->_mapping['properties']['in_stock']   = array('type' => 'integer');
+            $this->_mapping['properties']['category_name']   = array('type' => 'string');
+
+            // Append visibility to context
+            foreach (Mage::app()->getStores() as $store) {
+                $suggestField = Mage::helper('smile_elasticsearch')->getSuggestFieldName($store);
+                /*$this->_mapping['properties'][$suggestField]['context']['visibility'] = array(
+                    'type' => 'category', 'default' => '1', 'path' => 'visibility'
+                );*/
+            }
+        }
+
         return $this->_mapping;
+    }
+
+    /**
+     * Append custom data for an entity
+     *
+     * @param array $entityData  Data for current entity
+     * @param array $suggestData Suggest data for the entity
+     *
+     * @return array
+     */
+    protected function _appendCustomSuggestData($entityData, $suggestData)
+    {
+        $suggestData['context']['visibility'] = $entityData['visibility'];
+        //var_dump($suggestData);
+        return $suggestData;
     }
 
     /**
@@ -95,7 +127,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
                 'stock_status.product_id=e.entity_id AND stock_status.website_id=?',
                 $websiteId
             ),
-            array('in_stock' => new Zend_Db_Expr("COALESCE(stock_status, 0)"))
+            array('in_stock' => new Zend_Db_Expr("COALESCE(stock_status.stock_status, 0)"))
         );
 
         if (!is_null($ids)) {
@@ -135,9 +167,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
      */
     protected function _saveIndexes($storeId, $entityIndexes)
     {
-        $productIds = array_keys($entityIndexes);
-        $entityIndexes = Mage::getResourceSingleton('smile_elasticsearch/engine_index');
-        $entityIndexes->addAdvancedIndex($entityIndexes, $storeId, $productIds);
+        $index = Mage::getResourceSingleton('smile_elasticsearch/engine_index');
+        $entityIndexes = $index->addAdvancedIndex($entityIndexes, $storeId);
         return parent::_saveIndexes($storeId, $entityIndexes);
     }
 
@@ -150,7 +181,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
      */
     public function getSearchFields($localeCode)
     {
-
         if ($this->_searchFields == null) {
 
             $mapping = $this->getMappingProperties();
@@ -172,6 +202,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
                     }
                 }
             }
+
+            $this->_searchFields[] = 'category_name';
         }
 
         return $this->_searchFields;
@@ -185,7 +217,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
      *
      * @return array
      */
-    protected function _getChildrenIds($entityIds, $websiteId = null)
+    protected function _getChildrenIds($entityIds, $websiteId)
     {
         $children = array();
         $productTypes = array_keys(Mage::getModel('catalog/product_type')->getOptionArray());

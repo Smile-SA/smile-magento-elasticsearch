@@ -105,6 +105,15 @@
             </catalogsearch_fulltext_shell_reindex_after>
         </events>
         <smile_elasticsearch>
+            <autocomplete>
+                <product>
+                    <attributes>
+                        <name />
+                        <image />
+                        <image_label />
+                    </attributes>
+                </product>
+            </autocomplete>
             <mapping>
                 <product>
                     <model>smile_elasticsearch/engine_elasticsearch_mapping_product</model>

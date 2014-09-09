@@ -18,19 +18,21 @@
  */
 class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product extends Mage_Core_Block_Template
 {
+    const AUTOCOMPLETE_ATTRIBUTES_XPATH = 'global/smile_elasticsearch/autocomplete/product/attributes';
+
     /**
      * Check if the block is active or not. Block is disabled if :
      * - ES is not the selected engine into Magento
-     * 
+     *
      * @todo : Implements a configuration per type of suggester
-     * 
+     *
      * @return bool
      */
     public function isActive()
     {
         return Mage::helper('smile_elasticsearch')->isActiveEngine();
     }
-    
+
     /**
      * Return the list of all suggested products
      *
@@ -38,22 +40,25 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product exten
      */
     public function getProductCollection()
     {
+        $attributes = array_keys(Mage::getConfig()->getNode(self::AUTOCOMPLETE_ATTRIBUTES_XPATH)->asArray());
+
         $collection = Mage::getResourceModel('smile_elasticsearch/catalog_product_suggest_collection')
             ->setEngine(Mage::helper('catalogsearch')->getEngine())
             ->setStoreId(Mage::app()->getStore()->getId())
             ->setPageSize(10)
             ->addAttributeToSelect(Mage::getSingleton('catalog/config')->getProductAttributes())
+            ->addAttributeToSelect($attributes)
             ->addSuggestFilter($this->_getQuery())
             ->addMinimalPrice()
             ->addFinalPrice()
             ->addTaxPercents()
             ->addUrlRewrite();
-        
+
         return $collection;
     }
-    
+
     /**
-     * Return the string query we want to retrive suggests for 
+     * Return the string query we want to retrive suggests for
      *
      * @return string
      */

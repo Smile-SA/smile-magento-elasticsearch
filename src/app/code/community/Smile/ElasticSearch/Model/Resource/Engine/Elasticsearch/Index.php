@@ -174,8 +174,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             ),
             'edge_ngram_front' => array(
                 'type' => 'edgeNGram',
-                'min_gram' => 3,
-                'max_gram' => 10,
+                'min_gram' => 5,
+                'max_gram' => 50,
                 'side' => 'front',
             ),
             'edge_ngram_back' => array(
