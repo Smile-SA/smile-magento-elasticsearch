@@ -65,6 +65,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
             $this->_mapping['properties']['categories'] = array('type' => 'long');
             $this->_mapping['properties']['in_stock']   = array('type' => 'integer');
             $this->_mapping['properties']['category_name']   = array('type' => 'string');
+
+            // Append dynamic mapping for product category position field
+            $fieldTemplate = array('match' => 'position_category_*', 'mapping' => array('type' => 'integer'));
+            $this->_mapping['dynamic_templates'][] = array('category_position' => $fieldTemplate);
         }
 
         return $this->_mapping;
@@ -81,7 +85,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
     protected function _appendCustomSuggestData($entityData, $suggestData)
     {
         $suggestData['context']['visibility'] = $entityData['visibility'];
-        //var_dump($suggestData);
         return $suggestData;
     }
 

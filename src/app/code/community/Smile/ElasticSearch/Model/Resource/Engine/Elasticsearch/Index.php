@@ -271,6 +271,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                     $mapping['body']['mappings'][$type] = $mappingModel->getMappingProperties(false);
                 }
 
+                var_dump($mapping);
+
                 $indices->putMapping($mapping);
 
                 $indices->open();
