@@ -113,7 +113,9 @@ class SniffingConnectionPool extends AbstractConnectionPool
             return false;
         }
 
-        $nodes = $this->parseClusterState($connection->getTransportSchema(), $response);
+        // TODO wire in the serializer?
+        $nodeInfo = json_decode($response['text'], true);
+        $nodes = $this->parseClusterState($connection->getTransportSchema(), $nodeInfo);
 
         if (count($nodes) === 0) {
             return false;
@@ -122,10 +124,11 @@ class SniffingConnectionPool extends AbstractConnectionPool
         $this->connections = array();
 
         foreach ($nodes as $node) {
-            $this->connections[] = $this->connectionFactory->create(
-                $node['host'],
-                $node['port']
+            $nodeDetails = array(
+                'host' => $node['host'],
+                'port' => $node['port']
             );
+            $this->connections[] = $this->connectionFactory->create($nodeDetails);
         }
 
         $this->nextSniff = time() + $this->sniffingInterval;

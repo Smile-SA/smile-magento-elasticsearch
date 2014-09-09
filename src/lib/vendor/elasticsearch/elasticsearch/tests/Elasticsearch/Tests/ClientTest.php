@@ -47,10 +47,35 @@ class ClientTest extends \PHPUnit_Framework_TestCase
     public function testOneGoodOneBadHostNoException()
     {
         $params = array('hosts' => array (
-            '127.0.0.1:9200',
-            '127.0.0.1:9201',
+            '127.0.0.1:80',
+            $_SERVER['ES_TEST_HOST'],
         ));
-        $this->client = new Elasticsearch\Client($params);
+        $client = new Elasticsearch\Client($params);
+
+        // Perform three requests to make sure the bad host is tried at least once
+        $client->exists(array("index" => 'test', 'type' => 'test', 'id' => 'test'));
+        $client->exists(array("index" => 'test', 'type' => 'test', 'id' => 'test'));
+        $client->exists(array("index" => 'test', 'type' => 'test', 'id' => 'test'));
+
+    }
+
+
+    /**
+     * @expectedException Elasticsearch\Common\Exceptions\Curl\CouldNotConnectToHost
+     */
+    public function testOneGoodOneBadHostNoRetryException()
+    {
+        $params = array('hosts' => array (
+            '127.0.0.1:1',
+            $_SERVER['ES_TEST_HOST'],
+        ));
+        $params['retries'] = 0;
+        $client = new Elasticsearch\Client($params);
+
+        // Perform three requests to make sure the bad host is tried at least once
+        $client->exists(array("index" => 'test', 'type' => 'test', 'id' => 'test'));
+        $client->exists(array("index" => 'test', 'type' => 'test', 'id' => 'test'));
+        $client->exists(array("index" => 'test', 'type' => 'test', 'id' => 'test'));
 
     }
 
@@ -107,7 +132,7 @@ class ClientTest extends \PHPUnit_Framework_TestCase
             'hosts' => array('localhost:'),
             'dic' => function ($hosts, $params) use ($mockDIC, $that) {
 
-                $expected = array(array('host' => 'localhost', 'port' => 80));
+                $expected = array(array('scheme' => 'http', 'host' => 'localhost', 'port' => 9200));
                 $that->assertEquals($expected, $hosts);
                 return $mockDIC;
             }
@@ -127,7 +152,7 @@ class ClientTest extends \PHPUnit_Framework_TestCase
             'hosts' => array('localhost'),
             'dic' => function ($hosts, $params) use ($mockDIC, $that) {
 
-                $expected = array(array('host' => 'localhost', 'port' => 80));
+                $expected = array(array('scheme' => 'http', 'host' => 'localhost', 'port' => 9200));
                 $that->assertEquals($expected, $hosts);
                 return $mockDIC;
             }
@@ -147,7 +172,7 @@ class ClientTest extends \PHPUnit_Framework_TestCase
             'hosts' => array('localhost:9200'),
             'dic' => function ($hosts, $params) use ($mockDIC, $that) {
 
-                $expected = array(array('host' => 'localhost', 'port' => 9200));
+                $expected = array(array('scheme' => 'http', 'host' => 'localhost', 'port' => 9200));
                 $that->assertEquals($expected, $hosts);
                 return $mockDIC;
             }
@@ -167,7 +192,7 @@ class ClientTest extends \PHPUnit_Framework_TestCase
             'hosts' => array('http://localhost:9200'),
             'dic' => function ($hosts, $params) use ($mockDIC, $that) {
 
-                $expected = array(array('host' => 'localhost', 'port' => 9200));
+                $expected = array(array('scheme' => 'http', 'host' => 'localhost', 'port' => 9200));
                 $that->assertEquals($expected, $hosts);
                 return $mockDIC;
             }
@@ -303,6 +328,23 @@ class ClientTest extends \PHPUnit_Framework_TestCase
         } catch (Exception $e) {
 
         }
+
+    }
+
+    public function testHTTPS()
+    {
+        // Hosts param must be an array.
+        $params = array('hosts' => array('https://localhost'));
+        $client = new Elasticsearch\Client($params);
+
+        try {
+            $client->exists(array('index' => 't', 'type' => 't', 'id' => 1));
+        } catch (\Exception $e) {
+
+        }
+
+        $last = $client->transport->getLastConnection()->getLastRequestInfo();
+        $this->assertEquals('https://localhost:9200/t/t/1?', $last['request']['uri']);
 
     }
 }

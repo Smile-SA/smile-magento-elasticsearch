@@ -12,8 +12,8 @@
   "require": {
     "php": ">=5.3.9",
     "monolog/monolog": "~1.5",
-    "pimple/pimple": "~1.0",
-    "guzzle/guzzle": "~3.7",
+    "pimple/pimple": "~2.1",
+    "guzzle/http": "~3.7",
     "psr/log": "~1.0",
     "ext-curl": "*"
   },
@@ -21,11 +21,11 @@
     "phpunit/phpunit": "3.7.*",
     "mockery/mockery": "dev-master@dev",
     "athletic/athletic": "~0.1",
-    "symfony/yaml": "2.4.*@dev",
+    "symfony/yaml": "2.4.3 as 2.4.2",
     "satooshi/php-coveralls": "dev-master",
     "mikey179/vfsStream": "~1.2",
     "twig/twig": "1.*",
-    "elasticsearch/elasticsearch_src" : "dev-master"
+    "cpliakas/git-wrapper": "~1.0"
   },
   "autoload": {
     "psr-0": {
@@ -34,19 +34,10 @@
       "Elasticsearch\\Benchmarks" : "benchmarks/"
     }
   },
-  "repositories":[
+  "repositories": [
     {
-      "type":"package",
-      "package":{
-        "name":"elasticsearch/elasticsearch_src",
-        "description":"elasticsearch",
-        "version":"dev-master",
-        "source":{
-          "type" : "git",
-          "url":"git://github.com/elasticsearch/elasticsearch.git",
-          "reference" : "06f8a2e1a3473e80e9845545c33ee682b50aaacb"
-        }
-      }
+      "type": "vcs",
+      "url": "https://github.com/polyfractal/Yaml"
     }
   ]
 }
