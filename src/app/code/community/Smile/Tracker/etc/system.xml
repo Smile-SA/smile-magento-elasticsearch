@@ -96,7 +96,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
-                            <comment><![CDATA[In day (default is 365 sec.).<br /> This cookie will be stick to the customer to allow multiple session aggregation.]]></comment>
+                            <comment><![CDATA[In day (default is 365 days).<br /> This cookie will be stick to the customer to allow multiple session aggregation.]]></comment>
                         </visitor_cookie_lifetime>
                     </fields>
                 </session>
