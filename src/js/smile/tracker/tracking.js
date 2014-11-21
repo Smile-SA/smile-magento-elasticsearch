@@ -43,9 +43,13 @@
         });
     }
     
-    function _getCookieTrackingId(cookieName, expiresAt) {
+    function _getCookieTrackingId(cookieName, expiresAt, path) {
         
         var trackingId = false;
+        
+        if (!path) {
+            path = '/';
+        }
         
         if (stCookies[cookieName]) {
             trackingId = stCookies[cookieName];
@@ -55,7 +59,7 @@
             trackingId = _uuid(); 
         }
         
-        document.cookie = cookieName + '=' + trackingId + "; expires=" + expiresAt.toUTCString();
+        document.cookie = cookieName + '=' + trackingId + "; expires=" + expiresAt.toUTCString() + '; path=' + path;
         
         return trackingId;
     }
@@ -77,10 +81,10 @@
             var expireAt = new Date();
             var config = SmileTracker.config.sessionConfig;
             
-            expireAt.setSeconds(expireAt.getSeconds() + config['visit_cookie_lifetime']);
+            expireAt.setSeconds(expireAt.getSeconds() + parseInt(config['visit_cookie_lifetime']));
             SmileTracker.addSessionVar('uid', _getCookieTrackingId(config['visit_cookie_name'], expireAt));
             
-            expireAt.setDate(expireAt.getDate() + config['visitor_cookie_lifetime']);
+            expireAt.setDate(expireAt.getDate() + parseInt(config['visitor_cookie_lifetime']));
             SmileTracker.addSessionVar('vid', _getCookieTrackingId(config['visitor_cookie_name'], expireAt));
             
             BOOMR.addVar('t', Math.round(new Date().getTime() / 1000));
