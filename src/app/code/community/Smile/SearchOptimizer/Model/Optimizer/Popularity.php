@@ -118,7 +118,6 @@ class Smile_SearchOptimizer_Model_Optimizer_Popularity extends Smile_SearchOptim
      */
     public function apply($optimizer, $query)
     {
-        $rescoreQuery = $this->getRescoreQuery($optimizer);
         $query['body']['rescore'][] = array(
           'window_size' => 1000,
           'query' => array(
