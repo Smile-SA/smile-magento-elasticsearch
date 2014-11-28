@@ -550,7 +550,9 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             }
         }
 
-        $value = preg_replace("#\s+#siu", ' ', trim(strip_tags($value)));
+        if (is_string($value)) {
+            $value = preg_replace("#\s+#siu", ' ', trim(strip_tags($value)));
+        }
 
         return $value;
     }
