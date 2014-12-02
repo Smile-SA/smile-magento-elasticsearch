@@ -84,14 +84,15 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 $this->_mapping['properties'][Mage::helper('smile_elasticsearch')->getSuggestFieldName($store)] = array(
                     'type' => 'completion',
                     'payloads' => true,
-                    'index_analyzer'  => 'shingle',
-                    'search_analyzer' => 'shingle',
+                    'index_analyzer'  => 'analyzer_fr',
+                    'search_analyzer' => 'analyzer_fr',
                     'preserve_separators' => false,
                     'preserve_position_increments' => false,
                     'context' => array(
                         'store_id'   => array('type' => 'category', 'default' => '0'),
                         'type'       => array('type' => 'category', 'default' => $this->_type),
-                        'visibility' => array('type' => 'category', 'default' => 1)
+                        'visibility' => array('type' => 'category', 'default' => 1),
+                        'status'     => array('type' => 'category', 'default' => 1)
                     )
                 );
             }
@@ -348,9 +349,13 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         if ($value && $attribute) {
             $field = $this->_getAttributeFieldName($attribute, $languageCode);
             if ($field) {
-                $attrs[$field] = $this->_getAttributeValue($attribute, $value, $storeId);
+                $storedValue = $this->_getAttributeValue($attribute, $value, $storeId);
 
-                if ($attribute->usesSource()) {
+                if ($storedValue != null && $storedValue != false && $storedValue != '0000-00-00 00:00:00') {
+                    $attrs[$field] = $storedValue;
+                }
+
+                if ($attribute->usesSource() && $attribute->getSourceModel()) {
                     $field = 'options_' . $attribute->getAttributeCode() . '_' . $languageCode;
                     $value = $this->_getOptionsText($attribute, $value, $storeId);
                     if ($value) {
@@ -642,7 +647,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $suggest['context']['store_id'] = $storeId;
             $inputs = explode(' ', $suggest['input']);
             $suggest['input'] = array_merge(array($suggest['input']), $inputs);
-
+            $suggest['input'] = array_values(array_filter($suggest['input']));
 
             $suggest = $this->_appendCustomSuggestData($index, $suggest);
 
@@ -677,7 +682,9 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     protected function _getOptionsText($attribute, $value, $storeId)
     {
         $attribute->setStoreId($storeId);
-        $value = $attribute->getSource()->getIndexOptionText($value);
+        if ($attribute->getSource()) {
+            $value = $attribute->getSource()->getIndexOptionText($value);
+        }
         return $value;
     }
 
