@@ -129,30 +129,37 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             'whitespace' => array(
                 'tokenizer' => 'standard',
                 'filter' => array('lowercase'),
+                'char_filter' => array('html_strip'),
             ),
             'edge_ngram_front' => array(
                 'tokenizer' => 'standard',
                 'filter' => array('length', 'edge_ngram_front', 'lowercase'),
+                'char_filter' => array('html_strip'),
             ),
             'edge_ngram_back' => array(
                 'tokenizer' => 'standard',
                 'filter' => array('length', 'edge_ngram_back', 'lowercase'),
+                'char_filter' => array('html_strip'),
             ),
             'shingle' => array(
                 'tokenizer' => 'standard',
                 'filter' => array('shingle', 'length', 'lowercase'),
+                'char_filter' => array('html_strip'),
             ),
             'shingle_strip_ws' => array(
                 'tokenizer' => 'standard',
                 'filter' => array('shingle', 'strip_whitespaces', 'length', 'lowercase'),
+                'char_filter' => array('html_strip'),
             ),
             'shingle_strip_apos_and_ws' => array(
                 'tokenizer' => 'standard',
                 'filter' => array('shingle', 'strip_apostrophes', 'strip_whitespaces', 'length', 'lowercase'),
+                'char_filter' => array('html_strip'),
             ),
             'sortable' => array(
                 'tokenizer' => 'keyword',
                 'filter' => array('lowercase'),
+                'char_filter' => array('html_strip')
             ),
         );
         $indexSettings['analysis']['filter'] = array(
@@ -202,6 +209,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                 'type' => 'custom',
                 'tokenizer' => 'standard',
                 'filter' => array('length', 'lowercase', 'snowball_' . $languageCode),
+                'char_filter' => array('html_strip')
             );
             $indexSettings['analysis']['filter']['snowball_' . $languageCode] = array(
                 'type' => 'snowball',
