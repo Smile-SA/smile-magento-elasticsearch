@@ -31,8 +31,8 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
      * @var array
      */
     protected $_queryTemplates = array(
-        '=='  => '#{field}:#{value}',
-        '!='  => '-(#{field}:#{value})',
+        '=='  => '#{field}:#"{value}"',
+        '!='  => '-(#{field}:#"{value}")',
         '>='  => '#{field}:[#{value} TO *]',
         '<='  => '#{field}:[* TO #{value}]',
         '>'   => '#{field}:{#{value} TO *]',
