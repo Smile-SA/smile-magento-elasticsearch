@@ -41,6 +41,10 @@
     </catalog_category_layered>
     
     <catalogsearch_result_index>
+        <reference name="additional">
+            <remove name="search_suggestions" />
+            <remove name="search_recommendations" />
+        </reference>
         <reference name="left">
             <remove name="catalogsearch.leftnav"/>
             <block type="smile_elasticsearch/catalogsearch_layer" name="smile.elaticsearch.leftnav" before="-" template="catalog/layer/view.phtml">
