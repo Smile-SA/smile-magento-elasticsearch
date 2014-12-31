@@ -175,7 +175,7 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
         $childrenIds  = array_diff($childrenIds, $excludedCategories);
 
         $categories = Mage::getResourceModel('smile_virtualcategories/catalog_virtualCategory_collection')
-            ->setStoreId($rootCategory->getId())
+            ->setStoreId($rootCategory->getStoreId())
             ->addIsActiveFilter()
             ->addIdFilter($childrenIds)
             ->addAttributeToSelect('virtual_category');
