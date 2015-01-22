@@ -87,14 +87,6 @@
                     </smile_elasticsearch>
                 </observers>
             </catalog_category_save_commit_after>
-            <enterprise_index_exclude_process_before>
-                <observers>
-                    <enterprise_catalogsearch_fulltext>
-                        <class>smile_elasticsearch/observer</class>
-                        <method>addExcludeProcess</method>
-                    </enterprise_catalogsearch_fulltext>
-                </observers>
-            </enterprise_index_exclude_process_before>
             <catalogsearch_fulltext_shell_reindex_after>
                 <observers>
                     <enterprise_index>

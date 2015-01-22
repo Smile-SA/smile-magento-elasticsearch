@@ -41,8 +41,10 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
                 }
             }
 
-            $this->_getIndexer()->cleanIndex(null, $productId)
-            ->resetSearchResults();
+            $this->_getIndexer()
+                 ->cleanIndex(null, $productId)
+                 ->resetSearchResults();
+
         } else if (!empty($data['catalogsearch_update_product_id'])) {
             $productId = $data['catalogsearch_update_product_id'];
             $productIds = array($productId);
@@ -53,8 +55,9 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
                     $productIds = array_merge($productIds, $parentIds);
                 }
             }
-
+            $this->_getIndexer()->cleanIndex(null, $productIds);
             $this->_getMapping('product')->rebuildIndex(null, $productIds);
+
             $this->_getIndexer()->resetSearchResults();
 
         } else if (!empty($data['catalogsearch_product_ids'])) {
@@ -86,21 +89,21 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
                 $status = $data['catalogsearch_status'];
                 if ($status == Mage_Catalog_Model_Product_Status::STATUS_ENABLED) {
                     $this->_getIndexer()
-                    ->rebuildIndex(null, $productIds)
-                    ->resetSearchResults();
+                         ->rebuildIndex(null, $productIds)
+                         ->resetSearchResults();
                 } else {
                     $this->_getIndexer()->cleanIndex(null, $productIds);
                     $this->_getMapping('product')->resetSearchResults();
                 }
             }
             if (isset($data['catalogsearch_force_reindex'])) {
+                $this->_getIndexer()->cleanIndex(null, $productIds);
                 $this->_getMapping('product')->rebuildIndex(null, $productIds);
                 $this->_getIndexer()->resetSearchResults();
             }
         } else if (isset($data['catalogsearch_category_update_product_ids'])) {
             $productIds = $data['catalogsearch_category_update_product_ids'];
             $categoryIds = $data['catalogsearch_category_update_category_ids'];
-
             $this->_getMapping('category')->rebuildIndex(null, $categoryIds);
         }
     }
@@ -136,7 +139,6 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
      */
     public function reindexAll()
     {
-
         $index = $this->getCurrentIndex();
 
         $index->prepareNewIndex();

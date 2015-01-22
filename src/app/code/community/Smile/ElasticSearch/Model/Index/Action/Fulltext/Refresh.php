@@ -17,12 +17,10 @@
  * @license   Apache License Version 2.0
  */
 class Smile_ElasticSearch_Model_Index_Action_Fulltext_Refresh
-    implements Enterprise_CatalogSearch_Model_Index_Action_Fulltext_Refresh
+    extends Enterprise_CatalogSearch_Model_Index_Action_Fulltext_Refresh
 {
     /**
-     * Run full reindex.
-     *
-     * This method has been made inoperant when using Smile_ElasticSearch
+     * Run full reindex only when needed
      *
      * @return Enterprise_CatalogSearch_Model_Index_Action_Fulltext_Refresh
      *
@@ -32,6 +30,21 @@ class Smile_ElasticSearch_Model_Index_Action_Fulltext_Refresh
     {
         if (Mage::helper('smile_elasticsearch')->isActiveEngine() == false) {
             parent::execute();
+        } else {
+            $this->_getLastVersionId();
+            $this->_metadata->setInProgressStatus()->save();
+
+            $engine = Mage::helper('catalogsearch')->getEngine();
+            $index = $engine->getCurrentIndex();
+
+            $index->prepareNewIndex();
+            foreach ($index->getAllMappings() as $mapping) {
+                $mapping->rebuildIndex();
+            }
+            $index->installNewIndex();
+
+            $this->_updateMetadata();
+            $this->_app->dispatchEvent('after_reindex_process_catalogsearch_index', array());
         }
 
         return $this;

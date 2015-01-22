@@ -23,7 +23,6 @@ class Smile_ElasticSearch_Model_Index_Action_Fulltext_Refresh_Changelog
     /**
      * Refresh rows by ids from changelog
      *
-     * This method has been made inoperant when using Smile_ElasticSearch
      *
      * @return Enterprise_CatalogSearch_Model_Index_Action_Fulltext_Refresh_Changelog
      *
@@ -31,8 +30,37 @@ class Smile_ElasticSearch_Model_Index_Action_Fulltext_Refresh_Changelog
      */
     public function execute()
     {
+        if (!$this->_metadata->isValid()) {
+            throw new Enterprise_Index_Model_Action_Exception("Can't perform operation, incomplete metadata!");
+        }
+
         if (Mage::helper('smile_elasticsearch')->isActiveEngine() == false) {
             parent::execute();
+        } else {
+
+            try {
+                if (!empty($this->_changedIds)) {
+                    $engine = Mage::helper('catalogsearch')->getEngine();
+                    $this->_metadata->setInProgressStatus()->save();
+                    // Index basic products
+                    $this->_setProductIdsFromValue();
+                    $productIds = $this->_productIds;
+                    $this->_setProductIdsFromParents();
+                    $productIds = array_merge($productIds, $this->_productIds);
+
+                    $engine->cleanIndex(null, $productIds);
+                    $engine->getCurrentIndex()
+                           ->getMapping('product')
+                           ->rebuildIndex(null, $productIds);
+
+                    // Clear search results
+                    $this->_resetSearchResults();
+                    $this->_updateMetadata();
+                }
+            } catch (Exception $e) {
+                $this->_metadata->setInvalidStatus()->save();
+                throw new Enterprise_Index_Model_Action_Exception($e->getMessage(), $e->getCode());
+            }
         }
 
         return $this;

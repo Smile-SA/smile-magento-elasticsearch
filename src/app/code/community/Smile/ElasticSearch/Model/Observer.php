@@ -137,24 +137,6 @@ class Smile_ElasticSearch_Model_Observer
     }
 
     /**
-     * Exclude catalogsearch_fulltext indexer
-     *
-     * @param Varien_Event_Observer $observer Event to observe.
-     *
-     * @return Smile_ElasticSearch_Model_Observer
-     */
-    public function addExcludeProcess(Varien_Event_Observer $observer)
-    {
-        $helper = Mage::helper('smile_elasticsearch');
-        $collection = $observer->getEvent()->getCollection();
-
-        if (method_exists($collection, 'addExcludeProcessByCode') && $helper->isActiveEngine()) {
-            $observer->getEvent()->getCollection()
-                ->addExcludeProcessByCode('catalogsearch_fulltext');
-        }
-    }
-
-    /**
      * Process shell reindex catalog full text refresh event
      *
      * @param Varien_Event_Observer $observer Event to observe.

@@ -173,7 +173,36 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
      */
     public function cleanIndex($storeId = null, $id = null, $type = 'product')
     {
-        // $this->getClient()->cleanIndex($storeId, $id, $type);
+        if (is_null($id)) {
+            return $this;
+        }  else if (!is_array($id)) {
+            $id = array($id);
+        }
+
+        if (is_null($storeId)) {
+            $storeId = array_keys(Mage::app()->getStores());
+        } else if (!is_array($storeId)) {
+            $storeId = array($storeId);
+        }
+
+        $bulk = array('body' => array());
+
+        foreach ($id as $currentId) {
+            foreach ($storeId as $currentStoreId) {
+                $bulk['body'][] = array(
+                    'delete' => array(
+                        '_index' => $this->getCurrentIndex()->getCurrentName(),
+                        '_type'  => $type,
+                        '_id'    => $currentId . '|' .$currentStoreId
+                    )
+                );
+            }
+        }
+
+        if (!empty($bulk['body'])) {
+            $this->getClient()->bulk($bulk);
+        }
+
         return $this;
     }
 

@@ -23,7 +23,7 @@ class Smile_ElasticSearch_Model_Index_Action_Fulltext_Refresh_Row
     /**
      * Refresh rows by ids from changelog
      *
-     * This method has been made inoperant when using Smile_ElasticSearch
+     * Reindex modified produts rows
      *
      * @return Enterprise_CatalogSearch_Model_Index_Action_Fulltext_Refresh_Changelog
      *
@@ -33,6 +33,18 @@ class Smile_ElasticSearch_Model_Index_Action_Fulltext_Refresh_Row
     {
         if (Mage::helper('smile_elasticsearch')->isActiveEngine() == false) {
             parent::execute();
+        } else {
+            $engine = Mage::helper('catalogsearch')->getEngine();
+
+            $this->_setProductIdsFromValue();
+            $productIds = $this->_productIds;
+            $this->_setProductIdsFromParents();
+            $productIds = array_merge($productIds, $this->_productIds);
+
+            $engine->cleanIndex(null,$productIds);
+            $engine->getCurrentIndex()
+                   ->getMapping('product')
+                   ->rebuildIndex(null, $productIds);
         }
 
         return $this;
