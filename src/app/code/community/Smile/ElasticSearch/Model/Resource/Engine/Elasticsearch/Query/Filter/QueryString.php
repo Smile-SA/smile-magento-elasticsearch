@@ -27,6 +27,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Filter_Query
     public function getFilterQuery()
     {
         $query = array('query_string' => array('query' => $this->_options['query_string']));
-        return array('query' => $query);
+        return array('fquery' => array('query' => $query, '_cache' => true));
     }
 }

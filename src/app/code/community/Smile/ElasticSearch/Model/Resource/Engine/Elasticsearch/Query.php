@@ -165,13 +165,20 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
     public function search()
     {
         $result = array();
+
+        Varien_Profiler::start('ES:ASSEMBLE:QUERY');
         $query = $this->_assembleQuery();
+        Varien_Profiler::stop('ES:ASSEMBLE:QUERY');
 
         $eventData = new Varien_Object(array('query' => $query, 'query_type' => $this->getQueryType()));
+        Varien_Profiler::start('ES:ASSEMBLE:QUERY:OBSERVERS');
         Mage::dispatchEvent('smile_elasticsearch_query_assembled', array('query_data' => $eventData));
+        Varien_Profiler::stop('ES:ASSEMBLE:QUERY:OBSERVERS');
         $query = $eventData->getQuery();
 
+        Varien_Profiler::start('ES:EXECUTE:QUERY');
         $response = $this->getClient()->search($query);
+        Varien_Profiler::stop('ES:EXECUTE:QUERY');
 
         if (!isset($data['error'])) {
             $result = array(
@@ -364,6 +371,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
             if ($facetName == '_none_') {
                 if (!isset($query['body']['query']['filtered']['filter']['bool']['must'])) {
                     $query['body']['query']['filtered']['filter']['bool']['must'] = array();
+                    $query['body']['query']['filtered']['filter']['bool']['_cache'] = true;
                 }
                 $mustConditions = array_merge($query['body']['query']['filtered']['filter']['bool']['must'], $rawFilter);
                 $query['body']['query']['filtered']['filter']['bool']['must'] = $mustConditions;
