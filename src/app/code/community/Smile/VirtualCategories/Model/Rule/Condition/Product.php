@@ -42,6 +42,21 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
     );
 
     /**
+     * Default operator input by type map getter
+     *
+     * @return array
+     */
+    public function getDefaultOperatorInputByType()
+    {
+        if (null === $this->_defaultOperatorInputByType) {
+            parent::getDefaultOperatorInputByType();
+            $this->_defaultOperatorInputByType['multiselect'] = array('()', '!()');
+        }
+
+        return $this->_defaultOperatorInputByType;
+    }
+
+    /**
      * Load attribute options
      *
      * @return Mage_CatalogRule_Model_Rule_Condition_Product
@@ -186,10 +201,10 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
                 $query = $this->_getSearchQuery($attribute, $value, $operator, $excludedCategories);
             }
         } else if ($operator == '()' || $operator == '!()') {
-            $attribute = $this->getMapping()->getFilterField($attribute, $this->getLocaleCode(), 'filter');
+            $attribute = $this->getFilterField($attribute);
             $template = $this->_queryTemplates['=='];
             $query = array();
-            $values = explode(',', $value);
+            $values = is_array($value) ? $value : explode(',', $value);
             foreach ($values as $currentValue) {
                 $query[] = $this->_getSearchQuery($attribute, $currentValue, "==", $excludedCategories);
             }
