@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<!-- 
+/**
+ * Layout for elasticsearch features
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */
+ -->
+<layout version="0.1.0">
+
+    <default>
+        <reference name="head">
+            <action method="addJs"><script>smile/elasticsearch/search.js</script></action>
+            <action method="addCss"><stylesheet>css/smile/elasticsearch.css</stylesheet></action>
+        </reference>
+        <reference name="top.search">
+            <action method="setTemplate"><template>smile/elasticsearch/autocomplete/form.mini.phtml</template></action>
+        </reference>
+    </default>
+
+    <catalog_category_layered>
+        <reference name="left">
+            <remove name="catalog.leftnav"/>
+            <block type="smile_elasticsearch/catalog_layer_view" name="smile.elaticsearch.leftnav" before="-" template="catalog/layer/view.phtml">
+                <!--
+                Example of custom template for a filter :
+                -->  
+                <action method="addFilterTemplate"><filterName>price</filterName><template>smile/elasticsearch/catalog/layer/filter/price.phtml</template></action>
+                <action method="addFilterTemplate"><filterName>rating_filter</filterName><template>smile/elasticsearch/catalog/layer/filter/rating.phtml</template></action>
+            </block>
+        </reference>
+    </catalog_category_layered>
+    
+    <catalogsearch_result_index>
+        <reference name="additional">
+            <remove name="search_suggestions" />
+            <remove name="search_recommendations" />
+        </reference>
+        <reference name="left">
+            <remove name="catalogsearch.leftnav"/>
+            <block type="smile_elasticsearch/catalogsearch_layer" name="smile.elaticsearch.leftnav" before="-" template="catalog/layer/view.phtml">
+                <!--
+                Example of custom template for a filter :
+                -->
+                <action method="addFilterTemplate"><filterName>price</filterName><template>smile/elasticsearch/catalog/layer/filter/price.phtml</template></action>
+                <action method="addFilterTemplate"><filterName>rating_filter</filterName><template>smile/elasticsearch/catalog/layer/filter/rating.phtml</template></action>
+            </block>
+        </reference>
+        <reference name="content">
+            <remove name="search.result" />
+            <block type="smile_elasticsearch/catalogsearch_result" name="smile.elaticsearch.search.result" template="catalogsearch/result.phtml">
+                <block type="catalog/product_list" name="search_result_list" template="catalog/product/list.phtml">
+                    <block type="catalog/product_list_toolbar" name="product_list_toolbar" template="catalog/product/list/toolbar.phtml">
+                        <block type="page/html_pager" name="product_list_toolbar_pager"/>
+                    </block>
+                    <block type="core/text_list" name="additional" translate="label">
+                        <label>Additional Info</label>
+                    </block>
+                    <action method="addColumnCountLayoutDepend"><layout>empty</layout><count>6</count></action>
+                    <action method="addColumnCountLayoutDepend"><layout>one_column</layout><count>5</count></action>
+                    <action method="addColumnCountLayoutDepend"><layout>two_columns_left</layout><count>4</count></action>
+                    <action method="addColumnCountLayoutDepend"><layout>two_columns_right</layout><count>4</count></action>
+                    <action method="addColumnCountLayoutDepend"><layout>three_columns</layout><count>3</count></action>
+                    <action method="setToolbarBlockName"><name>product_list_toolbar</name></action>
+                    <action method="setPageLayout"><layout>three_columns</layout></action>
+                </block>
+                <action method="setListOrders"/>
+                <action method="setListModes"/>
+                <action method="setListCollection"/>
+            </block>
+        </reference>
+    </catalogsearch_result_index>
+
+    <catalogsearch_ajax_suggest>
+        <remove name="root" />
+        <remove name="core_profiler" />
+
+        <block name="autocomplete" type="core/template" template="smile/elasticsearch/autocomplete/autocomplete.phtml" output="toHtml">
+            
+            <block type="core/text_list" name="complete_list">
+                
+                <block type="smile_elasticsearch/catalogsearch_autocomplete_suggest_terms" 
+                       name="autocomplete.popular.searches"
+                       template="smile/elasticsearch/autocomplete/suggest/terms.phtml" />
+                
+                <block type="smile_elasticsearch/catalogsearch_autocomplete_suggest_product" 
+                       name="autocomplete.popular.product" 
+                       template="smile/elasticsearch/autocomplete/suggest/product.phtml" />
+                       
+                <block type="smile_elasticsearch/catalogsearch_autocomplete_suggest_category" 
+                      name="autocomplete.popular.category" 
+                      template="smile/elasticsearch/autocomplete/suggest/category.phtml" />
+                      
+            </block>    
+        </block>
+    </catalogsearch_ajax_suggest>
+    
+</layout>

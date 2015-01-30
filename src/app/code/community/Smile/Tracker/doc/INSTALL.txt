@@ -1,0 +1,114 @@
+Basic installation :
+====================
+
+First make sure you have the SmileSearchandising Suite Module installed.
+Then, just install the module as usual.
+
+
+Tracking URL default configuration :
+====================================
+
+By default the module is using the built-in image as a beacon.
+You should be able to filter tracking into your apache access logs with the following pattern :
+
+   js/smile/tracker/hit.png
+
+This configuration is not adviced into a production environment since it mess up normal access logs and tracking ones.
+
+
+Custom tracking URL :
+====================
+
+You can set up a custom tracking URL into "System > Configuration > Tracking > Tracking Base URL".
+You should prefer URL not including the protocol to allow SSL page tagging.
+
+   Example: //hit.mysite.com/hit.png
+
+
+
+Use a different vhost:
+----------------------
+
+   This is the first way to install a tracking allowing to keep separate Apache access logs from tracking logs.
+   You will need a secondary domain for the tracking (eg. hit.mysite.com).
+
+
+   Create log target folder :
+   --------------------------
+   
+      Even if not mandatory, it is strongly adviced that you create a seperated directory to store the logs produced by the tracker :
+      
+        > mkdir -p /var/log/smile_searchandising_suite/apache_raw_events
+
+      Following instructions need to be adapted if you don't use the same path as described upon.
+
+
+
+   Install the vhost :
+   -------------------
+   
+      The following virtual host allows tracking :
+   
+      <VirtualHost *:80>
+          ServerName <MY_TRACKING_DOMAIN>
+    
+          DocumentRoot <MAGENTO_ROOT>/js/smile/tracker/
+
+          <Directory <MAGENTO_ROOT>/js/smile/tracker/>
+              AllowOverride None
+              Order allow,deny
+              Allow from all
+          </Location>
+
+          RewriteEngine on
+          RewriteRule .* /hit.png
+
+          LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"" combined
+          CustomLog /var/log/smile_searchandising_suite/apache_raw_events/event.log combined
+
+      </VirtualHost>
+      
+      Notes : 
+        - You need to replace <MAGENTO_ROOT> with the root of your Magento deployment and then reload Apache
+        
+        - ServerName <MY_TRACKING_DOMAIN> by the FQDN of the tracker
+        
+        - Be careful about the port into the vhosts. Usually it should be 81 since you will have varnish in front of Magento.
+          You should also take care to bypass Varnish for the tracking domain (pass). 
+        
+        - If tracker code is not deployed yet, reloading Apache will fail. You can fix it with 
+           
+           mkdir -p <MAGENTO_ROOT>/js/smile/tracker
+
+   Configure log retention policy :
+   --------------------------------
+   
+      Configure logrotate by putting this into /etc/logrotate.d/smile-tracker-log
+      
+      /var/log/smile_searchandising_suite/apache_raw_events/*.log {
+        daily
+        dateext 
+        missingok
+        rotate 7
+        compress
+        notifempty
+        create 640 root adm
+        sharedscripts
+        postrotate
+            /etc/init.d/apache2 reload > /dev/null
+        endscript
+        prerotate
+            if [ -d /etc/logrotate.d/httpd-prerotate ]; then \
+                run-parts /etc/logrotate.d/httpd-prerotate; \
+            fi; \
+        endscript
+      }
+      
+      This allow a daily log rotation and gzip and a seven days retention.
+
+
+Use fluentd :
+-------------
+
+Another great option to proceed to tracking, relay is to use fluentd (proxied by Apache) and espcially with the http-enhanced plugin.
+Fluentd can also be used to relay Apache logs to another server used to process the events. 

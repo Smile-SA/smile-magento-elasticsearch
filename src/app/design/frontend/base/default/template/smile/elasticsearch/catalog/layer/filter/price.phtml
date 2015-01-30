@@ -1,0 +1,143 @@
+<?php
+/**
+ * Price slider filter rendering.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */?>
+<div class="range-slider" id="<?php echo $this->getNameInLayout(); ?>-slider">
+    <div class="limits-container">
+        <span class="limits min"></span>
+        <span class="limits max"></span>
+        <div class="clear"></div>
+    </div>
+	<div class="slider-bkg">
+	    <div class="handle min"></div>
+	    <div class="handle max"></div>
+	</div>
+	<div class="validate-button"><button class="valid button"><span><span><?php echo $this->__('OK'); ?></span></span></button></div>
+	<em class="count"></em>
+	<div class="clear"></div>
+</div>
+
+<script type="text/javascript">
+<!--
+    var sliderConfig = {
+        range                 : $R(<?php echo $this->getMinPriceInt(true); ?>, <?php echo $this->getMaxPriceInt(true); ?>),
+        values                : <?php echo Mage::helper('core/data')->jsonEncode($this->getInterval()); ?>,
+        allowedIntervals      : <?php echo Mage::helper('core/data')->jsonEncode($this->getAllowedIntervals()); ?>,
+        rootNode              : $("<?php echo $this->getNameInLayout(); ?>-slider"),
+        countProductTemplates : {
+            'multiple' : new Template("<?php echo $this->__('#{count} products');?>"),
+            'one'      : new Template("<?php echo $this->__('#{count} product');?>"),
+            'empty'    : new Template("<?php echo $this->__('No product found in this price range');?>"),
+        },
+        valueFormat : function(value) {
+            var priceFormat    = <?php echo $this->getJsPriceFormat(); ?>;
+            priceFormat.precision = priceFormat.requiredPrecision = 0;
+            return formatCurrency(value.toFixed(0), priceFormat);
+        },
+        requestVar : "<?php echo $this->getRequestVar(); ?>",
+        filterTemplate : new Template("<?php echo $this->getFilterJsTemplate(); ?>")
+
+    };
+
+    (function rangeSlider(config) {
+
+        var sliderRootNode = config.rootNode.select('.slider-bkg')[0];
+        var inputNodes     = config.rootNode.select('span.limits');
+        var validButton    = config.rootNode.select('button.valid')[0];
+        var counterNode    = config.rootNode.select('em.count')[0];
+        var countProducts  = 0;
+        config.valueFormat = config.valueFormat != null ? config.valueFormat : function(value) {return value};
+
+        function initSlider() {
+        	var slider = new Control.Slider(sliderRootNode.select('.handle'), sliderRootNode, {
+        	    range       : config.range,
+        	    sliderValue : config.values,
+        	    restricted  : true,
+        	    onSlide     : onSliderChangeValues,
+        	    onChange    : onSliderChangeValues
+        	});
+        	return slider;
+        }
+
+        var slider = initSlider();
+
+    	function onSliderChangeValues(values) {
+    	    for (var i=0; i < values.length; i++) {
+                inputNodes[i].innerHTML = config.valueFormat(values[i]);
+            }
+    	    config.values = values;
+    	    updateCounter(values);
+    	}
+
+    	validButton.observe('click', function() {
+    	    var values     = {min : parseInt(slider.values[0]), max: parseInt(slider.values[1])};
+    	    var template   = config.filterTemplate;
+
+    	    var urlToken   = template.evaluate(values);
+    	    var addedParams = false;
+
+    	    var search = window.location.search.substring(1).split('&').map(function(part) {
+    	       part = part.split('=');
+    	       if (part[0] == config.requestVar) {
+    	           addedParams = true;
+    	           return template.evaluate(values);
+    	       } else {
+    	           return part.join('=');
+    	       }
+    	    }).join('&');
+
+    	    if (addedParams == false) {
+    	        search = search.length == 0 ? template.evaluate(values) : search + "&" + template.evaluate(values);
+    	    }
+
+    	    window.location.search = '?' + search;
+    	})
+
+    	function updateCounter(values) {
+
+    	    countProducts = 0;
+
+            for (var i=0; i < config.allowedIntervals.length; i++) {
+                var currentValue = config.allowedIntervals[i].value;
+
+                if (values[0] <= currentValue && values[1] >= currentValue) {
+                    countProducts += config.allowedIntervals[i].count;
+                }
+            }
+
+            counterNode.innerHTML = countProducts;
+
+            countTemplate = 'empty';
+
+            if (countProducts > 1) {
+                countTemplate = 'multiple';
+                validButton.show();
+            } else if (countProducts > 0) {
+                countTemplate = 'one';
+                validButton.show();
+            } else {
+                validButton.hide();
+            }
+
+            counterNode.innerHTML = config.countProductTemplates[countTemplate].evaluate({count: countProducts})
+            counterNode.removeClassName('one'); counterNode.removeClassName('multiple'); counterNode.removeClassName('empty');
+            counterNode.addClassName(countTemplate);
+    	}
+
+    	window.addEventListener('resize', initSlider);
+    	onSliderChangeValues(slider.values);
+
+    })(sliderConfig);
+-->
+</script>

@@ -1,0 +1,50 @@
+<?php
+/**
+ * Product list form renderer
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_VirtualCategories
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */?>
+<div class="entry-edit">
+    <?php echo $this->getFormHtml();?>
+</div>
+<?php echo $this->getChildHtml('form_after');?>
+<script type="text/javascript">
+<!--
+(function() {
+
+    var typeSelector    = $('<?php echo $this->getSelectorHtmlId(); ?>');
+    var virtualFieldset = $('<?php echo $this->getVirtualRuleFieldsetHtmlId() ;?>');
+    var productFieldset = $('<?php echo $this->getProductFieldsetHtmlId() ;?>');
+
+    function typeSelectorValueHandle(isVirtual) {
+        if (isVirtual == 1) {
+            virtualFieldset.previous('.entry-edit-head').show();
+            virtualFieldset.show();
+            productFieldset.previous('.entry-edit-head').hide();
+            productFieldset.hide();
+        } else {
+            virtualFieldset.previous('.entry-edit-head').hide();
+            virtualFieldset.hide();
+            productFieldset.previous('.entry-edit-head').show();
+            productFieldset.show();
+        }
+    }
+
+    typeSelector.observe('change', function() {typeSelectorValueHandle(this.value)});
+    typeSelectorValueHandle(typeSelector.value);
+})();
+
+
+
+-->
+</script>
+<!-- <?php echo $this->getVirtualRuleFieldsetHtmlId() ;?> = new VarienRulesForm('<?php echo $this->getVirtualRuleFieldsetHtmlId() ;?>', '<?php echo $this->getNewChildConditionHtmlUrl() ?>'); -->

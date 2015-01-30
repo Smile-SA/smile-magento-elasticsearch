@@ -1,0 +1,40 @@
+/**
+ * ElasticSearch stylesheet
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */
+ 
+/* Autocomplete styles */
+#search_autocomplete dl { background: #FFF; border: 1px solid #999; overflow: hidden; width: 100%; }
+#search_autocomplete dl dt { background: #d12c01; color: #FFF; font-weight: bold; padding: 3px 3px; font-size: 110%; }
+#search_autocomplete dl dd { background: #FFF; cursor: pointer; padding: 3px 5px; font-size: 110%; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+#search_autocomplete dl dd.selected { background: rgb(253, 233, 229); }
+
+/* Price slider styles */
+.range-slider { padding: 5px 0 0; }
+.range-slider .slider-bkg { margin:10px 0; background-color:#ccc; height:5px; position: relative; background: #BAA; cursor : pointer; }
+.range-slider .handle { margin:-6px 0 0; width:10px; height:8px; background-color:#3399cc; cursor:move; position: absolute; }
+.range-slider .handle:after { content: "-"; color: transparent; width: 0; height: 0; border-top: 8px solid #3399cc; border-left: 5px solid transparent; position: absolute; margin: 8px 0 0; border-right: 5px solid transparent; }
+.range-slider .handle.min { margin-left: -4px; }
+.range-slider .handle.max { margin-left: 4px; }
+.range-slider .limits-container { margin: 0 0 0; }
+.range-slider .validate-button { float: right; }
+.range-slider .limits.min { float:left; margin-left: -5px; }
+.range-slider .limits.max { float:right; margin-left: 5px; }
+.range-slider .clear {clear: both;}
+.range-slider .count.empty { line-height: 10px; color: #AA0000; margin: 0; text-align: center; }
+.range-slider .count { line-height: 20px; margin: 0 50px 0 0; text-align: left; display: block; }
+
+#narrow-by-list .ratings { display: inline-block; margin: 0; }
+#narrow-by-list .ratings .rating-box { margin: 0; }
+
+.block-layered-nav dl dd ol > li > span, .block-layered-nav dl dd ol > li > a { display: inline-block; }

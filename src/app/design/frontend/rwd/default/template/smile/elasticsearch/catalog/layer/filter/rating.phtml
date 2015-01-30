@@ -1,0 +1,35 @@
+<?php
+/**
+ * Rating filter rendering.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */?>
+<ol>
+<?php foreach ($this->getItems() as $_item): ?>
+    <li>
+        <?php if ($_item->getCount() > 0): ?>
+        <a href="<?php echo $this->urlEscape($_item->getUrl()) ?>">
+            <div class="ratings"><div class="rating-box">
+                <div class="rating" style="width:<?php echo $_item->getLabel(); ?>%"></div>
+            </div></div>
+            <?php if ($_item->getLabel() < 100) : ?>
+                <span><?php echo $this->__('and up')?></span>
+            <?php endif; ?>
+            <?php if ($this->shouldDisplayProductCount()): ?>
+            <span class="count">(<?php echo $_item->getCount() ?>)</span>
+            <?php endif; ?>
+        </a>
+        <?php else: echo $_item->getLabel() ?>
+        <?php endif; ?>
+    </li>
+<?php endforeach ?>
+</ol>

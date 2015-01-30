@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Smile Searchandising Suite editable configuration
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_Searchandising_Suite
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */
+-->
+<config>
+    <tabs>
+        <smile_searchandisingsuite translate="label" module="smile_searchandisingsuite">
+            <label>Smile Searchandasing Suite</label>
+            <sort_order>200</sort_order>
+        </smile_searchandisingsuite>
+    </tabs>
+    
+    <sections>
+        <smile_searchandisingsuite_general translate="label" module="smile_searchandisingsuite">
+            <class>separator-top</class>
+            <label>General</label>
+            <tab>smile_searchandisingsuite</tab>
+            <frontend_type>text</frontend_type>
+            <sort_order>40</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
+            <groups>
+                <website translate="label">
+                    <label>Site configuration</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>100</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <site_id translate="label">
+                            <label>Site Id</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>1</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </site_id>
+                    </fields>
+                </website>
+            </groups>
+        </smile_searchandisingsuite_general>
+    </sections>
+    
+</config>

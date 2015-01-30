@@ -1,0 +1,13 @@
+src/app/code/community/Smile/*                             app/code/community/Smile/
+src/app/design/adminhtml/default/default/layout/smile/*    app/design/adminhtml/default/default/layout/smile/
+src/app/design/adminhtml/default/default/template/smile/*  app/design/adminhtml/default/default/template/smile/
+src/app/design/frontend/base/default/layout/smile/*        app/design/frontend/base/default/layout/smile/
+src/app/design/frontend/base/default/template/smile/*      app/design/frontend/base/default/template/smile/
+src/app/design/frontend/rwd/default/layout/smile/*         app/design/frontend/rwd/default/layout/smile/
+src/app/design/frontend/rwd/default/template/smile/*       app/design/frontend/rwd/default/template/smile/
+src/app/etc/modules/*                                      app/etc/modules
+src/app/locale/en_US/*                                     app/locale/en_US/
+src/app/locale/fr_FR/*                                     app/locale/fr_FR/
+src/js/smile/*                                             js/smile/
+src/lib/*                                                  lib/
+src/skin/frontend/base/default/css/smile/*                 skin/frontend/base/default/css/smile/                  

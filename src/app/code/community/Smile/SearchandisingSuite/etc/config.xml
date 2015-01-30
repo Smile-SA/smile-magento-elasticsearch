@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Smile Searchandising Suite module configuration
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_Searchandising_Suite
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */
+-->
+<config>
+
+    <modules>
+        <Smile_SearchandisingSuite>
+            <version>1.0.0</version>
+        </Smile_SearchandisingSuite>
+    </modules>
+    
+    <global>
+        <helpers>
+            <smile_searchandisingsuite>
+                <class>Smile_SearchandisingSuite_Helper</class>
+            </smile_searchandisingsuite>
+        </helpers>
+    </global>
+    
+    <adminhtml>
+        <translate>
+            <modules>
+                <Smile_SearchandisingSuite>
+                    <files>
+                        <default>Smile_SearchandisingSuite.csv</default>
+                    </files>
+                </Smile_SearchandisingSuite>
+            </modules>
+        </translate>
+    </adminhtml>
+    
+    <default>
+        <smile_searchandisingsuite_general>
+            <website>
+                <!-- Demo site id -->
+                <site_id>1</site_id>
+            </website>
+        </smile_searchandisingsuite_general>
+    </default>
+    
+</config>

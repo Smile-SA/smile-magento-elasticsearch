@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Smile Tracker module configuration
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_Tracker
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */
+-->
+<config>
+    <modules>
+        <Smile_Tracker>
+            <version>1.0.0</version>
+        </Smile_Tracker>
+    </modules>
+    
+    <global>
+        <blocks>
+            <smile_tracker>
+                <class>Smile_Tracker_Block</class>
+            </smile_tracker>
+        </blocks>
+        <helpers>
+            <smile_tracker>
+                <class>Smile_Tracker_Helper</class>
+            </smile_tracker>
+        </helpers>
+    </global>
+    
+    <frontend>
+        <layout>
+            <updates>
+                <smile_tracking>
+                    <file>smile/tracker.xml</file>
+                </smile_tracking>
+            </updates>
+        </layout>
+    </frontend>
+    
+    <adminhtml>
+        <translate>
+            <modules>
+                <Smile_Tracker>
+                    <files>
+                        <default>Smile_Tracker.csv</default>
+                    </files>
+                </Smile_Tracker>
+            </modules>
+        </translate>
+    </adminhtml>
+    
+    <default>
+        <smile_tracker>
+            <general>
+                <enabled>1</enabled>
+            </general>
+            <session>
+                <visit_cookie_name>STUID</visit_cookie_name>
+                <visit_cookie_lifetime>3600</visit_cookie_lifetime>
+                <visitor_cookie_lifetime>365</visitor_cookie_lifetime>
+                <visitor_cookie_name>STVID</visitor_cookie_name>
+                <customer_attributes>
+                    <gender />
+                    <dob />
+                </customer_attributes>
+                <customer_address_attributes>
+                    <country_id />
+                    <region />
+                    <postcode />
+                    <city />
+                </customer_address_attributes>
+            </session>
+        </smile_tracker>
+    </default>
+    
+</config>

@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Smile Searchandising Suite module configuration
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_Searchandising_Suite
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */
+-->
+<config>
+    <modules>
+
+        <Enterprise_Search>
+            <active>false</active>
+            <codePool>core</codePool>
+            <depends>
+                <Mage_CatalogSearch/>
+            </depends>
+        </Enterprise_Search>
+
+        <Smile_SearchandisingSuite>
+            <active>true</active>
+            <codePool>community</codePool>
+        </Smile_SearchandisingSuite>
+        
+        <Smile_Tracker>
+            <active>true</active>
+            <codePool>community</codePool>
+            <depends>
+                <Smile_SearchandisingSuite />
+            </depends>
+        </Smile_Tracker>
+        
+        <Smile_ElasticSearch>
+            <active>true</active>
+            <codePool>community</codePool>
+            <depends>
+                <Mage_CatalogSearch />
+                <Smile_SearchandisingSuite />
+            </depends>
+        </Smile_ElasticSearch>
+        
+        <Smile_VirtualCategories>
+            <active>true</active>
+            <codePool>community</codePool>
+            <depends>
+                <Smile_ElasticSearch />
+            </depends>
+        </Smile_VirtualCategories>
+
+    </modules>
+</config>

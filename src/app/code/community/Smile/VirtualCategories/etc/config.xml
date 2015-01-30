@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<!-- 
+/**
+ * Module configuration
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * This work is a fork of Johann Reinke <johann@bubblecode.net> previous module
+ * available at https://github.com/jreinke/magento-elasticsearch
+ *
+ * @category  Smile
+ * @package   Smile_VirtualCategories
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */ 
+ -->
+<config>
+    <modules>
+        <Smile_VirtualCategories>
+            <version>1.0.0</version>
+        </Smile_VirtualCategories>
+    </modules>
+    <global>
+        <models>
+            <smile_virtualcategories>
+                <class>Smile_VirtualCategories_Model</class>
+                <resourceModel>smile_virtualcategories_resource</resourceModel>
+            </smile_virtualcategories>
+            <smile_virtualcategories_resource>
+                <class>Smile_VirtualCategories_Model_Resource</class>
+            </smile_virtualcategories_resource>
+        </models>
+        <helpers>
+            <smile_virtualcategories>
+                <class>Smile_VirtualCategories_Helper</class>
+            </smile_virtualcategories>
+        </helpers>
+        <blocks>
+            <smile_virtualcategories>
+                <class>Smile_VirtualCategories_Block</class>
+            </smile_virtualcategories>
+            <adminhtml>
+                <rewrite>
+                    <catalog_category_tabs>Smile_VirtualCategories_Block_Adminhtml_Override_Catalog_Category_Tabs</catalog_category_tabs>
+                    <catalog_category_tree>Smile_VirtualCategories_Block_Adminhtml_Override_Catalog_Category_Tree</catalog_category_tree>
+                </rewrite>
+            </adminhtml>
+        </blocks>
+        <resources>
+            <smile_virtualcategories_setup>
+                <setup>
+                    <module>Smile_VirtualCategories</module>
+                    <class>Mage_Catalog_Model_Resource_Setup</class>
+                </setup>
+            </smile_virtualcategories_setup>
+        </resources>
+    </global>
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <smile_virtualcategories before="Mage_Adminhtml">Smile_VirtualCategories_Adminhtml</smile_virtualcategories>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+    <adminhtml>
+        <events>
+            <catalog_category_prepare_save>
+                <observers>
+                    <smile_virtualcategories>
+                        <class>smile_virtualcategories/observer</class>
+                        <method>prepareCategorySave</method>
+                    </smile_virtualcategories>
+                </observers>
+            </catalog_category_prepare_save>
+        </events>
+        <layout>
+            <updates>
+                <smile_virtualcategories>
+                    <file>smile/virtualcategories.xml</file>
+                </smile_virtualcategories>
+            </updates>
+        </layout>
+        <translate>
+            <modules>
+                <Smile_VirtualCategories>
+                    <files>
+                        <default>Smile_VirtualCategories.csv</default>
+                    </files>
+                </Smile_VirtualCategories>
+            </modules>
+        </translate>
+    </adminhtml>
+    <frontend>
+        <layout>
+            <updates>
+                <smile_virtualcategories>
+                    <file>smile/virtualcategories.xml</file>
+                </smile_virtualcategories>
+            </updates>
+        </layout>
+        <events>
+            <category_filter_add_filter_to_collection_before>
+                <observers>
+                    <smile_virtualcategories>
+                        <class>smile_virtualcategories/observer</class>
+                        <method>prepareCategoryFilter</method>
+                    </smile_virtualcategories>
+                </observers>
+            </category_filter_add_filter_to_collection_before>
+            <category_filter_add_facet_to_collection_before>
+                <observers>
+                    <smile_virtualcategories>
+                        <class>smile_virtualcategories/observer</class>
+                        <method>prepareCategoryFacet</method>
+                    </smile_virtualcategories>
+                </observers>
+            </category_filter_add_facet_to_collection_before>
+        </events>
+    </frontend>
+</config>

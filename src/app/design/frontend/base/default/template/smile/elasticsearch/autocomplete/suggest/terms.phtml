@@ -1,0 +1,24 @@
+<?php
+/**
+ * Popular search terms suggest template
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */?>
+<?php $suggestions = $this->getSuggestData(); ?>
+
+<?php if (count($suggestions) > 0): ?>
+    <dt><?php echo $this->__('Popular searches')?></dt>
+    <?php foreach ($suggestions as $suggestion) : ?>
+    <?php $suggestionTitle = $this->escapeHtml($suggestion['title']); ?>
+    <dd title="<?php echo $suggestionTitle; ?>"><?php echo $suggestionTitle; ?></dd>
+    <?php endforeach; ?>
+<?php endif; ?>

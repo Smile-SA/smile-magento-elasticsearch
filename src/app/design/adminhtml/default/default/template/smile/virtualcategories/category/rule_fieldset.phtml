@@ -1,0 +1,33 @@
+<?php
+/**
+ * Product list rule fieldset rendering.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_VirtualCategories
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */?>
+<?php $_element = $this->getElement() ?>
+<div class="rule-tree">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $_element->getLegend() ?></h4>
+    </div>
+    <fieldset id="<?php echo $_element->getHtmlId() ?>" <?php echo $_element->serialize(array('class')) ?>>
+    <?php if ($_element->getComment()): ?>
+        <p class="comment"><?php echo $this->escapeHtml($_element->getComment()) ?></p>
+    <?php endif; ?>
+    <?php echo $_element->getChildrenHtml() ?>
+    </fieldset>
+</div>
+<script type="text/javascript">
+<?php echo $_element->getHtmlId() ?> = new VarienRulesForm('<?php echo $_element->getHtmlId() ?>', '<?php echo $this->getNewChildUrl() ?>');
+<?php if ($_element->getReadonly()): ?>
+    <?php echo $_element->getHtmlId() ?>.setReadonly(true);
+<?php endif; ?>
+</script>
