@@ -84,8 +84,8 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 $this->_mapping['properties'][Mage::helper('smile_elasticsearch')->getSuggestFieldName($store)] = array(
                     'type' => 'completion',
                     'payloads' => true,
-                    'index_analyzer'  => 'analyzer_fr',
-                    'search_analyzer' => 'analyzer_fr',
+                    'index_analyzer'  => 'analyzer_' . $languageCode,
+                    'search_analyzer' => 'analyzer_' . $languageCode,
                     'preserve_separators' => false,
                     'preserve_position_increments' => false,
                     'context' => array(

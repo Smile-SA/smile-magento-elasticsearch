@@ -19,6 +19,55 @@
 class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Model_Indexer_Fulltext
 {
     /**
+     * (Dummy) Register indexer event
+     *
+     * @param Mage_Index_Model_Event $event
+     *
+     * @return Mage_CatalogSearch_Model_Indexer_Fulltext
+     */
+    public function register(Mage_Index_Model_Event $event)
+    {
+        $helper = Mage::helper('smile_elasticsearch');
+        if ($helper->isEnterpriseSupportEnabled() == true) {
+            return $this;
+        }
+        return parent::register($event);
+    }
+
+    /**
+     * (Dummy) Process event
+     *
+     * @param   Mage_Index_Model_Event $event
+     *
+     * @return  Mage_Index_Model_Indexer_Abstract
+     */
+    public function processEvent(Mage_Index_Model_Event $event)
+    {
+        $helper = Mage::helper('smile_elasticsearch');
+        if ($helper->isEnterpriseSupportEnabled() == true) {
+            return $this;
+        }
+        return parent::processEvent($event);
+    }
+
+    /**
+     * (Dummy) Check if event can be matched by process
+     *
+     * @param Mage_Index_Model_Event $event
+     *
+     * @return bool
+     */
+    public function matchEvent(Mage_Index_Model_Event $event)
+    {
+        $helper = Mage::helper('smile_elasticsearch');
+        if ($helper->isEnterpriseSupportEnabled() == true) {
+            return false;
+        }
+        return parent::matchEvent($event);
+    }
+
+
+    /**
      * Process event
      *
      * @param Mage_Index_Model_Event $event Event to be indexed.

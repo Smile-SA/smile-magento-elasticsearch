@@ -125,15 +125,79 @@ class Smile_ElasticSearch_Model_Observer
       *
       * @return Smile_ElasticSearch_Model_Observer
       */
-    public function reindexCategoryProduct(Varien_Event_Observer $observer)
+    public function reindexCategoryAfterSave(Varien_Event_Observer $observer)
     {
+        $helper = Mage::helper('smile_elasticsearch');
         $category = $observer->getEvent()->getCategory();
-        $productIds = $category->getProductCollection()->getAllIds();
-        $this->_getIndexer()->resetSearchResults();
-        $currentIndex = Mage::helper('catalogsearch')->getEngine()->getCurrentIndex();
-        $currentIndex->getMapping('product')->rebuildIndex(null, $productIds);
-        Mage::dispatchEvent('smile_search_engine_reindex_category', array('category' => $category));
+        if ($helper->isEnterpriseSupportEnabled() == false) {
+            $productIds = $category->getProductCollection()->getAllIds();
+            $this->_getIndexer()->resetSearchResults();
+            $currentIndex = Mage::helper('catalogsearch')->getEngine()->getCurrentIndex();
+            $currentIndex->getMapping('product')->rebuildIndex(null, $productIds);
+        } else {
+            $category = $observer->getEvent()->getCategory();
+            $productIds = $category->getAffectedProductIds();
+            if (empty($productIds)) {
+                return $this;
+            }
+            $client = Mage::getModel('enterprise_mview/client');
+            $client->init('catalogsearch_fulltext');
+
+            $client->execute('enterprise_catalogsearch/index_action_fulltext_refresh_row', array(
+                'value' => $productIds,
+            ));
+        }
+
+        if ($helper->isActiveEngine()) {
+            $engine = Mage::helper('catalogsearch')->getEngine();
+            $index = $engine->getCurrentIndex();
+            $mapping = $index->getMapping('category');
+            $engine->cleanIndex(null, $category->getId(), 'category');
+            $mapping->rebuildIndex(null, $category->getId());
+        }
+
         return $this;
+    }
+
+    /**
+     * Remove category from index after delete
+     *
+     * @param Varien_Event_Observer $observer Event data
+     *
+     * @return Smile_ElasticSearch_Model_Observer
+     */
+    public function cleanCategoryAfterDelete(Varien_Event_Observer $observer)
+    {
+        $helper = Mage::helper('smile_elasticsearch');
+        if ($helper->isActiveEngine()) {
+            $category = $observer->getEvent()->getCategory();
+            $engine = Mage::helper('catalogsearch')->getEngine();
+            $engine->cleanIndex(null, $category->getId(), 'category');
+        }
+    }
+
+    /**
+     * Reindex categories when row category indexer need it
+     *
+     * @param Varien_Event_Observer $observer Event data
+     *
+     * @return Smile_ElasticSearch_Model_Observer
+     */
+    public function reindexProductOnPartialCategoryReindex(Varien_Event_Observer $observer)
+    {
+        $helper = Mage::helper('smile_elasticsearch');
+        if ($helper->isActiveEngine()) {
+            $productIds = $category = $observer->getEvent()->getProductIds();
+            if (empty($productIds)) {
+                return $this;
+            }
+            $client = Mage::getModel('enterprise_mview/client');
+            $client->init('catalogsearch_fulltext');
+
+            $client->execute('enterprise_catalogsearch/index_action_fulltext_refresh_row', array(
+                'value' => $productIds,
+            ));
+        }
     }
 
     /**
