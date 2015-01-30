@@ -84,12 +84,16 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
      */
     public function getSuggestionIds()
     {
+        $allowedVisibilities = Mage::getSingleton('catalog/product_visibility')->getVisibleInSiteIds();
+        $allowedStatuses     = Mage::getSingleton('catalog/product_status')->getVisibleStatusIds();
+
         if (is_null($this->_suggestionsIds) && !is_null($this->_suggestQuery)) {
 
             $context = array(
                 'type'       => 'product',
                 'store_id'   => $this->getStoreId(),
-                'visibility' => [2,3,4]
+                'visibility' => $allowedVisibilities,
+                'status'     => $allowedStatuses
             );
 
             $suggestions = $this->_engine->suggest($this->_suggestQuery, $context);
