@@ -83,10 +83,26 @@
                 <observers>
                     <smile_elasticsearch>
                         <class>smile_elasticsearch/observer</class>
-                        <method>reindexCategoryProduct</method>
+                        <method>reindexCategoryAfterSave</method>
                     </smile_elasticsearch>
                 </observers>
             </catalog_category_save_commit_after>
+            <catalog_category_delete_commit_after>
+                <observers>
+                    <smile_elasticsearch>
+                        <class>smile_elasticsearch/observer</class>
+                        <method>cleanCategoryAfterDelete</method>
+                    </smile_elasticsearch>
+                </observers>
+            </catalog_category_delete_commit_after>
+            <catalog_category_product_partial_reindex>
+                <observers>
+                    <reindex_products>
+                        <class>smile_elasticsearch/observer</class>
+                        <method>reindexProductOnPartialCategoryReindex</method>
+                    </reindex_products>
+                </observers>
+            </catalog_category_product_partial_reindex>
             <catalogsearch_fulltext_shell_reindex_after>
                 <observers>
                     <enterprise_index>
@@ -181,7 +197,6 @@
                     </smile_elasticsearch>
                 </observers>
             </controller_action_predispatch_catalogsearch_result_index>
-
             <controller_action_predispatch_catalogsearch_advanced_result>
                 <observers>
                     <smile_elasticsearch>

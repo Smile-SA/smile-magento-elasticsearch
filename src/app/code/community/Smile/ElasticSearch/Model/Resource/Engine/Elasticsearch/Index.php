@@ -289,7 +289,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                     $mappingModel->setType($type);
                     $params['body']['mappings'][$type] = $mappingModel->getMappingProperties(false);
                 }
-
                 $properties = new Varien_Object($params);
                 Mage::dispatchEvent('smile_elasticsearch_index_create_before', array('index_properties' => $properties ));
                 $indices->create($properties->getData());
