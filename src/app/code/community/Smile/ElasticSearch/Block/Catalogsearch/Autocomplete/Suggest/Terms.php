@@ -22,16 +22,17 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Terms extends
      * @var null|array
      */
     protected $_suggestData = null;
-    
+
     /**
      * Retrive the list of terms that would be suggested to the user
-     * 
+     *
      * @return array
      */
     public function getSuggestData()
     {
         if (!$this->_suggestData) {
             $collection = $this->helper('catalogsearch')->getSuggestCollection();
+            $collection->setPageSize(10);
             $query = $this->helper('catalogsearch')->getQueryText();
             $counter = 0;
             $data = array();
