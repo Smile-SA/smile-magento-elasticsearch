@@ -11,7 +11,7 @@
  * @package   Smile_Tracker
  * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
  * @copyright 2013 Smile
- * @license   OSL 3.0
+ * @license   Apache License Version 2.0
  */
 class Smile_Tracker_Block_Variables_Page_Cms extends Smile_Tracker_Block_Variables_Page_Abstract
 {

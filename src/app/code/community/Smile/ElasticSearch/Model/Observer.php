@@ -141,7 +141,7 @@ class Smile_ElasticSearch_Model_Observer
      *
      * @param Varien_Event_Observer $observer Event to observe.
      *
-     * @return Enterprise_CatalogSearch_Model_Observer
+     * @return Smile_CatalogSearch_Model_Observer
      */
     public function processShellFulltextReindexEvent(Varien_Event_Observer $observer)
     {
