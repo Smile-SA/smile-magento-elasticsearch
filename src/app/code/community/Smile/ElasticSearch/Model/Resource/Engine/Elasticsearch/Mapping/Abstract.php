@@ -26,6 +26,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
     const FIELD_TYPE_SEARCH = 'search';
     const FIELD_TYPE_FILTER = 'filter';
     const FIELD_TYPE_SORT   = 'sort';
+    const FIELD_TYPE_FACET  = 'facet';
 
     /**
      * @var string
@@ -64,7 +65,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
      *
      * @param string $field      Magento field.
      * @param string $localeCode Locale code we want the field for.
-     * @param string $type       How the field will be used : search, facet, sort
+     * @param string $type       How the field will be used : search, filter, facet, sort
      *
      * @return string
      */
@@ -72,24 +73,28 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
     {
         $mapping = $this->getMappingProperties();
 
-        if (in_array($type, array(self::FIELD_TYPE_SEARCH, self::FIELD_TYPE_SORT)) &&
-            isset($mapping['properties']['options_' . $field . '_' . $localeCode])
-            ) {
+        $useOptions        = isset($mapping['properties']['options_' . $field . '_' . $localeCode]);
+        $typesUsingOptions = array(self::FIELD_TYPE_SEARCH, self::FIELD_TYPE_SORT, self::FIELD_TYPE_FACET);
+        $typesUsedInSearch = array('string', 'multi_field');
+
+        if (in_array($type, $typesUsingOptions) && $useOptions) {
             $field = 'options_' . $field . '_' . $localeCode;
-        } else {
-            if (isset($mapping['properties'][$field . '_' . $localeCode])) {
-                $field = $field . '_' . $localeCode;
+        } else if (isset($mapping['properties'][$field . '_' . $localeCode])) {
+            $field = $field . '_' . $localeCode;
+        }
+
+        if (isset($mapping['properties'][$field]['type'])) {
+
+            $mappingType = $mapping['properties'][$field]['type'];
+            if (!in_array($mappingType, $typesUsedInSearch) && $type == self::FIELD_TYPE_SEARCH) {
+                $field = false;
             }
-            if (isset($mapping['properties'][$field]['type'])) {
 
-                if (!in_array($mapping['properties'][$field]['type'], array('string', 'multi_field')) &&
-                    $type == self::FIELD_TYPE_SEARCH
-                    ) {
-                    $field = false;
-                }
-
-                if ($field && $mapping['properties'][$field]['type'] == 'multi_field') {
-                    $field .= $type == self::FIELD_TYPE_FILTER ? '.untouched' : ($type == self::FIELD_TYPE_SORT ? '.sortable' : '');
+            if ($field && $mappingType == 'multi_field') {
+                if (in_array($type, array(self::FIELD_TYPE_FILTER, self::FIELD_TYPE_FACET))) {
+                    $field .= '.untouched';
+                } else if ($type == self::FIELD_TYPE_SORT) {
+                    $field .= '.sortable';
                 }
             }
         }

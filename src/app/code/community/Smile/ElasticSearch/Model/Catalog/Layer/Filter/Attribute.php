@@ -39,7 +39,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     {
         $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
         $options = array('field' => $this->_getFilterField());
-        $query->addFacet($this->_getFilterField(), 'terms', $options);
+        $query->addFacet($this->_requestVar, 'terms', $options);
 
         return $this;
     }
@@ -63,20 +63,12 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
             $filter = array($filter);
         }
 
-        $filterText = array();
+        $this->_rawFilter = array_filter($filter);
 
-        foreach ($filter as $currentFilter) {
-            $text = $this->_getOptionText($currentFilter);
-            if ($this->_isValidFilter($currentFilter) && strlen($text)) {
-                $filterText[] = $text;
-                $this->_rawFilter[] = $currentFilter;
-                $this->_appliedItems[$currentFilter] = $text;
-            }
-        }
 
         if (!empty($this->_rawFilter)) {
             $this->applyFilterToCollection($filter);
-            $this->getLayer()->getState()->addFilter($this->_createItem(implode(' , ', $filterText), $filter));
+            $this->getLayer()->getState()->addFilter($this->_createItem(implode(' , ', $this->_rawFilter), $filter));
         }
 
         return $this;
@@ -96,7 +88,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
         }
 
         $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
-        $query->addFilter('terms', array($this->_getFilterField() => $value), $this->_getFilterField());
+        $query->addFilter('terms', array($this->_getFilterField() => $value), $this->_requestVar);
 
         return $this;
     }
@@ -111,7 +103,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
         /** @var $productCollection Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection */
         $productCollection = $this->getLayer()->getProductCollection();
         $fieldName = $this->_getFilterField();
-        $facets = $productCollection->getFacetedData($fieldName);
+        $facets = $productCollection->getFacetedData($this->_requestVar);
         return $facets;
     }
 
@@ -128,7 +120,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
         $mapping = $currentIndex->getMapping('product');
         $store = Mage::app()->getStore();
         $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
-        $fieldName = $mapping->getFieldName($attribute->getAttributeCode(), $languageCode, 'filter');
+        $fieldName = $mapping->getFieldName($attribute->getAttributeCode(), $languageCode, 'facet');
         return $fieldName;
     }
 
@@ -143,81 +135,51 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
         $attribute = $this->getAttributeModel();
         $this->_requestVar = $attribute->getAttributeCode();
 
-        $layer = $this->getLayer();
-        $key = $layer->getStateKey() . '_' . $this->_requestVar;
-        $data = $layer->getAggregator()->getCacheData($key);
+        $facets = $this->_getFacets();
+        $data = array();
+        if (array_sum($facets) > 0) {
 
-        if ($data === null) {
-            $facets = $this->_getFacets();
-            $data = array();
-            if (array_sum($facets) > 0) {
-                if ($attribute->getFrontendInput() != 'text') {
-                    $options = $attribute->getFrontend()->getSelectOptions();
-                } else {
-                    $options = array();
-                    foreach ($facets as $label => $count) {
-                        $options[] = array(
-                            'label' => $label,
-                            'value' => $label,
-                            'count' => $count,
-                        );
-                    }
-                }
-                foreach ($options as $option) {
-                    if (is_array($option['value']) || !Mage::helper('core/string')->strlen($option['value'])) {
-                        continue;
-                    }
-                    $count = 0;
-                    $label = $option['label'];
-                    if (isset($facets[$option['value']])) {
-                        $count = (int) $facets[$option['value']];
-                    }
-                    if (!$count && $this->_getIsFilterableAttribute($attribute) == self::OPTIONS_ONLY_WITH_RESULTS) {
-                        continue;
-                    }
-
-                    $data[$option['value']] = array(
-                        'label' => $label,
-                        'value' => $option['value'],
-                        'count' => (int) $count,
-                    );
-                }
-
-                foreach ($this->_appliedItems as $value => $label) {
-                    if (!isset($data[$value])) {
-                        $data[] = array('label' => $label, 'value' => $value, 'count' => 0);
-                    }
-                }
-
-                $data = array_values($data);
+            $options = array();
+            foreach ($facets as $label => $count) {
+                $options[] = array(
+                    'label' => $label,
+                    'value' => $label,
+                    'count' => $count,
+                );
             }
 
-            $tags = array(
-                Mage_Eav_Model_Entity_Attribute::CACHE_TAG . ':' . $attribute->getId()
-            );
+            foreach ($options as $option) {
+                if (is_array($option['value']) || !Mage::helper('core/string')->strlen($option['value'])) {
+                    continue;
+                }
+                $count = 0;
+                $label = $option['label'];
+                if (isset($facets[$option['value']])) {
+                    $count = (int) $facets[$option['value']];
+                }
+                if (!$count && $this->_getIsFilterableAttribute($attribute) == self::OPTIONS_ONLY_WITH_RESULTS) {
+                    continue;
+                }
 
-            $tags = $layer->getStateTags($tags);
-            $layer->getAggregator()->saveCacheData($data, $key, $tags);
+                $data[$option['value']] = array(
+                    'label' => $label,
+                    'value' => $option['value'],
+                    'count' => (int) $count,
+                );
+            }
+
+            foreach ($this->_rawFilter as $value) {
+                if (!isset($data[$value])) {
+                    $data[] = array('label' => $value, 'value' => $value, 'count' => 0);
+                }
+            }
+
+            $data = array_values($data);
         }
 
         return $data;
     }
 
-    /**
-     * Returns option label if attribute uses options.
-     *
-     * @param int $optionId Option Id we want the label for
-     *
-     * @return bool|int|string
-     */
-    protected function _getOptionText($optionId)
-    {
-        if ($this->getAttributeModel()->getFrontendInput() == 'text') {
-            return $optionId; // not an option id
-        }
-
-        return parent::_getOptionText($optionId);
-    }
 
     /**
      * Checks if given filter is valid before being applied to product collection.
