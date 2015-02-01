@@ -128,37 +128,37 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         $indexSettings['analysis']['analyzer'] = array(
             'whitespace' => array(
                 'tokenizer' => 'standard',
-                'filter' => array('lowercase'),
+                'filter' => array('lowercase', 'trim'),
                 'char_filter' => array('html_strip'),
             ),
             'edge_ngram_front' => array(
                 'tokenizer' => 'standard',
-                'filter' => array('length', 'edge_ngram_front', 'lowercase'),
+                'filter' => array('shingle', 'length', 'edge_ngram_front', 'lowercase', 'trim'),
                 'char_filter' => array('html_strip'),
             ),
             'edge_ngram_back' => array(
                 'tokenizer' => 'standard',
-                'filter' => array('length', 'edge_ngram_back', 'lowercase'),
+                'filter' => array('shingle', 'length', 'edge_ngram_back', 'lowercase', 'trim'),
                 'char_filter' => array('html_strip'),
             ),
             'shingle' => array(
                 'tokenizer' => 'standard',
-                'filter' => array('shingle', 'length', 'lowercase'),
+                'filter' => array('shingle', 'length', 'lowercase', 'trim'),
                 'char_filter' => array('html_strip'),
             ),
             'shingle_strip_ws' => array(
                 'tokenizer' => 'standard',
-                'filter' => array('shingle', 'strip_whitespaces', 'length', 'lowercase'),
+                'filter' => array('shingle', 'strip_whitespaces', 'length', 'lowercase', 'trim'),
                 'char_filter' => array('html_strip'),
             ),
             'shingle_strip_apos_and_ws' => array(
                 'tokenizer' => 'standard',
-                'filter' => array('shingle', 'strip_apostrophes', 'strip_whitespaces', 'length', 'lowercase'),
+                'filter' => array('shingle', 'strip_apostrophes', 'strip_whitespaces', 'length', 'lowercase', 'trim'),
                 'char_filter' => array('html_strip'),
             ),
             'sortable' => array(
                 'tokenizer' => 'keyword',
-                'filter' => array('lowercase'),
+                'filter' => array('lowercase', 'trim'),
                 'char_filter' => array('html_strip')
             ),
         );
@@ -167,7 +167,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                 'type' => 'shingle',
                 'min_shingle_size' => 2,
                 'max_shingle_size' => 20,
-                'output_unigrams' => true,
             ),
             'strip_whitespaces' => array(
                 'type' => 'pattern_replace',
@@ -181,7 +180,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             ),
             'edge_ngram_front' => array(
                 'type' => 'edgeNGram',
-                'min_gram' => 5,
+                'min_gram' => 3,
                 'max_gram' => 50,
                 'side' => 'front',
             ),

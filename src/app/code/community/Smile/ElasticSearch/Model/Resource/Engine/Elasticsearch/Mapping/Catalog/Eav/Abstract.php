@@ -132,9 +132,8 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     $mapping[$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode);
 
                     if ($attribute->getBackendType() == 'varchar') {
-                        $mapping[$fieldName] = array('type' => 'multi_field', 'fields' => array($fieldName => $mapping[$fieldName]));
-                        $mapping[$fieldName]['fields']['sortable']  = array('type' => $type, 'analyzer' => 'sortable');
-                        $mapping[$fieldName]['fields']['untouched'] = array('type' => $type, 'index' => 'not_analyzed');
+                        $fieldMapping = $this->_getStringMapping($fieldName, $languageCode);
+                        $mapping = array_merge($mapping, $fieldMapping);
                     }
                 }
             } else if ($type === 'date') {
@@ -149,14 +148,38 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             if ($attribute->usesSource()) {
                 foreach (Mage::app()->getStores() as $store) {
                     $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
-                    $fieldName = $attributeCode . '_' . $languageCode;
-                    $mapping['options_' . $attributeCode . '_' . $languageCode] = array(
-                        'type' => 'string',
-                        'analyzer' => 'analyzer_' . $languageCode
-                    );
+                    $fieldName = 'options' . '_' .  $attributeCode . '_' . $languageCode;
+                    $fieldMapping = $this->_getStringMapping($fieldName, $languageCode);
+                    $mapping = array_merge($mapping, $fieldMapping);
                 }
             }
         }
+
+        return $mapping;
+    }
+
+    /**
+     * Return mapping for an attribute of type varchar
+     *
+     * @param string $fieldName Name of the field
+     * @param string $languageCode Name of the field
+     *
+     * @return array string
+     */
+    protected function _getStringMapping($fieldName, $languageCode, $type = 'string')
+    {
+        $mapping = array();
+
+        $mapping[$fieldName] = array('type' => 'multi_field', 'fields' => array());
+        $mapping[$fieldName]['fields'][$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode);
+        $mapping[$fieldName]['fields']['sortable']  = array('type' => $type, 'analyzer' => 'sortable');
+        $mapping[$fieldName]['fields']['untouched'] = array('type' => $type, 'index' => 'not_analyzed');
+        $mapping[$fieldName]['fields']['whitespace'] = array('type' => $type, 'index' => 'not_analyzed');
+        $mapping[$fieldName]['fields']['edge_ngram_front'] = array('type' => $type, 'index' => 'not_analyzed');
+        $mapping[$fieldName]['fields']['edge_ngram_back'] = array('type' => $type, 'index' => 'not_analyzed');
+        $mapping[$fieldName]['fields']['shingle'] = array('type' => $type, 'index' => 'not_analyzed');
+        $mapping[$fieldName]['fields']['shingle_strip_ws'] = array('type' => $type, 'index' => 'not_analyzed');
+        $mapping[$fieldName]['fields']['shingle_strip_apos_and_ws'] = array('type' => $type, 'index' => 'not_analyzed');
 
         return $mapping;
     }
