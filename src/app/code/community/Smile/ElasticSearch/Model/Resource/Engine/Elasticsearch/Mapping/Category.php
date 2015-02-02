@@ -44,15 +44,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Category
     /**
      * Get mapping properties as stored into the index
      *
-     * @param string $useCache Indicates if the cache should be used or if the mapping should be rebuilt.
-     *
      * @return array
      */
-    public function getMappingProperties($useCache = true)
+    protected function _getMappingProperties()
     {
-        parent::getMappingProperties(true);
-        $this->_mapping['properties']['path'] = array('type' => 'string');
-        return $this->_mapping;
+        $mapping = parent::_getMappingProperties(true);
+        $mapping['properties']['path'] = array('type' => 'string');
+        return $mapping;
     }
 
     /**

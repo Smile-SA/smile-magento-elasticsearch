@@ -109,7 +109,41 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
      *
      * @return array
      */
-    abstract public function getMappingProperties($useCache = true);
+    public function getMappingProperties($useCache = true)
+    {
+        $indexName = Mage::helper('catalogsearch')->getEngine()->getCurrentIndex()->getCurrentName();
+
+        $cacheKey = 'SEARCH_ENGINE_MAPPING_' . $indexName . $this->_type;
+
+        if ($this->_mapping == null && $useCache) {
+            $mapping = Mage::app()->loadCache($cacheKey);
+            if ($mapping) {
+                $this->_mapping = unserialize($mapping);
+            }
+        }
+
+        if ($this->_mapping === null) {
+
+            $this->_mapping = $this->_getMappingProperties();
+            $mapping = serialize($this->_mapping);
+
+            Mage::app()->saveCache(
+            $mapping,
+            $cacheKey,
+            array('CONFIG', 'EAV_ATTRIBUTE'),
+            Mage::helper('smile_elasticsearch')->getCacheLifetime()
+            );
+        }
+
+        return $this->_mapping;
+    }
+
+    /**
+     * Get mapping properties as stored into the index
+     *
+     * @return array
+     */
+    abstract protected function _getMappingProperties();
 
     /**
      * Rebuild the index (full or diff).

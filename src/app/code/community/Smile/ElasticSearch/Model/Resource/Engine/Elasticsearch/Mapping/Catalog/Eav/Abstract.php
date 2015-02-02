@@ -47,67 +47,44 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     /**
      * Get mapping properties as stored into the index
      *
-     * @param string $useCache Indicates if the cache should be used or if the mapping should be rebuilt.
-     *
      * @return array
      */
-    public function getMappingProperties($useCache = true)
+    protected function _getMappingProperties()
     {
-        $cacheKey = 'SEARCH_ENGINE_MAPPING_' . $this->_type;
+        $mapping = array('properties' => array());
 
-        if ($this->_mapping == null && $useCache) {
-            $mapping = Mage::app()->loadCache($cacheKey);
-            if ($mapping) {
-                $this->_mapping = unserialize($mapping);
-            }
+        $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
+
+        $attributes = Mage::getResourceModel($this->_attributeCollectionModel)
+            ->setEntityTypeFilter($entityType->getEntityTypeId());
+
+        foreach ($attributes as $attribute) {
+            $mapping['properties'] = array_merge($mapping['properties'], $this->_getAttributeMapping($attribute));
         }
 
-        if ($this->_mapping === null) {
+        $mapping['properties']['unique']   = array('type' => 'string');
+        $mapping['properties']['id']       = array('type' => 'long');
+        $mapping['properties']['store_id'] = array('type' => 'integer');
 
-            $this->_mapping = array('properties' => array());
-
-            $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
-
-            $attributes = Mage::getResourceModel($this->_attributeCollectionModel)
-                ->setEntityTypeFilter($entityType->getEntityTypeId());
-
-            foreach ($attributes as $attribute) {
-                $this->_mapping['properties'] = array_merge($this->_mapping['properties'], $this->_getAttributeMapping($attribute));
-            }
-
-            $this->_mapping['properties']['unique']   = array('type' => 'string');
-            $this->_mapping['properties']['id']       = array('type' => 'long');
-            $this->_mapping['properties']['store_id'] = array('type' => 'integer');
-
-            foreach (Mage::app()->getStores() as $store) {
-                $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
-                $this->_mapping['properties'][Mage::helper('smile_elasticsearch')->getSuggestFieldName($store)] = array(
-                    'type' => 'completion',
-                    'payloads' => true,
-                    'index_analyzer'  => 'analyzer_' . $languageCode,
-                    'search_analyzer' => 'analyzer_' . $languageCode,
-                    'preserve_separators' => false,
-                    'preserve_position_increments' => false,
-                    'context' => array(
-                        'store_id'   => array('type' => 'category', 'default' => '0'),
-                        'type'       => array('type' => 'category', 'default' => $this->_type),
-                        'visibility' => array('type' => 'category', 'default' => 1),
-                        'status'     => array('type' => 'category', 'default' => 1)
-                    )
-                );
-            }
-
-            $mapping = serialize($this->_mapping);
-
-            Mage::app()->saveCache(
-                $mapping,
-                $cacheKey,
-                array('CONFIG', 'EAV_ATTRIBUTE'),
-                Mage::helper('smile_elasticsearch')->getCacheLifetime()
+        foreach (Mage::app()->getStores() as $store) {
+            $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
+            $mapping['properties'][Mage::helper('smile_elasticsearch')->getSuggestFieldName($store)] = array(
+                'type' => 'completion',
+                'payloads' => true,
+                'index_analyzer'  => 'analyzer_' . $languageCode,
+                'search_analyzer' => 'analyzer_' . $languageCode,
+                'preserve_separators' => false,
+                'preserve_position_increments' => false,
+                'context' => array(
+                    'store_id'   => array('type' => 'category', 'default' => '0'),
+                    'type'       => array('type' => 'category', 'default' => $this->_type),
+                    'visibility' => array('type' => 'category', 'default' => 1),
+                    'status'     => array('type' => 'category', 'default' => 1)
+                )
             );
         }
 
-        return $this->_mapping;
+        return $mapping;
     }
 
     /**

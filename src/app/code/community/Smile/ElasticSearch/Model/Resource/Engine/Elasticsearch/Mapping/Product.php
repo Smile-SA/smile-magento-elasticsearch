@@ -54,24 +54,20 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
     /**
      * Get mapping properties as stored into the index
      *
-     * @param string $useCache Indicates if the cache should be used or if the mapping should be rebuilt.
-     *
      * @return array
      */
-    public function getMappingProperties($useCache = true)
+    protected function _getMappingProperties()
     {
-        if ($this->_mapping === null) {
-            parent::getMappingProperties(true);
-            $this->_mapping['properties']['categories'] = array('type' => 'long');
-            $this->_mapping['properties']['in_stock']   = array('type' => 'integer');
-            $this->_mapping['properties']['category_name']   = array('type' => 'string');
+        $mapping = parent::_getMappingProperties(true);
+        $mapping['properties']['categories'] = array('type' => 'long');
+        $mapping['properties']['in_stock']   = array('type' => 'integer');
+        $mapping['properties']['category_name']   = array('type' => 'string');
 
-            // Append dynamic mapping for product category position field
-            $fieldTemplate = array('match' => 'position_category_*', 'mapping' => array('type' => 'integer'));
-            $this->_mapping['dynamic_templates'][] = array('category_position' => $fieldTemplate);
-        }
+        // Append dynamic mapping for product category position field
+        $fieldTemplate = array('match' => 'position_category_*', 'mapping' => array('type' => 'integer'));
+        $mapping['dynamic_templates'][] = array('category_position' => $fieldTemplate);
 
-        return $this->_mapping;
+        return $mapping;
     }
 
     /**
