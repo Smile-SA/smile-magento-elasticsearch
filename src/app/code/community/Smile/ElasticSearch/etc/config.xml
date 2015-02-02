@@ -235,6 +235,67 @@
                 <elasticsearch_fuzzy_max_query_terms>10</elasticsearch_fuzzy_max_query_terms>
                 <elasticsearch_fuzzy_query_boost>1.0</elasticsearch_fuzzy_query_boost>
                 <elasticsearch_min_category_filter_level>3</elasticsearch_min_category_filter_level>
+                <elasticsearch_analysis_index_settings>
+                    <analyzer>
+                        <whitespace>
+                            <tokenizer>standard</tokenizer>
+                            <filter>lowercase,trim</filter>
+                            <char_filter>html_strip</char_filter>
+                        </whitespace>
+                        <edge_ngram_front>
+                            <tokenizer>standard</tokenizer>
+                            <filter>shingle,length,edge_ngram_front,lowercase,trim</filter>
+                            <char_filter>html_strip</char_filter>
+                        </edge_ngram_front>
+                        <edge_ngram_front_strip_apos_and_ws>
+                            <tokenizer>standard</tokenizer>
+                            <filter>shingle,length,edge_ngram_front,strip_apostrophes,strip_whitespaces,lowercase,trim</filter>
+                            <char_filter>html_strip</char_filter>
+                        </edge_ngram_front_strip_apos_and_ws>
+                        <shingle>
+                            <tokenizer>standard</tokenizer>
+                            <filter>shingle,length,lowercase,trim</filter>
+                            <char_filter>html_strip</char_filter>
+                        </shingle>
+                        <shingle_strip_apos_and_ws>
+                            <tokenizer>standard</tokenizer>
+                            <filter>shingle,strip_apostrophes,strip_whitespaces,length,lowercase,trim</filter>
+                            <char_filter>html_strip</char_filter>
+                        </shingle_strip_apos_and_ws>
+                        <sortable>
+                            <tokenizer>keyword</tokenizer>
+                            <filter>lowercase,trim</filter>
+                            <char_filter>html_strip</char_filter>
+                        </sortable>
+                    </analyzer>
+                    <filter>
+                        <shingle>
+                            <type>shingle</type>
+                            <min_shingle_size>2</min_shingle_size>
+                            <max_shingle_size>10</max_shingle_size>
+                        </shingle>
+                        <strip_whitespaces>
+                            <type>pattern_replace</type>
+                            <pattern>\s</pattern>
+                            <replacement></replacement>
+                        </strip_whitespaces>
+                        <strip_apostrophes>
+                            <type>pattern_replace</type>
+                            <pattern>'</pattern>
+                            <replacement></replacement>
+                        </strip_apostrophes>
+                        <edge_ngram_front>
+                            <type>edgeNGram</type>
+                            <min_gram>2</min_gram>
+                            <max_gram>20</max_gram>
+                            <side>front</side>
+                        </edge_ngram_front>
+                        <length>
+                            <type>length</type>
+                            <min>2</min>
+                        </length>
+                    </filter>
+                </elasticsearch_analysis_index_settings>
             </search>
         </catalog>
     </default>

@@ -125,76 +125,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     {
         $indexSettings = array();
         $indexSettings['number_of_replicas'] = (int) $this->getConfig('number_of_replicas');
-        $indexSettings['analysis']['analyzer'] = array(
-            'whitespace' => array(
-                'tokenizer' => 'standard',
-                'filter' => array('lowercase', 'trim'),
-                'char_filter' => array('html_strip'),
-            ),
-            'edge_ngram_front' => array(
-                'tokenizer' => 'standard',
-                'filter' => array('shingle', 'length', 'edge_ngram_front', 'lowercase', 'trim'),
-                'char_filter' => array('html_strip'),
-            ),
-            'edge_ngram_back' => array(
-                'tokenizer' => 'standard',
-                'filter' => array('shingle', 'length', 'edge_ngram_back', 'lowercase', 'trim'),
-                'char_filter' => array('html_strip'),
-            ),
-            'shingle' => array(
-                'tokenizer' => 'standard',
-                'filter' => array('shingle', 'length', 'lowercase', 'trim'),
-                'char_filter' => array('html_strip'),
-            ),
-            'shingle_strip_ws' => array(
-                'tokenizer' => 'standard',
-                'filter' => array('shingle', 'strip_whitespaces', 'length', 'lowercase', 'trim'),
-                'char_filter' => array('html_strip'),
-            ),
-            'shingle_strip_apos_and_ws' => array(
-                'tokenizer' => 'standard',
-                'filter' => array('shingle', 'strip_apostrophes', 'strip_whitespaces', 'length', 'lowercase', 'trim'),
-                'char_filter' => array('html_strip'),
-            ),
-            'sortable' => array(
-                'tokenizer' => 'keyword',
-                'filter' => array('lowercase', 'trim'),
-                'char_filter' => array('html_strip')
-            ),
-        );
-        $indexSettings['analysis']['filter'] = array(
-            'shingle' => array(
-                'type' => 'shingle',
-                'min_shingle_size' => 2,
-                'max_shingle_size' => 20,
-            ),
-            'strip_whitespaces' => array(
-                'type' => 'pattern_replace',
-                'pattern' => '\s',
-                'replacement' => '',
-            ),
-            'strip_apostrophes' => array(
-                'type' => 'pattern_replace',
-                'pattern' => "'",
-                'replacement' => '',
-            ),
-            'edge_ngram_front' => array(
-                'type' => 'edgeNGram',
-                'min_gram' => 3,
-                'max_gram' => 50,
-                'side' => 'front',
-            ),
-            'edge_ngram_back' => array(
-                'type' => 'edgeNGram',
-                'min_gram' => 3,
-                'max_gram' => 10,
-                'side' => 'back',
-            ),
-            'length' => array(
-                'type' => 'length',
-                'min' => 2,
-            ),
-        );
+
+        $indexSettings['analysis'] = $this->getConfig('analysis_index_settings');
+        foreach ($indexSettings['analysis']['analyzer'] as &$analyzer) {
+            $analyzer['filter'] = isset($analyzer['filter']) ? explode(',', $analyzer['filter']) : array();
+            $analyzer['char_filter'] = isset($analyzer['char_filter']) ? explode(',', $analyzer['char_filter']) : array();
+        }
+
         /** @var $helper Smile_ElasticSearch_Helper_Data */
         $helper = $this->_getHelper();
         foreach (Mage::app()->getStores() as $store) {
@@ -207,7 +144,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode] = array(
                 'type' => 'custom',
                 'tokenizer' => 'standard',
-                'filter' => array('length', 'lowercase', 'snowball_' . $languageCode),
+                'filter' => array('length', 'lowercase', 'shingle', 'snowball_' . $languageCode),
                 'char_filter' => array('html_strip')
             );
             $indexSettings['analysis']['filter']['snowball_' . $languageCode] = array(
