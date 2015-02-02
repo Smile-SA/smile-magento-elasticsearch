@@ -170,16 +170,15 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     {
         $mapping = array();
 
+        $analyzers = array('sortable', 'whitespace', 'edge_ngram_front', 'edge_ngram_front', 'edge_ngram_front_strip_apos_and_ws', 'shingle', 'shingle_strip_apos_and_ws');
+
         $mapping[$fieldName] = array('type' => 'multi_field', 'fields' => array());
         $mapping[$fieldName]['fields'][$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode);
-        $mapping[$fieldName]['fields']['sortable']  = array('type' => $type, 'analyzer' => 'sortable');
         $mapping[$fieldName]['fields']['untouched'] = array('type' => $type, 'index' => 'not_analyzed');
-        $mapping[$fieldName]['fields']['whitespace'] = array('type' => $type, 'index' => 'not_analyzed');
-        $mapping[$fieldName]['fields']['edge_ngram_front'] = array('type' => $type, 'index' => 'not_analyzed');
-        $mapping[$fieldName]['fields']['edge_ngram_back'] = array('type' => $type, 'index' => 'not_analyzed');
-        $mapping[$fieldName]['fields']['shingle'] = array('type' => $type, 'index' => 'not_analyzed');
-        $mapping[$fieldName]['fields']['shingle_strip_ws'] = array('type' => $type, 'index' => 'not_analyzed');
-        $mapping[$fieldName]['fields']['shingle_strip_apos_and_ws'] = array('type' => $type, 'index' => 'not_analyzed');
+
+        foreach ($analyzers as $analyzer) {
+            $mapping[$fieldName]['fields'][$analyzer] = array('type' => $type, 'analyzer' => $analyzer);
+        }
 
         return $mapping;
     }
