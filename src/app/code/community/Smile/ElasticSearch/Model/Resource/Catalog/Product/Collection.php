@@ -203,7 +203,7 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
     /**
      * Get the ES query model associated with the product collection.
      *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
     public function getSearchEngineQuery()
     {
@@ -226,6 +226,6 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
      */
     public function isSpellchecked()
     {
-        return false;
+        return $this->getSearchEngineQuery()->isSpellchecked();
     }
 }

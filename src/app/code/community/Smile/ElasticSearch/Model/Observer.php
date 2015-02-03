@@ -30,27 +30,9 @@ class Smile_ElasticSearch_Model_Observer
         /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
         $attribute = $observer->getEvent()->getAttribute();
         $form = $observer->getEvent()->getForm();
-        $fieldset = $form->getElement('front_fieldset');
 
-        $fieldset->addField(
-            'search_weight',
-            'select', array(
-                'name' => 'search_weight',
-                'label' => Mage::helper('smile_elasticsearch')->__('Search Weight'),
-                'values' => array(
-                    1 => 1,
-                    2 => 2,
-                    3 => 3,
-                    4 => 4,
-                    5 => 5
-                ),
-                ),
-            'is_searchable'
-        );
-
-        if ($attribute->getAttributeCode() == 'name') {
-            $form->getElement('is_searchable')->setDisabled(1);
-        }
+        Mage::getModel('smile_elasticsearch/adminhtml_catalog_product_attribute_edit_form_search')
+            ->addSearchParams($attribute, $form);
 
         return $this;
     }

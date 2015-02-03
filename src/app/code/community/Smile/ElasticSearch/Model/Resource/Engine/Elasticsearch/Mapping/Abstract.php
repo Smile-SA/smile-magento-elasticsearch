@@ -128,10 +128,8 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
             $mapping = serialize($this->_mapping);
 
             Mage::app()->saveCache(
-            $mapping,
-            $cacheKey,
-            array('CONFIG', 'EAV_ATTRIBUTE'),
-            Mage::helper('smile_elasticsearch')->getCacheLifetime()
+                $mapping, $cacheKey, array('CONFIG', 'EAV_ATTRIBUTE'),
+                Mage::helper('smile_elasticsearch')->getCacheLifetime()
             );
         }
 

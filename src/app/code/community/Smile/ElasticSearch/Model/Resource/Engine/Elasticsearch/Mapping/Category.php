@@ -36,10 +36,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Category
      *
      * @return array.
      */
-    public function getSearchFields($localeCode)
+    /*public function getSearchFields($localeCode)
     {
         return array('name', $localeCode);
-    }
+    }*/
 
     /**
      * Get mapping properties as stored into the index

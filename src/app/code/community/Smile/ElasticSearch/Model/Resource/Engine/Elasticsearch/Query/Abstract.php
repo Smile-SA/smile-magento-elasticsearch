@@ -16,7 +16,7 @@
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
  */
-class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Abstract
 {
     const DEFAULT_ROWS_LIMIT = 10000;
@@ -81,11 +81,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
     );
 
     /**
+     * @var bool
+     */
+    protected $_isSpellChecked = false;
+
+    /**
      * Set types of documents matched by the query.
      *
      * @param string $type Type of documents
      *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
     public function setType($type)
     {
@@ -112,7 +117,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
      *
      * @param string $languageCode Language code
      *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
     public function setLanguageCode($languageCode)
     {
@@ -129,7 +134,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
      *
      * @param string $type Type of the query.
      *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
     public function setQueryType($type)
     {
@@ -180,7 +185,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         $response = $this->getClient()->search($query);
         Varien_Profiler::stop('ES:EXECUTE:QUERY');
 
-        if (!isset($data['error'])) {
+        if (!isset($response['error'])) {
             $result = array(
                 'total_count'  => $response['hits']['total'],
                 'faceted_data' => array(),
@@ -189,6 +194,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
             );
 
             foreach ($response['hits']['hits'] as $doc) {
+
                 $result['docs'][] = $doc['fields'];
                 $result['ids'][] = (int) current($doc['fields']['entity_id']);
             }
@@ -202,6 +208,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
                     }
                 }
             }
+        } else {
+            Mage::log($response['error'], Zend_Log::ERR, 'search_errors.log');
         }
 
         return $result;
@@ -212,7 +220,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
      *
      * @param string $query The fulltext query
      *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
     public function setFulltextQuery($query)
     {
@@ -225,7 +233,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
      *
      * @param array $sortOrder Sort order definition
      *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
     public function addSortOrder($sortOrder)
     {
@@ -313,7 +321,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
      * @param int $currentPage Current page navigated.
      * @param int $pageSize    Size of a single page.
      *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
     public function setPageParams($currentPage = 0, $pageSize = self::DEFAULT_ROWS_LIMIT)
     {
@@ -471,51 +479,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
      *
      * @return array
      */
-    protected function _prepareFulltextCondition()
-    {
-        $query = array('match_all' => array());
-
-        if ($this->_fulltextQuery) {
-            $query = array('dis_max' => array('queries' => array()));
-            $searchFields = $this->getSearchFields();
-            $query['dis_max'] =  array('tie_breaker' => 0);
-            $query['dis_max']['queries'][] = array(
-                'multi_match' => array(
-                    'query'                => $this->prepareFilterQueryText($this->_fulltextQuery),
-                    'fields'               => $searchFields,
-                    'type'                 => 'cross_fields',
-                    "tie_breaker"          => 0.1,
-                    'minimum_should_match' => '2<100% 100<50%'
-                )
-            );
-
-            if ((bool) $this->getConfig('enable_fuzzy_query')) {
-                $query['dis_max']['queries'][] = array(
-                    'multi_match' => array(
-                        'query'       => $this->prepareFilterQueryText($this->_fulltextQuery),
-                        'fields'      => $searchFields,
-                        'type'        => 'best_fields',
-                        'tie_breaker' => 0.9,
-                        'fuzziness'   => min(0.99, max(0, (float) $this->getConfig('fuzzy_min_similarity'))),
-                        'boost'       => 0.1, //(float) $this->getConfig('fuzzy_query_boost'),
-                        'minimum_should_match' => '2<100% 100<50%'
-                    )
-                );
-                /*$fuzzyQuery = array(
-                    'fields'          => $this->getSearchFields(),
-                    'like_text'       => $this->_fulltextQuery,
-                    'min_similarity'  => min(0.99, max(0, (float) $this->getConfig('fuzzy_min_similarity'))),
-                    'prefix_length'   => (int) $this->getConfig('fuzzy_prefix_length'),
-                    'max_query_terms' => (int) $this->getConfig('fuzzy_max_query_terms'),
-                    'boost'           => (float) $this->getConfig('fuzzy_query_boost'),
-                    'ignore_tf'       => true
-                );*/
-                //$query['dis_max']['queries'][] = array('fuzzy_like_this' => $fuzzyQuery);
-            }
-        }
-
-        return $query;
-    }
+    abstract protected function _prepareFulltextCondition();
 
     /**
      * Retrive mapping for the current query type.
@@ -544,7 +508,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
      * @param array  $options   Options to be passed to the filter constructor.
      * @param string $facetName Associate the filter to a facet. The filter will not be applied to the facet.
      *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
     public function addFilter($modelName, $options = array(), $facetName = '_none_')
     {
@@ -570,7 +534,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
      * @param string $modelName Name of the model to be used to create the facet.
      * @param array  $options   Options to be passed to the facet constructor.
      *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
     public function addFacet($name, $modelName, $options = array())
     {
@@ -622,4 +586,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
         return $modelName;
     }
 
+
+    /**
+     * Indicates if the query has been spellchecked or not
+     *
+     * @return bool
+     */
+    public function isSpellchecked()
+    {
+        return $this->_isSpellChecked;
+    }
 }

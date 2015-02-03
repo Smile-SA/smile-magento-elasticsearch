@@ -24,7 +24,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fil
     protected $_options = array();
 
     /**
-     * @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     * @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
     protected $_query = null;
 
@@ -43,7 +43,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fil
     /**
      * Associate a query to the facet.
      *
-     * @param Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query $query Query the facet belong to.
+     * @param Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract $query Query the facet belong to.
      *
      * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_Abstract
      */

@@ -690,6 +690,55 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     }
 
     /**
+     * Return a list of all searchable field for the current type (by locale code).
+     *
+     * @param string $localeCode Locale code
+     *
+     * @return array.
+     */
+    public function getSearchFields($localeCode)
+    {
+        if ($this->_searchFields == null) {
+
+            $mapping = $this->getMappingProperties();
+            $this->_searchFields = array();
+
+            $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
+
+            $attributes = Mage::getResourceModel($this->_attributeCollectionModel)
+                ->setEntityTypeFilter($entityType->getEntityTypeId());
+
+            foreach ($attributes as $attribute) {
+
+                if ($attribute->getIsSearchable()) {
+
+                    $field = $this->getFieldName($attribute->getAttributeCode(), $localeCode);
+
+                    if ($field !== false) {
+                        $currentAttributeConfig = array(
+                            'weight'        => $attribute->getSearchWeight() ? $attribute->getSearchWeight() : 1,
+                            'fuzziness'     => $attribute->getIsFuzzinessEnabled() ? $attribute->getFuzzinessValue() : false,
+                            'prefix_length' => $attribute->getIsFuzzinessEnabled() ? $attribute->getFuzzinessPrefixLength() : false,
+                        );
+
+                        if ($this->_mapping['properties'][$field]['type'] == "multi_field") {
+                            if ($attribute->getIsSnowballUsed()) {
+                                $this->_searchFields[$field] = $currentAttributeConfig;
+                            }
+
+                            $this->_searchFields[$field.'.shingle'] = $currentAttributeConfig;
+                        } else {
+                            $this->_searchFields[$field] = $currentAttributeConfig;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $this->_searchFields;
+    }
+
+    /**
      * Retrive a bucket of indexable entities.
      *
      * @param int         $storeId Store id
