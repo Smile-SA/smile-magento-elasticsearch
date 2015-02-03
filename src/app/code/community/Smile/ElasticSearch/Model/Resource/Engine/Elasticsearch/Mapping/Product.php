@@ -163,42 +163,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         return parent::_saveIndexes($storeId, $entityIndexes);
     }
 
-    /**
-     * Return a list of all searchable field for the current type (by locale code).
-     *
-     * @param string $localeCode Locale code
-     *
-     * @return array.
-     */
-    public function getSearchFields($localeCode)
-    {
-        if ($this->_searchFields == null) {
-
-            $mapping = $this->getMappingProperties();
-            $this->_searchFields = array();
-
-            $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
-
-            $attributes = Mage::getResourceModel($this->_attributeCollectionModel)
-                ->setEntityTypeFilter($entityType->getEntityTypeId());
-
-            foreach ($attributes as $attribute) {
-                if ($attribute->getIsSearchable()) {
-                    $field = $this->getFieldName($attribute->getAttributeCode(), $localeCode);
-                    if ($field !== false) {
-                        if ($attribute->getSearchWeight()) {
-                            $field .= '^' . $attribute->getSearchWeight();
-                        }
-                        $this->_searchFields[] = $field;
-                    }
-                }
-            }
-
-            $this->_searchFields[] = 'category_name';
-        }
-
-        return $this->_searchFields;
-    }
 
     /**
      * Retrieve entities children ids (simple products for configurable, grouped and bundles).

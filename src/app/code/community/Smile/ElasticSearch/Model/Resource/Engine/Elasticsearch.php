@@ -329,11 +329,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
      *
      * @param string $type Type of document for the query
      *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
-    public function createQuery($type)
+    public function createQuery($type, $model = 'smile_elasticsearch/engine_elasticsearch_query_fulltext')
     {
-        $query = Mage::getResourceModel('smile_elasticsearch/engine_elasticsearch_query')
+        $query = Mage::getResourceModel($model)
             ->setAdapter($this)
             ->setType($type);
 

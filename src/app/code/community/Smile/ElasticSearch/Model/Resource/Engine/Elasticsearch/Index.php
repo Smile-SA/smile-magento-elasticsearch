@@ -144,7 +144,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode] = array(
                 'type' => 'custom',
                 'tokenizer' => 'standard',
-                'filter' => array('length', 'lowercase', 'shingle', 'snowball_' . $languageCode),
+                'filter' => array('length', 'lowercase', 'snowball_' . $languageCode),
                 'char_filter' => array('html_strip')
             );
             $indexSettings['analysis']['filter']['snowball_' . $languageCode] = array(

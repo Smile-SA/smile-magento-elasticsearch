@@ -76,7 +76,7 @@ class Smile_VirtualCategories_Model_Resource_Catalog_VirtualCategory_Collection 
     /**
      * Init a new ES query used to run a facet queries query to count product per category.
      *
-     * @return false|Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query
+     * @return false|Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
     public function getQuery()
     {
