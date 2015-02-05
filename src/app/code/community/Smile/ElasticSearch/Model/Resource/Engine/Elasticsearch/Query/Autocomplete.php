@@ -79,8 +79,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
     /**
      * Retrieve the spelling part of a query through self::_analyzeQuerySpelling
      *
-     * @param string  $queryText    Text to be searched.
-     * @param array   $searchFields Search fields configuration.
+     * @param string $queryText    Text to be searched.
+     * @param array  $searchFields Search fields configuration.
      *
      * @return array
      */
@@ -144,7 +144,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
         }
 
         $query['body']['aggs']['autocomplete'] = array(
-        	'filter' => array('prefix' => ['_all' => strtolower(end($queryTerms))])
+            'filter' => array('prefix' => ['_all' => strtolower(end($queryTerms))])
         );
 
         Varien_Profiler::start('ES:EXECUTE:SPELLING_QUERY');
@@ -152,7 +152,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
         Varien_Profiler::stop('ES:EXECUTE:SPELLING_QUERY');
 
         if (isset($response['suggest'])) {
-            foreach($response['suggest']['spelling'] as $token) {
+            foreach ($response['suggest']['spelling'] as $token) {
                 if (empty($token['options'])) {
                     $result['matched'][] = Mage::helper('core/string')->substr($queryText, $token['offset'], $token['length']);
                 } else {
@@ -204,8 +204,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
         foreach ($allFields as $fieldName => $currentField) {
             $fieldName = current(explode('.', $fieldName));
             if ($currentField['used_in_autocomplete']) {
-                foreach ($analyzers as $analyzer)
+                foreach ($analyzers as $analyzer) {
                     $searchFields[] = sprintf('%s.%s^%d', $fieldName, $analyzer, $currentField['weight']);
+                }
             }
 
         }

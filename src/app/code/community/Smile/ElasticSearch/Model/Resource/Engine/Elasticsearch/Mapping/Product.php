@@ -111,8 +111,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         }
 
         $select->where('e.entity_id>?', $lastId)
-               ->limit($limit)
-               ->order('e.entity_id');
+            ->limit($limit)
+            ->order('e.entity_id');
 
         /**
          * Add additional external limitation
@@ -233,7 +233,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
             $prefixLength = Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_prefix_length');
             $usedInAutocomplete = (bool) Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_use_in_autocomplete');
             $searchFields['category_name_' . $localeCode] = array(
-            	'weight'               => Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_weight'),
+                'weight'               => Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_weight'),
                 'fuzziness'            => $fuzziness,
                 'prefix_length'        => $prefixLength,
                 'used_in_autocomplete' => true

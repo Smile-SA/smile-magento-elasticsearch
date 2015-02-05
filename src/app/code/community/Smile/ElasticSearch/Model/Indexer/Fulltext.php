@@ -21,7 +21,7 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
     /**
      * (Dummy) Register indexer event
      *
-     * @param Mage_Index_Model_Event $event
+     * @param Mage_Index_Model_Event $event Indexer event
      *
      * @return Mage_CatalogSearch_Model_Indexer_Fulltext
      */
@@ -37,7 +37,7 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
     /**
      * (Dummy) Process event
      *
-     * @param   Mage_Index_Model_Event $event
+     * @param   Mage_Index_Model_Event $event Indexer event
      *
      * @return  Mage_Index_Model_Indexer_Abstract
      */
@@ -53,7 +53,7 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
     /**
      * (Dummy) Check if event can be matched by process
      *
-     * @param Mage_Index_Model_Event $event
+     * @param Mage_Index_Model_Event $event Indexer event
      *
      * @return bool
      */
@@ -91,8 +91,8 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
             }
 
             $this->_getIndexer()
-                 ->cleanIndex(null, $productId)
-                 ->resetSearchResults();
+                ->cleanIndex(null, $productId)
+                ->resetSearchResults();
 
         } else if (!empty($data['catalogsearch_update_product_id'])) {
             $productId = $data['catalogsearch_update_product_id'];
@@ -125,8 +125,8 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
                     foreach (Mage::app()->getWebsite($websiteId)->getStoreIds() as $storeId) {
                         if ($actionType == 'remove') {
                             $this->_getIndexer()
-                                 ->cleanIndex($storeId, $productIds)
-                                 ->resetSearchResults();
+                                ->cleanIndex($storeId, $productIds)
+                                ->resetSearchResults();
                         } else if ($actionType == 'add') {
                             $this->_getMapping('product')->rebuildIndex($storeId, $productIds);
                             $this->_getIndexer()->resetSearchResults();
@@ -138,8 +138,8 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
                 $status = $data['catalogsearch_status'];
                 if ($status == Mage_Catalog_Model_Product_Status::STATUS_ENABLED) {
                     $this->_getIndexer()
-                         ->rebuildIndex(null, $productIds)
-                         ->resetSearchResults();
+                        ->rebuildIndex(null, $productIds)
+                        ->resetSearchResults();
                 } else {
                     $this->_getIndexer()->cleanIndex(null, $productIds);
                     $this->_getMapping('product')->resetSearchResults();

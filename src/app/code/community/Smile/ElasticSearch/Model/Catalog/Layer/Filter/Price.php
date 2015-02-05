@@ -89,7 +89,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
                 if ($calculation == self::RANGE_CALCULATION_AUTO) {
                     $range = pow(10, (strlen(floor($maxPrice - $minPrice)) - 1));
                 } else {
-                    $range = (float)Mage::app()->getStore()->getConfig(self::XML_PATH_RANGE_STEP);
+                    $range = (float) Mage::app()->getStore()->getConfig(self::XML_PATH_RANGE_STEP);
                 }
             }
 

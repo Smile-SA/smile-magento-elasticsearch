@@ -50,8 +50,8 @@ class Smile_ElasticSearch_Model_Index_Action_Fulltext_Refresh_Changelog
 
                     $engine->cleanIndex(null, $productIds);
                     $engine->getCurrentIndex()
-                           ->getMapping('product')
-                           ->rebuildIndex(null, $productIds);
+                        ->getMapping('product')
+                        ->rebuildIndex(null, $productIds);
 
                     // Clear search results
                     $this->_resetSearchResults();

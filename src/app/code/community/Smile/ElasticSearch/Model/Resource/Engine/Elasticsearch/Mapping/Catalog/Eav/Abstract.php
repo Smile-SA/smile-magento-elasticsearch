@@ -118,8 +118,10 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     /**
      * Return mapping for an attribute of type varchar
      *
-     * @param string $fieldName Name of the field
-     * @param string $languageCode Name of the field
+     * @param string $fieldName    Name of the field
+     * @param string $languageCode Language code we want the mapping for
+     * @param string $type         ES core type (string default)
+     * @param bool   $sortable     Can the attribute be used for sorting
      *
      * @return array string
      */
@@ -134,7 +136,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         }
 
         $analyzersOptions = array(
-        	'edge_ngram_front' => array('norms' => array('enabled' => false, 'index_options' => 'docs')),
+            'edge_ngram_front' => array('norms' => array('enabled' => false, 'index_options' => 'docs')),
             'edge_ngram_back' => array('norms' => array('enabled' => false, 'index_options' => "docs"))
         );
         $mapping[$fieldName] = array('type' => 'multi_field', 'fields' => array());
@@ -239,7 +241,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      */
     public function getConnection()
     {
-        return Mage::getSingleton('core/resource')->getConnection('write');;
+        return Mage::getSingleton('core/resource')->getConnection('write');
     }
 
     /**
@@ -402,10 +404,14 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
 
             foreach ($childrenIds as $childrenId) {
                 if (isset($entityAttributes[$childrenId])) {
+
                     foreach ($entityAttributes[$childrenId] as $attributeId => $value) {
-                        if (isset($attributesById[$attributeId]) &&
-                            in_array($attributesById[$attributeId]->getFrontendInput(), array('select', 'multiselect'))
-                           ) {
+
+                        $isAttributeIndexed = isset($attributesById[$attributeId]);
+                        $frontendInput      = $isAttributeIndexed ? $attributesById[$attributeId]->getFrontendInput() : false;
+                        $isAttributeIndexed =  $isAttributeIndexed && in_array($frontendInput, array('select', 'multiselect'));
+
+                        if ($isAttributeIndexed == true) {
                             $attribute = $attributesById[$attributeId];
                             $childrenValues = $this->_getAttributeIndexValues($attribute, $value, $storeId, $languageCode);
                             foreach ($childrenValues as $field => $fieldValue) {
@@ -478,20 +484,20 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         foreach ($attributeTypes as $tableName => $attributeIds) {
             if ($attributeIds) {
                 $select = $adapter->select()
-                ->from(array('t_default' => $tableName), array('entity_id', 'attribute_id'))
-                ->joinLeft(
-                    array('t_store' => $tableName),
-                    $adapter->quoteInto(
-                        't_default.entity_id=t_store.entity_id' .
-                        ' AND t_default.attribute_id=t_store.attribute_id' .
-                        ' AND t_store.store_id=?',
-                        $storeId
-                    ),
-                    array('value' => new Zend_Db_Expr('COALESCE(t_store.value, t_default.value)'))
-                )
-                ->where('t_default.store_id=?', 0)
-                ->where('t_default.attribute_id IN (?)', $attributeIds)
-                ->where('t_default.entity_id IN (?)', $entityIds);
+                    ->from(array('t_default' => $tableName), array('entity_id', 'attribute_id'))
+                    ->joinLeft(
+                        array('t_store' => $tableName),
+                        $adapter->quoteInto(
+                            't_default.entity_id=t_store.entity_id' .
+                            ' AND t_default.attribute_id=t_store.attribute_id' .
+                            ' AND t_store.store_id=?',
+                            $storeId
+                        ),
+                        array('value' => new Zend_Db_Expr('COALESCE(t_store.value, t_default.value)'))
+                    )
+                    ->where('t_default.store_id=?', 0)
+                    ->where('t_default.attribute_id IN (?)', $attributeIds)
+                    ->where('t_default.entity_id IN (?)', $entityIds);
 
                 /**
                  * Add additional external limitation
