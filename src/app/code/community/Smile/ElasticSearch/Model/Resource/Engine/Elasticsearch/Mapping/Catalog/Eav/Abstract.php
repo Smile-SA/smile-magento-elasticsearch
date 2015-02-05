@@ -35,16 +35,6 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     protected $_authorizedBackendModels  = array();
 
     /**
-     * @var array
-     */
-    protected $_suggestInputAttributes   = array('name');
-
-    /**
-     * @var array
-     */
-    protected $_suggestPayloadAttributes = array('entity_id');
-
-    /**
      * Get mapping properties as stored into the index
      *
      * @return array
@@ -65,24 +55,6 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         $mapping['properties']['unique']   = array('type' => 'string');
         $mapping['properties']['id']       = array('type' => 'long');
         $mapping['properties']['store_id'] = array('type' => 'integer');
-
-        foreach (Mage::app()->getStores() as $store) {
-            $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
-            $mapping['properties'][Mage::helper('smile_elasticsearch')->getSuggestFieldName($store)] = array(
-                'type' => 'completion',
-                'payloads' => true,
-                'index_analyzer'  => 'analyzer_' . $languageCode,
-                'search_analyzer' => 'analyzer_' . $languageCode,
-                'preserve_separators' => false,
-                'preserve_position_increments' => false,
-                'context' => array(
-                    'store_id'   => array('type' => 'category', 'default' => '0'),
-                    'type'       => array('type' => 'category', 'default' => $this->_type),
-                    'visibility' => array('type' => 'category', 'default' => 1),
-                    'status'     => array('type' => 'category', 'default' => 1)
-                )
-            );
-        }
 
         return $mapping;
     }
@@ -108,8 +80,16 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     $fieldName = $attributeCode . '_' . $languageCode;
                     $mapping[$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode);
 
-                    if ($attribute->getBackendType() == 'varchar') {
-                        $fieldMapping = $this->_getStringMapping($fieldName, $languageCode);
+                    $multiTypeField = $attribute->getBackendType() == 'varchar' || $attribute->getBackendType() == 'text';
+                    $multiTypeField = $multiTypeField && !($attribute->usesSource());
+
+                    if ($multiTypeField) {
+                        $fieldMapping = $this->_getStringMapping(
+                            $fieldName,
+                            $languageCode,
+                            $type,
+                            $attribute->getBackendType() == 'varchar'
+                        );
                         $mapping = array_merge($mapping, $fieldMapping);
                     }
                 }
@@ -143,18 +123,30 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      *
      * @return array string
      */
-    protected function _getStringMapping($fieldName, $languageCode, $type = 'string')
+    protected function _getStringMapping($fieldName, $languageCode, $type = 'string', $sortable = false)
     {
         $mapping = array();
 
-        $analyzers = array('sortable', 'whitespace', 'edge_ngram_front', 'edge_ngram_front', 'edge_ngram_front_strip_apos_and_ws', 'shingle', 'shingle_strip_apos_and_ws');
+        $analyzers = array('edge_ngram_front', 'edge_ngram_back', 'shingle');
 
+        if ($sortable == true) {
+            $analyzers[] = 'sortable';
+        }
+
+        $analyzersOptions = array(
+        	'edge_ngram_front' => array('norms' => array('enabled' => false, 'index_options' => 'docs')),
+            'edge_ngram_back' => array('norms' => array('enabled' => false, 'index_options' => "docs"))
+        );
         $mapping[$fieldName] = array('type' => 'multi_field', 'fields' => array());
         $mapping[$fieldName]['fields'][$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode);
         $mapping[$fieldName]['fields']['untouched'] = array('type' => $type, 'index' => 'not_analyzed');
 
         foreach ($analyzers as $analyzer) {
-            $mapping[$fieldName]['fields'][$analyzer] = array('type' => $type, 'analyzer' => $analyzer);
+            $mapping[$fieldName]['fields'][$analyzer] = array('type' => $type, 'analyzer' => $analyzer, 'stored' => false);
+
+            if (isset($analyzersOptions[$analyzer])) {
+                $mapping[$fieldName]['fields'][$analyzer] = array_merge($mapping[$fieldName]['fields'][$analyzer], $analyzersOptions[$analyzer]);
+            }
         }
 
         return $mapping;
@@ -323,7 +315,6 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             }
 
             $entityIndexes = $this->_addChildrenData($entityIndexes, $entityAttributes, $entityRelations, $storeId, $languageCode);
-            $entityIndexes = $this->_addSuggestField($entityIndexes, $storeId, $languageCode);
 
             $this->_saveIndexes($storeId, $entityIndexes);
         }
@@ -587,89 +578,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     }
 
     /**
-     * Append suggest data to the index
-     *
-     * @param array  $entityIndexes Index data
-     * @param int    $storeId       Store id
-     * @param string $languageCode  Language code
-     *
-     * @return array
-     */
-    protected function _addSuggestField($entityIndexes, $storeId, $languageCode)
-    {
-        $store = Mage::app()->getStore($storeId);
-        $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
-        $fieldName = Mage::helper('smile_elasticsearch')->getSuggestFieldName($store);
-        $inputFields = array();
-        foreach ($this->_suggestInputAttributes as $attribute) {
-            $field = $this->getFieldName($attribute, $languageCode);
-            $inputFields[] = $field;
-        }
 
-        $payloadFields = array();
-        foreach ($this->_suggestPayloadAttributes as $attribute) {
-            $field = $this->getFieldName($attribute, $languageCode, 'filter');
-            $payloadFields[] = $field;
-        }
-
-        foreach ($entityIndexes as $entityId => $index) {
-            $suggest = array('input' => '', 'payload' => array());
-
-            foreach ($inputFields as $field) {
-                if (isset($index[$field])) {
-
-                    if (!isset($suggest['output'])) {
-                        $suggest['output'] = is_array($index[$field]) ? current($index[$field]) : $index[$field];
-                    }
-
-                    if (is_array($index[$field])) {
-                        $index[$field] = implode(' ', $index[$field]);
-                    }
-                    $suggest['input'] = implode(' ', array($suggest['input'], $index[$field]));
-                }
-            }
-
-            foreach ($payloadFields as $field) {
-                if (isset($index[$field])) {
-                    if (!isset($suggest['payload'][$field])) {
-                        $suggest['payload'][$field] = $index[$field];
-                    } else {
-                        if (!is_array($index[$field])) {
-                            $index[$field] = array($index[$field]);
-                        }
-                        if (!is_array($suggest['payload'][$field])) {
-                            $suggest['payload'][$field] = array($suggest['payload'][$field]);
-                        }
-                        $suggest['payload'][$field] = array_merge($suggest['payload'][$field], $index[$field]);
-                    }
-                }
-            }
-
-            $suggest['context']['store_id'] = $storeId;
-            $inputs = explode(' ', $suggest['input']);
-            $suggest['input'] = array_merge(array($suggest['input']), $inputs);
-            $suggest['input'] = array_values(array_filter($suggest['input']));
-
-            $suggest = $this->_appendCustomSuggestData($index, $suggest);
-
-            $entityIndexes[$index['entity_id']][$fieldName] = $suggest;
-        }
-
-        return $entityIndexes;
-    }
-
-    /**
-     * Append custom data for an entity
-     *
-     * @param array $entityData  Data for current entity
-     * @param array $suggestData Suggest data for the entity
-     *
-     * @return array
-     */
-    protected function _appendCustomSuggestData($entityData, $suggestData)
-    {
-        return $suggestData;
-    }
 
     /**
      * Return the text value for an atribute using source model.
@@ -710,15 +619,16 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
 
             foreach ($attributes as $attribute) {
 
-                if ($attribute->getIsSearchable()) {
+                if ($attribute->getIsSearchable() || $attribute->getAttributeCode() == 'name') {
 
                     $field = $this->getFieldName($attribute->getAttributeCode(), $localeCode);
 
                     if ($field !== false) {
                         $currentAttributeConfig = array(
-                            'weight'        => $attribute->getSearchWeight() ? $attribute->getSearchWeight() : 1,
-                            'fuzziness'     => $attribute->getIsFuzzinessEnabled() ? $attribute->getFuzzinessValue() : false,
-                            'prefix_length' => $attribute->getIsFuzzinessEnabled() ? $attribute->getFuzzinessPrefixLength() : false,
+                            'weight'               => $attribute->getSearchWeight() ? $attribute->getSearchWeight() : 1,
+                            'fuzziness'            => $attribute->getIsFuzzinessEnabled() ? $attribute->getFuzzinessValue() : false,
+                            'prefix_length'        => $attribute->getIsFuzzinessEnabled() ? $attribute->getFuzzinessPrefixLength() : false,
+                            'used_in_autocomplete' => (bool) $attribute->getIsUsedInAutocomplete()
                         );
 
                         if ($this->_mapping['properties'][$field]['type'] == "multi_field") {

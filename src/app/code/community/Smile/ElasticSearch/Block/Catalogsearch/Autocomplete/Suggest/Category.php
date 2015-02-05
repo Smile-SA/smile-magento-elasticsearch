@@ -36,16 +36,28 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Category exte
      */
     public function getCategoryCollection()
     {
+        $maxSize = $this->getMaxSize();
+
         $collection = Mage::getResourceModel('smile_elasticsearch/catalog_category_suggest_collection')
             ->setEngine(Mage::helper('catalogsearch')->getEngine())
             ->setStoreId(Mage::app()->getStore()->getId())
-            ->setPageSize(10)
+            ->setPageSize($maxSize)
             ->addAttributeToSelect('name')
             ->setOrder('level', Varien_Data_Collection::SORT_ORDER_ASC)
-            ->addSuggestFilter($this->_getQuery())
+            ->addSearchFilter($this->_getQuery())
             ->addUrlRewriteToResult();
 
         return $collection;
+    }
+
+    /**
+     * Get number of suggestion to display
+     *
+     * @return int
+     */
+    public function getMaxSize()
+    {
+        return Mage::getStoreConfig('elasticsearch_advanced_search_settings/category_autocomplete/max_size');
     }
 
     /**

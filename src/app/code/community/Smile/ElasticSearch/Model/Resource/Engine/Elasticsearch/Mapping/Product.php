@@ -47,11 +47,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
     protected $_entityType = 'catalog_product';
 
     /**
-     * @var array
-     */
-    protected $_suggestInputAttributes   = array('name', 'category_name');
-
-    /**
      * Get mapping properties as stored into the index
      *
      * @return array
@@ -68,20 +63,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         $mapping['dynamic_templates'][] = array('category_position' => $fieldTemplate);
 
         return $mapping;
-    }
-
-    /**
-     * Append custom data for an entity
-     *
-     * @param array $entityData  Data for current entity
-     * @param array $suggestData Suggest data for the entity
-     *
-     * @return array
-     */
-    protected function _appendCustomSuggestData($entityData, $suggestData)
-    {
-        $suggestData['context']['visibility'] = $entityData['visibility'];
-        return $suggestData;
     }
 
     /**

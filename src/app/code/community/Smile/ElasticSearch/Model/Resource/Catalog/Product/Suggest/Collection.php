@@ -20,98 +20,22 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
     extends Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection
 {
     /**
-     * @var null|string
-     */
-    protected $_suggestQuery   = null;
-
-    /**
-     * @var null|array
-     */
-    protected $_suggestionsIds = null;
-
-    /**
-     * @var bool
-     */
-    protected $_isSuggestionFilterSet = false;
-
-    /**
-     * Register suggest input text.
+     * Get the ES query model associated with the product collection.
      *
-     * @param string $query The text input
-     *
-     * @return Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
-    public function addSuggestFilter($query)
+    public function getSearchEngineQuery()
     {
-        $this->_suggestQuery = $query;
-        return $this;
-    }
+        if ($this->_searchEngineQuery === null) {
 
-    /**
-     * Apply filters before load
-     *
-     * @return Mage_Catalog_Model_Resource_Product_Collection Self reference
-     */
-    protected function _beforeLoad()
-    {
-        if ($this->_isSuggestionFilterSet === false) {
-            $query = $this->getSearchEngineQuery();
-            $query->addFilter('terms', array('id' => $this->getSuggestionIds()));
-            $this->_isSuggestionFilterSet = true;
-        }
-        return parent::_beforeLoad();
-    }
+            $this->_searchEngineQuery = $this->_engine->createQuery('product', 'smile_elasticsearch/engine_elasticsearch_query_autocomplete');
 
-    /**
-     * Get size of the csuggest collection
-     *
-     * @return int Size of the collection
-     */
-    public function getSize()
-    {
-        if ($this->_isSuggestionFilterSet === false) {
-            $query = $this->getSearchEngineQuery();
-            $query->addFilter('terms', array('id' => $this->getSuggestionIds()));
-            $this->_isSuggestionFilterSet = true;
-        }
-        return parent::getSize();
-    }
-
-    /**
-     * Return ids of the suggested product
-     *
-     * @return array Ids of the selected products
-     */
-    public function getSuggestionIds()
-    {
-        $allowedVisibilities = Mage::getSingleton('catalog/product_visibility')->getVisibleInSiteIds();
-        $allowedStatuses     = Mage::getSingleton('catalog/product_status')->getVisibleStatusIds();
-
-        if (is_null($this->_suggestionsIds) && !is_null($this->_suggestQuery)) {
-
-            $context = array(
-                'type'       => 'product',
-                'store_id'   => $this->getStoreId(),
-                'visibility' => $allowedVisibilities,
-                'status'     => $allowedStatuses
-            );
-
-            $suggestions = $this->_engine->suggest($this->_suggestQuery, $context);
-            $idsFilter = array();
-
-            foreach ($suggestions as $suggestion) {
-                if (isset($suggestion['payload']) && isset($suggestion['payload']['entity_id'])) {
-                    $idsFilter[] = $suggestion['payload']['entity_id'];
-                }
+            if ($this->getStoreId()) {
+                $store = Mage::app()->getStore();
+                $this->_searchEngineQuery->setLanguageCode(Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store));
             }
-
-            if (empty($idsFilter)) {
-                $idsFilter = array(0);
-            }
-
-            $this->_suggestionsIds = $idsFilter;
         }
 
-        return $this->_suggestionsIds;
+        return $this->_searchEngineQuery;
     }
 }

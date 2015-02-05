@@ -20,7 +20,7 @@
     <?php if ($categoryCollection->getSize() > 0) : ?>
         <dt><?php echo $this->__('Category'); ?></dt>
         <?php foreach ($categoryCollection as $category) : ?>
-            <dd href="<?php echo $category->getUrl()?>"><?php echo $category->getOutputText(); ?></dd>
+            <dd href="<?php echo $category->getUrl()?>"><?php echo $category->getName(); ?></dd>
         <?php endforeach; ?>
     <?php endif; ?>
 <?php endif;

@@ -23,25 +23,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
      */
     protected $_defaultRatingIdByStore = array();
 
-    /**
-     * @var array
-     */
-    protected $_suggestFieldNames = array();
-
-    /**
-     * Init the suggest field name by store during construct
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        foreach (Mage::app()->getStores(true) as $store) {
-            $this->_suggestFieldNames[$store->getId()] = Mage::helper('smile_elasticsearch')->getSuggestFieldName($store);
-        }
-
-        parent::__construct();
-    }
-
 
     /**
      * Adds advanced index data.
@@ -60,8 +41,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
                 $productIds[] = $productData['entity_id'];
             }
         }
-
-        $suggestionFiledName = $this->_suggestFieldNames[$storeId];
 
         $categoryData = $this->_getCatalogCategoryData($storeId, $productIds);
         $priceData = $this->_getCatalogProductPriceData($productIds);

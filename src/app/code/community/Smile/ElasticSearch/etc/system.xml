@@ -112,17 +112,6 @@
                             <validate>required-entry validate-greater-than-zero validate-digits</validate>
                             <depends><engine>smile_elasticsearch/engine_elasticsearch</engine></depends>
                         </elasticsearch_facets_max_size>
-                        <elasticsearch_enable_options_search translate="label comment" module="smile_elasticsearch">
-                            <label>Enable Search on Options Labels</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <comment>If enabled, will also search on product options labels.</comment>
-                            <sort_order>60</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <depends><engine>smile_elasticsearch/engine_elasticsearch</engine></depends>
-                        </elasticsearch_enable_options_search>
                         <elasticsearch_enable_icu_folding translate="label comment" module="smile_elasticsearch">
                             <label>Enable ICU Folding Token Filter</label>
                             <frontend_type>select</frontend_type>
@@ -144,5 +133,78 @@
                 </search>
             </groups>
         </catalog>
+        
+        <elasticsearch_advanced_search_settings translate="label" module="smile_searchandisingsuite">
+            <class>separator-top</class>
+            <label>Advanced search settings</label>
+            <tab>smile_searchandisingsuite</tab>
+            <frontend_type>text</frontend_type>
+            <sort_order>45</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
+            <groups>
+                <popular_terms_autocomplete translate="label">
+                    <label>Popular Searches Autocomplete</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>100</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <max_size translate="label">
+                            <label>Popular search terms max size</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>1</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry</validate>
+                            <frontend_class>validate-digits</frontend_class>
+                        </max_size>
+                    </fields>
+                </popular_terms_autocomplete>
+                <product_autocomplete translate="label">
+                    <label>Product Autocomplete</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>110</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <max_size translate="label">
+                            <label>Max size</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>1</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry</validate>
+                            <frontend_class>validate-digits</frontend_class>
+                        </max_size>
+                    </fields>
+                </product_autocomplete>
+                <category_autocomplete translate="label">
+                    <label>Category Autocomplete</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>120</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <max_size translate="label">
+                            <label>Max size</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>1</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry</validate>
+                            <frontend_class>validate-digits</frontend_class>
+                        </max_size>
+                    </fields>
+                </category_autocomplete>
+            </groups>
+        </elasticsearch_advanced_search_settings>
     </sections>
 </config>
