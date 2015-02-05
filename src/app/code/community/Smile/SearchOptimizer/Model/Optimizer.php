@@ -166,9 +166,9 @@ class Smile_SearchOptimizer_Model_Optimizer extends Mage_Core_Model_Abstract
 
             if (isset($config['rule_serialized'])) {
                 $this->_filterRule
-                     ->getConditions()
-                     ->setConditions(array())
-                     ->loadArray($config['rule_serialized']);
+                    ->getConditions()
+                    ->setConditions(array())
+                    ->loadArray($config['rule_serialized']);
             }
         }
 

@@ -39,7 +39,7 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer extends Mage_Core_Model_Res
     protected function _afterSave(Mage_Core_Model_Abstract $object)
     {
         $oldStores = $this->lookupStoreIds($object->getId());
-        $newStores = (array)$object->getStores();
+        $newStores = (array) $object->getStores();
 
         $table  = $this->getTable('smile_searchoptimizer/optimizer_store');
         $insert = array_diff($newStores, $oldStores);
@@ -111,10 +111,11 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer extends Mage_Core_Model_Res
                 array('os' => $this->getTable('smile_searchoptimizer/optimizer_store')),
                 $this->getMainTable().'.optimizer_id = os.optimizer_id',
                 array('store_id')
-            )->where('is_active = ?', 1)
-            ->where('os.store_id in (?) ', $stores)
-            ->order('store_id DESC')
-            ->limit(1);
+            )
+                ->where('is_active = ?', 1)
+                ->where('os.store_id in (?) ', $stores)
+                ->order('store_id DESC')
+                ->limit(1);
         }
 
         return $select;
