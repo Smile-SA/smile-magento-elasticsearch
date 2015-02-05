@@ -23,6 +23,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
      */
     protected $_defaultRatingIdByStore = array();
 
+    /**
+     * @var Mage_Eav_Model_Entity_Attribute_Abstract
+     */
+    protected  $_categoryNameAttribute = null;
+
 
     /**
      * Adds advanced index data.
@@ -145,7 +150,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
             $columns[] = 'visibility';
         }
 
-        $nameAttr = Mage::getModel('eav/entity_attribute')->loadByCode('catalog_category', 'name');
+        $nameAttr = $this->_getCategoryNameAttribute();
         $joinCond = $adapter->quoteInto(
             'cat.category_id = name.entity_id AND name.attribute_id = ? AND name.store_id IN(0, cat.store_id)',
             $nameAttr->getAttributeId()
@@ -229,5 +234,20 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         }
 
         return $result;
+    }
+
+
+    /**
+     * Returns category name attribute
+     *
+     * @return Mage_Eav_Model_Entity_Attribute_Abstract
+     */
+    protected function _getCategoryNameAttribute()
+    {
+        if ($this->_categoryNameAttribute === null) {
+            $this->_categoryNameAttribute = Mage::getModel('eav/entity_attribute')->loadByCode('catalog_category', 'name');
+        }
+
+        return $this->_categoryNameAttribute;
     }
 }
