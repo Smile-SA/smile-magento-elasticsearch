@@ -215,6 +215,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         return $children;
     }
 
+    /**
+     * Return a list of all searchable field for the current type (by locale code).
+     *
+     * @param string $localeCode Locale code
+     *
+     * @return array.
+     */
     public function getSearchFields($localeCode)
     {
         $searchFields = parent::getSearchFields($localeCode);
