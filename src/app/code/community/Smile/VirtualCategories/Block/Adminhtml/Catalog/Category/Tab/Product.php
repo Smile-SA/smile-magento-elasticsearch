@@ -42,8 +42,8 @@ class Smile_VirtualCategories_Block_Adminhtml_Catalog_Category_Tab_Product exten
         $form->setHtmlIdPrefix('virtual_');
 
         $this->_prepareCategoryTypeSelector($form)
-             ->_prepareVirtualRuleFieldset($form)
-             ->_prepareLegacyProductSelector($form);
+            ->_prepareVirtualRuleFieldset($form)
+            ->_prepareLegacyProductSelector($form);
 
         $form->setFieldNameSuffix('general');
         $form->addValues($this->getCategory()->getData());
@@ -126,7 +126,7 @@ class Smile_VirtualCategories_Block_Adminhtml_Catalog_Category_Tab_Product exten
         $rule->getConditions()->setJsFormObject('virtual_virtual_fieldset');
 
         $field->setRule($rule)
-              ->setRenderer(Mage::getBlockSingleton('rule/conditions'));
+            ->setRenderer(Mage::getBlockSingleton('rule/conditions'));
 
         return $this;
     }
@@ -146,7 +146,7 @@ class Smile_VirtualCategories_Block_Adminhtml_Catalog_Category_Tab_Product exten
         );
 
         $fieldset->addField('pgold', 'hidden', array('name' => 'pgold'))
-                 ->setAfterElementHtml($this->getProductsGrid());
+            ->setAfterElementHtml($this->getProductsGrid());
 
         $this->setProductFieldsetHtmlId($fieldset->getHtmlId());
 
