@@ -15,12 +15,11 @@
  
 /* Autocomplete styles */
 #search_autocomplete dl { background: #FFF; border: 1px solid #999; overflow: hidden; width: 100%; }
-#search_autocomplete dl dt { background: #3399cc; color: #FFF; padding: 3px 10px; font-size: 110%; clear: both; margin: 10px 0 0 0}
-#search_autocomplete dl dt:first-of-type { margin: 0}
+#search_autocomplete dl dt { background: #d12c01; color: #FFF; font-weight: bold; padding: 3px 3px; font-size: 110%; clear: both}
 #search_autocomplete dl dd { background: #FFF; cursor: pointer; padding: 3px 5px; font-size: 110%; text-overflow: ellipsis; white-space: nowrap; width; 100%; clear:both; }
-#search_autocomplete dl dd.selected { background: #DDD }
+#search_autocomplete dl dd.selected { background: rgb(253, 233, 229); }
 #search_autocomplete dl dd .product-image-box { width: 55px; float: left; padding: 0 5px;}
-#search_autocomplete .products-list {margin: 0px 0 10px 0}
+#search_autocomplete .products-list {margin: 2px 0 10px 0}
 #search_autocomplete .products-list .product-shop { float: left; margin: 0px 10px 0px 0px; padding: 0; width: 76%; white-space: normal; }
 #search_autocomplete .products-list .product-shop .price-box {font-size: 13px; margin: 0px}
 #search_autocomplete .products-list .product-shop .price-box .price {font-size: 13px; margin: 0px}

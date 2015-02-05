@@ -249,48 +249,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     }
 
     /**
-     * Run autocomplete for products on the search engigne
-     *
-     * @param string $text    Text to be autocompleted
-     * @param array  $context Context of the autocomplete (store_id, visibility, ...)
-     *
-     * @return array
-     */
-    public function suggest($text, $context)
-    {
-        $suggestFieldName = $this->_getHelper()->getSuggestFieldName();
-        $params = array(
-            'index' => $this->_currentIndex->getCurrentName()
-        );
-
-        $params['body']['suggestions'] = array(
-            'text' => $text,
-            'completion' => array(
-                'size'  => 20,
-                'field' => $suggestFieldName,
-                'fuzzy' => array(
-                    'fuzziness' => 0.7,
-                    'unicode_aware' => true
-                ),
-                'context' => $context
-            ),
-        );
-
-        $response = $this->_client->suggest($params);
-
-        $data = array();
-
-        if (!isset($response['error']) && isset($response['suggestions'])) {
-            $suggestions = current($response['suggestions']);
-            foreach ($suggestions['options'] as $suggestion) {
-                $data[] = $suggestion;
-            }
-        }
-
-        return $data;
-    }
-
-    /**
      * Adds advanced index fields to index data.
      *
      * @param array $index      Product data

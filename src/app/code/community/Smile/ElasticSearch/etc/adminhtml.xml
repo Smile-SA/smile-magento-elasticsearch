@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!-- 
+/**
+ * Module admin ACLs module configuration
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * This work is a fork of Johann Reinke <johann@bubblecode.net> previous module
+ * available at https://github.com/jreinke/magento-elasticsearch
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */ 
+ -->
+<config>
+    <acl>
+        <resources>
+            <admin>
+                <children>
+                    <system>
+                        <children>
+                            <config>
+                                <children>
+                                    <elasticsearch_advanced_search_settings translate="title" module="smile_searchandisingsuite">
+                                        <title>Search advanced settings Section</title>
+                                    </elasticsearch_advanced_search_settings>
+                                </children>
+                            </config>
+                        </children>
+                    </system>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>
+

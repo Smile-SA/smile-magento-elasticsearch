@@ -20,7 +20,19 @@
     <?php if ($productCollection->getSize() > 0) : ?>
         <dt><?php echo $this->__('Products'); ?></dt>
         <?php foreach ($this->getProductCollection() as $product) : ?>
-            <dd href="<?php echo $product->getProductUrl();?>"><?php echo $product->getName(); ?></dd>
+            <dd href="<?php echo $product->getProductUrl();?>" class="products-list">
+                <div class="product-image-box">
+                    <img src="<?php echo $this->helper('catalog/image')->init($product, 'small_image')->resize(45); ?>" width="45px" height="45px" />
+                </div>
+                <div class="product-shop">
+                    <div class="f-fix">
+                        <div class="product-primary"><div class="product-name"><?php echo $product->getName(); ?></div></div>
+                        <div class="product-secondary"><?php echo $this->getPriceHtml($product); ?></div>
+                    </div>
+                    <div class="clear"></div>
+                </div>
+                <div class="clear"></div>
+            </dd>
         <?php endforeach; ?>
     <?php endif; ?>
 <?php endif; ?>

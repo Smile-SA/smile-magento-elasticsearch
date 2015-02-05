@@ -239,9 +239,14 @@
                         </whitespace>
                         <edge_ngram_front>
                             <tokenizer>standard</tokenizer>
-                            <filter>shingle,length,edge_ngram_front,ascii_folding,lowercase,trim</filter>
+                            <filter>length,ascii_folding,lowercase,trim,edge_ngram_front</filter>
                             <char_filter>html_strip</char_filter>
                         </edge_ngram_front>
+                        <edge_ngram_back>
+                            <tokenizer>standard</tokenizer>
+                            <filter>length,ascii_folding,lowercase,trim,edge_ngram_back</filter>
+                            <char_filter>html_strip</char_filter>
+                        </edge_ngram_back>
                         <edge_ngram_front_strip_apos_and_ws>
                             <tokenizer>standard</tokenizer>
                             <filter>shingle,length,edge_ngram_front,strip_apostrophes,strip_whitespaces,ascii_folding,lowercase,trim</filter>
@@ -281,10 +286,16 @@
                         </strip_apostrophes>
                         <edge_ngram_front>
                             <type>edgeNGram</type>
-                            <min_gram>2</min_gram>
+                            <min_gram>1</min_gram>
                             <max_gram>20</max_gram>
                             <side>front</side>
                         </edge_ngram_front>
+                        <edge_ngram_back>
+                            <type>edgeNGram</type>
+                            <min_gram>4</min_gram>
+                            <max_gram>20</max_gram>
+                            <side>back</side>
+                        </edge_ngram_back>
                         <length>
                             <type>length</type>
                             <min>2</min>
@@ -297,5 +308,16 @@
                 </elasticsearch_analysis_index_settings>
             </search>
         </catalog>
+        <elasticsearch_advanced_search_settings>
+            <popular_terms_autocomplete>
+                <max_size>3</max_size>
+            </popular_terms_autocomplete>
+            <product_autocomplete>
+                <max_size>3</max_size>
+            </product_autocomplete>
+            <category_autocomplete>
+                <max_size>3</max_size>
+            </category_autocomplete>
+        </elasticsearch_advanced_search_settings>
     </default>
 </config>

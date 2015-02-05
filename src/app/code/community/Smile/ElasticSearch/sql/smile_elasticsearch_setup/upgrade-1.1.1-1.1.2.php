@@ -21,7 +21,6 @@
 /**
  * @var Mage_Catalog_Model_Resource_Setup
  */
-
 $installer = $this;
 $installer->startSetup();
 
@@ -43,13 +42,11 @@ try {
 
     // Append a column 'is_fuziness_enabled', 'fuziness_value and 'fuzziness_prefix_length' into the table
     $connection->addColumn($table, 'is_fuzziness_enabled', "tinyint(1) unsigned NOT NULL DEFAULT '1'");
-    $connection->addColumn($table, 'fuzziness_value', "float unsigned NOT NULL DEFAULT '0.5'");
-    $connection->addColumn($table, 'fuzziness_prefix_length', "int unsigned NOT NULL DEFAULT '0'");
+    $connection->addColumn($table, 'fuzziness_value', "float unsigned NOT NULL DEFAULT '0.75'");
+    $connection->addColumn($table, 'fuzziness_prefix_length', "int unsigned NOT NULL DEFAULT '2'");
 
 } catch (Exception $e) {
     Mage::logException($e);
 }
-
-
 
 $installer->endSetup();

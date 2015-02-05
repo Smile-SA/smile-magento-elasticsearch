@@ -33,7 +33,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         if ($this->_fulltextQuery && is_string($this->_fulltextQuery)) {
 
             $queryText = $this->prepareFilterQueryText($this->_fulltextQuery);
-            $query = array();
+            $query = array('bool' => array('disable_coord' => true));
             $searchFields = $this->getSearchFields();
 
             $spellingParts = $this->getSpellingParts($queryText, $searchFields);
@@ -45,7 +45,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
 
 
             if (isset($spellingParts['unmatched']) && !empty($spellingParts['unmatched'])) {
-
                 foreach ($spellingParts['unmatched'] as $fuzzyQueryText) {
                     $query['bool']['must'][] = $this->getFuzzyMatchesQuery($fuzzyQueryText, $searchFields);
                 }
@@ -146,6 +145,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     public function getExactMatchesQuery($queryText, $searchFields) {
 
         $query = array();
+        $exactFields = array();
+
         foreach ($searchFields as $fieldName => $currentField) {
             $exactFields[] = sprintf("%s^%d", $fieldName, $currentField['weight']);
         }
@@ -155,7 +156,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                 'query'                 => $queryText,
                 'fields'                => $exactFields,
                 'type'                  => 'cross_fields',
-                'analyzer'              => 'standard',
+                'analyzer'              => 'analyzer' . '_' .$this->getLanguageCode(),
                 'minimum_should_match'  => "2<100% 100<50%",
             )
         );
@@ -182,7 +183,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                 $fuzzyQuery['dis_max']['queries'][] = array(
                     'match' => array(
                         $fieldName  => array(
-                            'analyzer'      => 'standard',
+                            'analyzer'      => 'analyzer' . '_' .$this->getLanguageCode(),
                             'query'         => $queryText,
                             'boost'         => $currentField['weight'],
                             'fuzziness'     => $currentField['fuzziness'],

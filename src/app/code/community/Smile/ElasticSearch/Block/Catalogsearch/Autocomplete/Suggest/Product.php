@@ -16,9 +16,14 @@
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
  */
-class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product extends Mage_Core_Block_Template
+class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product extends Mage_Catalog_Block_Product_Abstract
 {
     const AUTOCOMPLETE_ATTRIBUTES_XPATH = 'global/smile_elasticsearch/autocomplete/product/attributes';
+
+    /**
+     * @var Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
+     */
+    protected $_collection;
 
     /**
      * Check if the block is active or not. Block is disabled if :
@@ -40,21 +45,52 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product exten
      */
     public function getProductCollection()
     {
-        $attributes = array_keys(Mage::getConfig()->getNode(self::AUTOCOMPLETE_ATTRIBUTES_XPATH)->asArray());
 
-        $collection = Mage::getResourceModel('smile_elasticsearch/catalog_product_suggest_collection')
-            ->setEngine(Mage::helper('catalogsearch')->getEngine())
-            ->setStoreId(Mage::app()->getStore()->getId())
-            ->setPageSize(10)
-            ->addAttributeToSelect(Mage::getSingleton('catalog/config')->getProductAttributes())
-            ->addAttributeToSelect($attributes)
-            ->addSuggestFilter($this->_getQuery())
-            ->addMinimalPrice()
-            ->addFinalPrice()
-            ->addTaxPercents()
-            ->addUrlRewrite();
+        if ($this->_collection === null) {
 
-        return $collection;
+            $attributes = array_keys(Mage::getConfig()->getNode(self::AUTOCOMPLETE_ATTRIBUTES_XPATH)->asArray());
+            $maxSize = $this->getMaxSize();
+
+            $collection = Mage::getResourceModel('smile_elasticsearch/catalog_product_suggest_collection')
+                ->setEngine(Mage::helper('catalogsearch')->getEngine())
+                ->setStoreId(Mage::app()->getStore()->getId())
+                ->setPageSize($maxSize)
+                ->addAttributeToSelect(Mage::getSingleton('catalog/config')->getProductAttributes())
+                ->addAttributeToSelect($attributes)
+                ->addSearchFilter($this->_getQuery())
+                ->addMinimalPrice()
+                ->addFinalPrice()
+                ->addTaxPercents()
+                ->addUrlRewrite();
+
+            $query = $collection->getSearchEngineQuery();
+
+            $allowedVisibilities = Mage::getSingleton('catalog/product_visibility')->getVisibleInSearchIds();
+            $query->addFilter('terms', array('visibility' => $allowedVisibilities));
+
+            $allowedStatuses = Mage::getSingleton('catalog/product_status')->getVisibleStatusIds();
+            $query->addFilter('terms', array('status' => $allowedStatuses));
+
+            if (Mage::helper('cataloginventory')->isShowOutOfStock() == false) {
+                $query->addFilter('terms', array('in_stock' => 1));
+            }
+
+            $query->setQueryType('product_search_layer');
+
+            $this->_collection = $collection;
+        }
+
+        return $this->_collection;
+    }
+
+    /**
+     * Get number of suggestion to display
+     *
+     * @return int
+     */
+    public function getMaxSize()
+    {
+        return Mage::getStoreConfig('elasticsearch_advanced_search_settings/product_autocomplete/max_size');
     }
 
     /**

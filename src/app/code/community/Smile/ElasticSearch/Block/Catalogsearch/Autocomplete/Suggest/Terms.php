@@ -31,8 +31,9 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Terms extends
     public function getSuggestData()
     {
         if (!$this->_suggestData) {
+            $maxSize = $this->getMaxSize();
             $collection = $this->helper('catalogsearch')->getSuggestCollection();
-            $collection->setPageSize(10);
+            $collection->setPageSize($maxSize);
             $query = $this->helper('catalogsearch')->getQueryText();
             $counter = 0;
             $data = array();
@@ -53,4 +54,15 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Terms extends
         }
         return $this->_suggestData;
     }
+
+    /**
+     * Get number of suggestion to display
+     *
+     * @return int
+     */
+    public function getMaxSize()
+    {
+        return Mage::getStoreConfig('elasticsearch_advanced_search_settings/popular_terms_autocomplete/max_size');
+    }
+
 }

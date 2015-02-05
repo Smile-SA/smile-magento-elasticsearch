@@ -20,41 +20,84 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Category_Suggest_Collection
    extends Mage_Catalog_Model_Resource_Category_Collection
 {
     /**
-     * $_suggestQuery
-     */
-    protected $_suggestQuery = null;
-
-    /**
-     * $_suggestionsIds
-     */
-    protected $_suggestionsIds = null;
-
-    /**
-     * $_suggestionsOutput
-     */
-    protected $_suggestionsOutput = array();
-
-    /**
-     * $_engine
+     * @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch Search engine.
      */
     protected $_engine;
 
-    /**
-     * $_isSuggestionFilterSet
-     */
-    protected $_isSuggestionFilterSet = false;
+
+    protected $_searchEngineQuery = null;
 
     /**
-     * Register suggest input text.
-     *
-     * @param string $query The text input
-     *
-     * @return Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
+     * @var array Faceted data.
      */
-    public function addSuggestFilter($query)
+    protected $_facetedData = array();
+
+
+    /**
+     * @var array Search entity ids.
+     */
+    protected $_searchedEntityIds = array();
+
+    /**
+     * @var array Sort by definition.
+     */
+    protected $_sortBy = array();
+
+
+    /**
+     * Add some fields to filter.
+     *
+     * @param array $fields Field to be filtered and filter values
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Catalog_Category_Collection
+     */
+    public function addFieldsToFilter($fields)
     {
-        $this->_suggestQuery = $query;
         return $this;
+    }
+
+    /**
+     * Stores query text filter.
+     *
+     * @param string $query Fulltext search query to be applied
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Catalog_Category_Collection
+     */
+    public function addSearchFilter($query)
+    {
+        $this->getSearchEngineQuery()->setFulltextQuery($query);
+        return $this;
+    }
+
+
+    /**
+     * Returns faceted data.
+     *
+     * @param string $field Facet to be retrieved
+     *
+     * @return array
+     */
+    public function getFacetedData($field)
+    {
+        if (array_key_exists($field, $this->_facetedData)) {
+            return $this->_facetedData[$field];
+        }
+
+        return array();
+    }
+
+    /**
+     * Returns collection size.
+     *
+     * @return int
+     */
+    public function getSize()
+    {
+        if (is_null($this->_totalRecords)) {
+            $this->_beforeLoad();
+        }
+
+        return $this->_totalRecords;
     }
 
     /**
@@ -62,9 +105,9 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Category_Suggest_Collection
      *
      * @param Smile_ElasticSearch_Model_Resource_Engine_ElasticSearch $engine Search engine to be set
      *
-     * @return Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection
+     * @return Smile_ElasticSearch_Model_Resource_Catalog_Category_Collection
      */
-    public function setEngine(Smile_ElasticSearch_Model_Resource_Engine_ElasticSearch $engine)
+    public function setEngine(Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch $engine)
     {
         $this->_engine = $engine;
 
@@ -72,76 +115,117 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Category_Suggest_Collection
     }
 
     /**
-     * Get size of the csuggest collection
+     * Stores sort order.
      *
-     * @return int Size of the collection
+     * @param string $attribute Attribute name to sort by
+     * @param string $dir       Sort direction
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Catalog_Category_Collection
      */
-    public function getSize()
+    public function setOrder($attribute, $dir = self::SORT_ORDER_DESC)
     {
-        if ($this->_isSuggestionFilterSet === false) {
-            $this->addIdFilter($this->getSuggestionIds());
-            $this->_isSuggestionFilterSet = true;
-        }
-        return parent::getSize();
+        $this->_sortBy[] = array($attribute => $dir);
+
+        return $this;
     }
 
     /**
-     * Apply filters before load
+     * Reorder collection according to current sort order.
      *
-     * @return Mage_Catalog_Model_Resource_Product_Collection Self reference
-     */
-    protected function _beforeLoad()
-    {
-        if ($this->_isSuggestionFilterSet === false) {
-            $this->addIdFilter($this->getSuggestionIds());
-            $this->_isSuggestionFilterSet = true;
-        }
-        return parent::_beforeLoad();
-    }
-
-    /**
-     * Return ids of the suggested product
-     *
-     * @return array Ids of the selected products
-     */
-    public function getSuggestionIds()
-    {
-        if (is_null($this->_suggestionsIds) && !is_null($this->_suggestQuery)) {
-            $context = array('type' => 'category', 'store_id'  => $this->getStoreId(), 'visibility' => null, 'status' => 1);
-            $suggestions = $this->_engine->suggest($this->_suggestQuery, $context);
-            $idsFilter = array();
-            foreach ($suggestions as $suggestion) {
-                if (isset($suggestion['payload']) && isset($suggestion['payload']['entity_id'])) {
-                    $categoryId = $suggestion['payload']['entity_id'];
-                    $idsFilter[] = $categoryId;
-                    $this->_suggestionsOutput[$categoryId] = $suggestion['text'];
-                }
-            }
-
-            if (empty($idsFilter)) {
-                $idsFilter = array(0);
-            }
-
-            $this->_suggestionsIds = $idsFilter;
-        }
-
-        return $this->_suggestionsIds;
-    }
-
-    /**
-     * Load suggestion text into items
-     *
-     * @return Mage_Catalog_Model_Resource_Product_Collection Self reference
+     * @return Smile_ElasticSearch_Model_Resource_Catalog_Category_Collection
      */
     protected function _afterLoad()
     {
         parent::_afterLoad();
-
-        foreach ($this->_items as $item) {
-
-            $item->setOutputText($this->_suggestionsOutput[$item->getId()]);
+        if (!empty($this->_searchedEntityIds)) {
+            $sortedItems = array();
+            foreach ($this->_searchedEntityIds as $id) {
+                if (isset($this->_items[$id])) {
+                    $sortedItems[$id] = $this->_items[$id];
+                }
+            }
+            $this->_items = &$sortedItems;
         }
 
         return $this;
+    }
+
+    /**
+     * Handles collection filtering by ids retrieves from search engine.
+     * Will also stores faceted data and total records.
+     *
+     * @return Mage_Catalog_Model_Resource_Category_Collection
+     */
+    protected function _beforeLoad()
+    {
+        $this->_prepareQuery();
+
+        $ids = array();
+        $result = $this->getSearchEngineQuery()->search();
+        $ids = isset($result['ids']) ? $result['ids'] : array();
+        $this->_facetedData = isset($result['faceted_data']) ? $result['faceted_data'] : array();
+        $this->_totalRecords = isset($result['total_count']) ? $result['total_count'] : null;
+        $this->_isSpellChecked = isset($result['is_spellchecked']) ? $result['is_spellchecked'] : false;
+
+        if (empty($ids)) {
+            $ids = array(0); // Fix for no result
+        }
+
+        $this->addIdFilter($ids);
+        $this->_searchedEntityIds = $ids;
+        $this->_pageSize = false;
+
+        return parent::_beforeLoad();
+    }
+
+    /**
+     * Retrieves parameters.
+     *
+     * @return array
+     */
+    protected function _prepareQuery()
+    {
+        $query = $this->getSearchEngineQuery();
+
+        if (!empty($this->_sortBy)) {
+            $query->addSortOrder($this->_sortBy);
+        }
+
+        if ($this->_pageSize !== false && $this->_curPage !== false) {
+            $query->setPageParams($this->_curPage, $this->_pageSize);
+        }
+
+        if ($this->getStoreId()) {
+            $query->addFilter('terms', array('store_id' => $this->getStoreId()));
+        }
+    }
+
+    /**
+     * Get the ES query model associated with the category collection.
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
+     */
+    public function getSearchEngineQuery()
+    {
+        if ($this->_searchEngineQuery === null) {
+            $this->_searchEngineQuery = $this->_engine->createQuery('category', 'smile_elasticsearch/engine_elasticsearch_query_autocomplete');
+
+            if ($this->getStoreId()) {
+                $store = Mage::app()->getStore();
+                $this->_searchEngineQuery->setLanguageCode(Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store));
+            }
+        }
+
+        return $this->_searchEngineQuery;
+    }
+
+    /**
+     * Indicates if spellchecker the collection has exact matches or not.
+     *
+     * @return boolean
+     */
+    public function isSpellchecked()
+    {
+        return $this->getSearchEngineQuery()->isSpellchecked();
     }
 }
