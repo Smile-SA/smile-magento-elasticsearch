@@ -25,7 +25,7 @@ class Smile_Tracker_Block_Variables_Page_Base extends Smile_Tracker_Block_Variab
      */
     public function getVariables()
     {
-        return $this->getPageTypeInformations();;
+        return $this->getPageTypeInformations();
     }
 
     /**
@@ -101,7 +101,7 @@ class Smile_Tracker_Block_Variables_Page_Base extends Smile_Tracker_Block_Variab
                 foreach ($layoutHandlesArr as $node) {
                     $identifier = $node->getName();
                     $helper = Mage::helper(Mage_Core_Model_Layout::findTranslationModuleName($node));
-                    $labelByIdentifier[$identifier] = $this->helper('core')->jsQuoteEscape($helper->__((string)$node->label));
+                    $labelByIdentifier[$identifier] = $this->helper('core')->jsQuoteEscape($helper->__((string) $node->label));
                 }
             }
 
