@@ -242,7 +242,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
     /**
      * Add special attributes
      *
-     * @param array &$attributes List of existing attributes
+     * @param array $attributes List of existing attributes
      *
      * @return void
      */
