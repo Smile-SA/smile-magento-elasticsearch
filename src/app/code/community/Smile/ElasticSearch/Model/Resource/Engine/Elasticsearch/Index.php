@@ -24,6 +24,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
      */
     const COPY_DATA_BULK_SIZE = 1000;
 
+    /**
+     * @var string
+     */
     const MAPPING_CONF_ROOT_NODE = 'global/smile_elasticsearch/mapping';
 
     /**
@@ -31,6 +34,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
      */
     protected $_name;
 
+    /**
+     * @var array
+     */
     protected $_mappings = array();
 
     /**

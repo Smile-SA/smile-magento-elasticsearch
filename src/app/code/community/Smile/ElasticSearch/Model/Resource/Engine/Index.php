@@ -105,18 +105,20 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
      *
      * @return array
      */
-    function _getRatingData($storeId, $productIds)
+    protected function _getRatingData($storeId, $productIds)
     {
         $adapter = $this->_getWriteAdapter();
         $indexedRatingId = $this->_getDefaultRatingId($storeId);
 
         $result = array();
         if ($indexedRatingId !== false) {
-            $select = $adapter->select()
-            ->from(array('r' => $this->getTable('rating/rating_vote_aggregated')))
-            ->where('r.entity_pk_value IN (?)', $productIds)
-            ->where('r.rating_id = ?', $indexedRatingId)
-            ->where('store_id = ?', $storeId);
+
+            $select = $adapter->select();
+
+            $select->from(array('r' => $this->getTable('rating/rating_vote_aggregated')))
+                ->where('r.entity_pk_value IN (?)', $productIds)
+                ->where('r.rating_id = ?', $indexedRatingId)
+                ->where('store_id = ?', $storeId);
 
             foreach ($adapter->fetchAll($select) as $row) {
                 $productId = $row['entity_pk_value'];

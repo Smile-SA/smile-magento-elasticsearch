@@ -20,7 +20,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
 {
 
-
     /**
      * Build the fulltext query condition for the query.
      *
@@ -61,8 +60,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     /**
      * Retrieve the spelling part of a query through self::_analyzeQuerySpelling
      *
-     * @param string  $queryText    Text to be searched.
-     * @param array   $searchFields Search fields configuration.
+     * @param string $queryText    Text to be searched.
+     * @param array  $searchFields Search fields configuration.
      *
      * @return array
      */
@@ -122,7 +121,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         $response = $this->getClient()->search($query);
         Varien_Profiler::stop('ES:EXECUTE:SPELLING_QUERY');
 
-        foreach($response['suggest']['spelling'] as $token) {
+        foreach ($response['suggest']['spelling'] as $token) {
             if (empty($token['options'])) {
                 $result['matched'][] = Mage::helper('core/string')->substr($queryText, $token['offset'], $token['length']);
             } else {
@@ -137,12 +136,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     /**
      * Build the exact matches query part.
      *
-     * @param string  $queryText    Text to be searched.
-     * @param array   $searchFields Search fields configuration.
+     * @param string $queryText    Text to be searched.
+     * @param array  $searchFields Search fields configuration.
      *
      * @return array
      */
-    public function getExactMatchesQuery($queryText, $searchFields) {
+    public function getExactMatchesQuery($queryText, $searchFields)
+    {
 
         $query = array();
         $exactFields = array();
@@ -167,12 +167,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     /**
      * Build a fuzzy search query for a search term
      *
-     * @param string  $queryText    Text to be searched.
-     * @param array   $searchFields Search fields configuration.
+     * @param string $queryText    Text to be searched.
+     * @param array  $searchFields Search fields configuration.
      *
      * @return array
      */
-    public function getFuzzyMatchesQuery($queryText, $searchFields) {
+    public function getFuzzyMatchesQuery($queryText, $searchFields)
+    {
 
         $fuzzyQuery = array('dis_max' => array('tie_breaker' => 0));
 

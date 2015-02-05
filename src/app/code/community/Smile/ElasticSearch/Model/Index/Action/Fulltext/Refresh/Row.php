@@ -41,10 +41,10 @@ class Smile_ElasticSearch_Model_Index_Action_Fulltext_Refresh_Row
             $this->_setProductIdsFromParents();
             $productIds = array_merge($productIds, $this->_productIds);
 
-            $engine->cleanIndex(null,$productIds);
+            $engine->cleanIndex(null, $productIds);
             $engine->getCurrentIndex()
-                   ->getMapping('product')
-                   ->rebuildIndex(null, $productIds);
+                ->getMapping('product')
+                ->rebuildIndex(null, $productIds);
         }
 
         return $this;

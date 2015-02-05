@@ -125,9 +125,7 @@ class Smile_ElasticSearch_Model_Observer
             $client = Mage::getModel('enterprise_mview/client');
             $client->init('catalogsearch_fulltext');
 
-            $client->execute('enterprise_catalogsearch/index_action_fulltext_refresh_row', array(
-                'value' => $productIds,
-            ));
+            $client->execute('enterprise_catalogsearch/index_action_fulltext_refresh_row', array('value' => $productIds));
         }
 
         if ($helper->isActiveEngine()) {
@@ -176,9 +174,7 @@ class Smile_ElasticSearch_Model_Observer
             $client = Mage::getModel('enterprise_mview/client');
             $client->init('catalogsearch_fulltext');
 
-            $client->execute('enterprise_catalogsearch/index_action_fulltext_refresh_row', array(
-                'value' => $productIds,
-            ));
+            $client->execute('enterprise_catalogsearch/index_action_fulltext_refresh_row', array('value' => $productIds));
         }
     }
 

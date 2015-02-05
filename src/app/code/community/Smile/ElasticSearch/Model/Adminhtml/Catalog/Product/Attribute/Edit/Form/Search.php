@@ -16,6 +16,13 @@
 class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Search
 {
 
+    /**
+     * Append a new fieldset to the form
+     *
+     * @param Varien_Data_Form $form The modified form.
+     *
+     * @return Varien_Data_Form_Element_Fieldset
+     */
     protected function _getFieldset(Varien_Data_Form $form)
     {
         $config = array('legend'=>Mage::helper('smile_elasticsearch')->__('Search relevancy'));
@@ -92,7 +99,10 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
                     '</br>',
                     array(
                         Mage::helper('smile_elasticsearch')->__('A number between 0 and 1.'),
-                        Mage::helper('smile_elasticsearch')->__('See doc at <a href="%s" target="_blank">here</a> for more information', 'http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/common-options.html#_string_fields')
+                        Mage::helper('smile_elasticsearch')->__(
+                            'See doc at <a href="%s" target="_blank">here</a> for more information',
+                            'http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/common-options.html#_string_fields'
+                        )
                     )
                 )
             ),

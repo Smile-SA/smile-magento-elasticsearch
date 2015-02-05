@@ -72,9 +72,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Category
         }
 
         $select->where('e.entity_id>?', $lastId)
-               ->where('path like ?', $rootPath . '/%')
-               ->limit($limit)
-               ->order('e.entity_id');
+            ->where('path like ?', $rootPath . '/%')
+            ->limit($limit)
+            ->order('e.entity_id');
 
         $result = $adapter->fetchAll($select);
 

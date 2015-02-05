@@ -28,13 +28,18 @@ require_once 'vendor/autoload.php';
  * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
- *
  */
 class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
 {
 
+    /**
+     * @var string
+     */
     const CACHE_INDEX_PROPERTIES_ID = 'elasticsearch_index_properties';
 
+    /**
+     * @var string
+     */
     const UNIQUE_KEY = 'unique';
 
     /**
@@ -58,8 +63,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     );
 
     /**
-     *
-     * @var bool Stores search engine availibility
+     * @var bool
      */
     protected $_test = null;
 
@@ -121,7 +125,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
         $this->_config = new Varien_Object($config);
 
         $this->_client = new \Elasticsearch\Client(array('hosts' => $config['hosts'], 'logging' => false));
-        // parent::__construct($config);
+
         if (! isset($config['alias'])) {
             Mage::throwException('Alias must be defined for search engine client.');
         }
@@ -175,7 +179,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     {
         if (is_null($id)) {
             return $this;
-        }  else if (!is_array($id)) {
+        } else if (!is_array($id)) {
             $id = array($id);
         }
 
@@ -285,7 +289,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     /**
      * Return a new query instance
      *
-     * @param string $type Type of document for the query
+     * @param string $type  Type of document for the query.
+     * @param string $model Query model name (fulltext, autocomplete, ...).
      *
      * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
