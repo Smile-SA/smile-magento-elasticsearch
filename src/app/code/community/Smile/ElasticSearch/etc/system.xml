@@ -144,6 +144,84 @@
             <show_in_website>1</show_in_website>
             <show_in_store>1</show_in_store>
             <groups>
+                <fulltext_relevancy translate="label">
+                    <label>Fulltext relevancy</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>100</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <search_in_category_name translate="label comment" module="smile_elasticsearch">
+                            <label>Enable Search in categories name</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </search_in_category_name>
+                        <search_in_category_name_weight translate="label comment" module="smile_elasticsearch">
+                            <label>Category name weight</label>
+                            <frontend_type>text</frontend_type>
+                            <validate>required-entry</validate>
+                            <frontend_class>validate-number validate-greater-than-zero</frontend_class>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><search_in_category_name>1</search_in_category_name></depends>
+                        </search_in_category_name_weight>
+                        <search_in_category_name_enable_fuzzy translate="label comment" module="smile_elasticsearch">
+                            <label>Enable fuzzy search for category name</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>31</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><search_in_category_name>1</search_in_category_name></depends>
+                        </search_in_category_name_enable_fuzzy>
+                        <search_in_category_name_fuzziness translate="label comment" module="smile_elasticsearch">
+                            <label>Category name fuzziness value</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>32</sort_order>
+                            <validate>required-entry</validate>
+                            <frontend_class>validate-number validate-number-range number-range-0-1</frontend_class>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><search_in_category_name>1</search_in_category_name></depends>
+                            <comment>
+                                <![CDATA[A number between 0 and 1. See doc <a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/common-options.html#_string_fields" target="_blank">here</a> for more information']]>
+                            </comment>
+                        </search_in_category_name_fuzziness>
+                        <search_in_category_name_prefix_length translate="label comment" module="smile_elasticsearch">
+                            <label>Category name fuzziness prefix length</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>33</sort_order>
+                            <validate>required-entry</validate>
+                            <frontend_class>validate-digits validate-digits-range digits-range-0-9</frontend_class>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><search_in_category_name>1</search_in_category_name></depends>
+                            <comment>
+                                <![CDATA[A integer between 0 and 9. See doc <a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/common-options.html#_string_fields" target="_blank">here</a> for more information']]>
+                            </comment>
+                        </search_in_category_name_prefix_length>
+                        <search_in_category_name_use_in_autocomplete>
+                            <label>Use in autocomplete</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>31</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><search_in_category_name>1</search_in_category_name></depends>
+                        </search_in_category_name_use_in_autocomplete>
+                    </fields>
+                </fulltext_relevancy>
                 <popular_terms_autocomplete translate="label">
                     <label>Popular Searches Autocomplete</label>
                     <frontend_type>text</frontend_type>

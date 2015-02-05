@@ -56,7 +56,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         $mapping = parent::_getMappingProperties(true);
         $mapping['properties']['categories'] = array('type' => 'long');
         $mapping['properties']['in_stock']   = array('type' => 'integer');
-        $mapping['properties']['category_name']   = array('type' => 'string');
+
+        foreach (Mage::app()->getStores() as $store) {
+            $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
+            $fieldMapping = $this->_getStringMapping('category_name_' . $languageCode, $languageCode, 'varchar', false);
+        }
 
         // Append dynamic mapping for product category position field
         $fieldTemplate = array('match' => 'position_category_*', 'mapping' => array('type' => 'integer'));
@@ -141,6 +145,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
     {
         $index = Mage::getResourceSingleton('smile_elasticsearch/engine_index');
         $entityIndexes = $index->addAdvancedIndex($entityIndexes, $storeId);
+        $store = Mage::app()->getStore($storeId);
+        $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
+
+        foreach ($entityIndexes as &$entityIndex) {
+            if (isset($entityIndex['category_name'])) {
+                $entityIndex['category_name_' . $languageCode] = $entityIndex['category_name'];
+                unset($entityIndex['category_name']);
+            }
+        }
+
         return parent::_saveIndexes($storeId, $entityIndexes);
     }
 
@@ -157,6 +171,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
     {
         $children = array();
         $productTypes = array_keys(Mage::getModel('catalog/product_type')->getOptionArray());
+
         foreach ($productTypes as $productType) {
 
             $productEmulator = new Varien_Object();
@@ -198,5 +213,25 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         }
 
         return $children;
+    }
+
+    public function getSearchFields($localeCode)
+    {
+        $searchFields = parent::getSearchFields($localeCode);
+        $advancedSettingsPathPrefix = 'elasticsearch_advanced_search_settings/fulltext_relevancy/';
+        $searchInCategoryName = (bool) Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name');
+        if ($searchInCategoryName) {
+            $enableFuzzySearch = (bool) Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_enable_fuzzy');
+            $fuzziness = $enableFuzzySearch ? Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_fuzziness') : false;
+            $prefixLength = Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_prefix_length');
+            $usedInAutocomplete = (bool) Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_use_in_autocomplete');
+            $searchFields['category_name_' . $localeCode] = array(
+            	'weight'               => Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_weight'),
+                'fuzziness'            => $fuzziness,
+                'prefix_length'        => $prefixLength,
+                'used_in_autocomplete' => true
+            );
+        }
+        return $searchFields;
     }
 }
