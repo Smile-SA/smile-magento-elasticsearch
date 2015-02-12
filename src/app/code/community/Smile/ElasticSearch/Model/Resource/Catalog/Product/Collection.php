@@ -42,19 +42,6 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
      */
     protected $_sortBy = array();
 
-
-    /**
-     * Add some fields to filter.
-     *
-     * @param array $fields Field to be filtered and filter values
-     *
-     * @return Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection
-     */
-    public function addFieldsToFilter($fields)
-    {
-        return $this;
-    }
-
     /**
      * Stores query text filter.
      *
@@ -211,7 +198,7 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
             $this->_searchEngineQuery = $this->_engine->createQuery('product');
 
             if ($this->getStoreId()) {
-                $store = Mage::app()->getStore();
+                $store = Mage::app()->getStore($this->getStoreId());
                 $this->_searchEngineQuery->setLanguageCode(Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store));
             }
         }
