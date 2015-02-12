@@ -87,8 +87,7 @@ class Smile_VirtualCategories_Model_Resource_Catalog_VirtualCategory_Collection 
             $query = $engine->createQuery('product');
         }
 
-        $query->addFilter('terms', array('store_id' => $this->getProductStoreId())); //));
-
+        $query->addFilter('terms', array('store_id' => $this->getProductStoreId()));
 
         return $query;
     }
