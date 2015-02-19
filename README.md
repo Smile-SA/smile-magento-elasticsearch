@@ -26,10 +26,10 @@ FAQ
 
 Why choosing ElaticSearch instead of extending the SolR implementation shipped with Magento EE ?
 ------------------------------------------------------------------------------------------------
-First, ElasticSearch contains a lot more features usefull we need to achieve some features of the project :
+First, ElasticSearch contains a lot more useful features needed to achieve some features of the project :
 
-* Query language is more complete and allow us toi build very complex use case models
-* Rescoring used for behavorial content
+* Query language is more complete and allow us to build very complex use case models
+* Rescoring used for behavioral content
 * Ability to store many types of content into the same index (products, categories, ...)
 
 Into the future we plan to use even more features specific to ElasticSearch (percolation, aggregation), since they are very valuable into an eCommerce context.
@@ -39,11 +39,11 @@ In the end ES has a lot of advantages over SolR :
 * A strong momentum with a community providing a lot of support and extensions to the core offer
 * Supported by a commercial company
 * Very well documented (http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/) !!!
-* Built for distributed environnement, making easier to scale it up for our biggest clients
-* Built with replication features out of the box ensuring more security for the websites using the engine
+* Built for distributed environnement, making it easier to scale it up for our biggest clients
+* Built with replication features out of the box ensuring more stability for the websites using the engine
 
 
-Who is supporting the module ? What about upgrability ?
+Who is supporting the module ? What about upgradability ?
 -------------------------------------------------------
 
 Smile is supporting the module and ensure it is compatible with new Magento versions.
@@ -57,7 +57,7 @@ What is the project roadmap ?
 
 * More user behavior influence
 * Promotional rules influence on the search engine, Search engine based distance to promotion.
-* More website animation features to achieve a full searchandising suite (
+* More website animation features to achieve a full searchandising suite
 * Showcases based on widgets
 * Banners selection
 * Stamping based on rules (new product, special price, ...)
@@ -78,7 +78,7 @@ The module has been successfully deployed and tested against the following Magen
 Can I install it on my existing project ?
 -----------------------------------------
 
-If your project is using Magento EE >= 1.13 or Magento CE >= 1.8, the time you will need will depends only of the amount of custom developments you spent on SolR onto the project. The custom developments can be separated in two parts :
+If your project is using Magento EE >= 1.13 or Magento CE >= 1.8, the time you will need depends only on the amount of custom developments you spent on SolR onto the project. The custom developments can be separated in two parts :
 
 * Custom development replaced by new features of Magento ElasticSearch module (multiple facets, virtual categories, ...). You should disable this features into your old project and adapt the new version to you specific needs
 * Other features, you should be able to port with a very moderated effort (1 day / feature).
