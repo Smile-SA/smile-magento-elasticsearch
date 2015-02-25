@@ -1,0 +1,13 @@
+{
+    "name": "smile/elasticsearch",
+    "description": "Magento ElasticSearch Implementation",
+    "homepage": "https://github.com/Smile-SA/smile-magento-elasticsearch",
+    "license": "tobedefined",
+    "type": "magento-module",
+    "authors": [
+        {
+        	"name": "tobedefined",
+        	"email": "tobedefined"
+        }
+    ]
+}
