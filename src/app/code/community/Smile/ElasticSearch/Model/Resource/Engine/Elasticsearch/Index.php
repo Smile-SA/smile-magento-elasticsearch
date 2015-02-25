@@ -143,20 +143,22 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         foreach (Mage::app()->getStores() as $store) {
             /** @var $store Mage_Core_Model_Store */
             $languageCode = $helper->getLanguageCodeByStore($store);
-            $lang = Zend_Locale_Data::getContent('en_GB', 'language', $helper->getLanguageCodeByStore($store));
-            if (!in_array($lang, $this->_snowballLanguages)) {
-                continue; // language not present by default in elasticsearch
-            }
+            $lang = Zend_Locale_Data::getContent('en', 'language', $languageCode);
+
             $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode] = array(
                 'type' => 'custom',
                 'tokenizer' => 'standard',
-                'filter' => array('length', 'lowercase', 'snowball_' . $languageCode),
+                'filter' => array('length', 'lowercase'),
                 'char_filter' => array('html_strip')
             );
-            $indexSettings['analysis']['filter']['snowball_' . $languageCode] = array(
-                'type' => 'snowball',
-                'language' => $lang,
-            );
+
+            if (in_array($lang, $this->_snowballLanguages)) {
+                $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'][] = 'snowball_' . $languageCode;
+                $indexSettings['analysis']['filter']['snowball_' . $languageCode] = array(
+                    'type' => 'snowball',
+                    'language' => $lang,
+                );
+            }
         }
 
         if ($this->isIcuFoldingEnabled()) {
