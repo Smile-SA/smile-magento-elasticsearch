@@ -71,26 +71,9 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getLanguageCodeByLocaleCode($localeCode)
     {
-        $localeCode = (string) $localeCode;
-        if (!$localeCode) {
-            return false;
-        }
-
-        if (!isset($this->_languageCodes[$localeCode])) {
-            $languages = $this->getSupportedLanguages();
-            $this->_languageCodes[$localeCode] = false;
-            foreach ($languages as $code => $locales) {
-                if (is_array($locales)) {
-                    if (in_array($localeCode, $locales)) {
-                        $this->_languageCodes[$localeCode] = $code;
-                    }
-                } elseif ($localeCode == $locales) {
-                    $this->_languageCodes[$localeCode] = $code;
-                }
-            }
-        }
-
-        return $this->_languageCodes[$localeCode];
+        $localeCode = $localeCode;
+        $localeCodeParts = explode('_', $localeCode);
+        return current($localeCodeParts);
     }
 
     /**
@@ -130,69 +113,6 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
         $path = 'catalog/search/' . $field;
 
         return Mage::getStoreConfig($path, $store);
-    }
-
-
-    /**
-     * Defines supported languages for snowball filter.
-     *
-     * @return array
-     */
-    public function getSupportedLanguages()
-    {
-        $default = array(
-            /**
-             * SnowBall filter based
-             */
-            // Danish
-            'da' => 'da_DK',
-            // Dutch
-            'nl' => 'nl_NL',
-            // English
-            'en' => array('en_AU', 'en_CA', 'en_NZ', 'en_GB', 'en_US'),
-            // Finnish
-            'fi' => 'fi_FI',
-            // French
-            'fr' => array('fr_CA', 'fr_FR'),
-            // German
-            'de' => array('de_DE','de_DE','de_AT'),
-            // Hungarian
-            'hu' => 'hu_HU',
-            // Italian
-            'it' => array('it_IT','it_CH'),
-            // Norwegian
-            'nb' => array('nb_NO', 'nn_NO'),
-            // Portuguese
-            'pt' => array('pt_BR', 'pt_PT'),
-            // Romanian
-            'ro' => 'ro_RO',
-            // Russian
-            'ru' => 'ru_RU',
-            // Spanish
-            'es' => array('es_AR', 'es_CL', 'es_CO', 'es_CR', 'es_ES', 'es_MX', 'es_PA', 'es_PE', 'es_VE'),
-            // Swedish
-            'sv' => 'sv_SE',
-            // Turkish
-            'tr' => 'tr_TR',
-
-            /**
-             * Lucene class based
-             */
-            // Czech
-            'cs' => 'cs_CZ',
-            // Greek
-            'el' => 'el_GR',
-            // Thai
-            'th' => 'th_TH',
-            // Chinese
-            'zh' => array('zh_CN', 'zh_HK', 'zh_TW'),
-            // Japanese
-            'ja' => 'ja_JP',
-            // Korean
-            'ko' => 'ko_KR'
-        );
-
-        return $default;
     }
 
     /**
