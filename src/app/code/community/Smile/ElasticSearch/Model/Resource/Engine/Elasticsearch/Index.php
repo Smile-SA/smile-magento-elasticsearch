@@ -257,18 +257,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     }
 
     /**
-     * Checks if attribute is indexable.
-     *
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute Attribute
-     *
-     * @return bool
-     */
-    protected function _isAttributeIndexable($attribute)
-    {
-        return $this->_getHelper()->isAttributeIndexable($attribute);
-    }
-
-    /**
      * Prepare a new index for full reindex
      *
      * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter Self Reference
