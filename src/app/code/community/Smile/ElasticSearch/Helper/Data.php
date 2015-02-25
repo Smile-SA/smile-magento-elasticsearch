@@ -27,16 +27,6 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
     protected $_languageCodes = array();
 
     /**
-     * Text field types.
-     *
-     * @var array
-     */
-    protected $_textFieldTypes = array(
-        'text',
-        'varchar',
-    );
-
-    /**
      * Returns cache lifetime in seconds.
      *
      * @return int
@@ -70,16 +60,6 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
         }
 
         return $data;
-    }
-
-    /**
-     * Returns EAV config singleton.
-     *
-     * @return Mage_Eav_Model_Config
-     */
-    public function getEavConfig()
-    {
-        return Mage::getSingleton('eav/config');
     }
 
     /**
@@ -231,49 +211,6 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
         }
 
         return false;
-    }
-
-    /**
-     * Checks if specified attribute is indexable by search engine.
-     *
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute Attribute to be tested
-     *
-     * @return bool
-     */
-    public function isAttributeIndexable($attribute)
-    {
-        if ($attribute->getBackendType() == 'varchar' && !$attribute->getBackendModel()) {
-            return true;
-        }
-
-        if ($attribute->getBackendType() == 'int'
-            && $attribute->getSourceModel() != 'eav/entity_attribute_source_boolean'
-            && ($attribute->getIsSearchable() || $attribute->getIsFilterable() || $attribute->getIsFilterableInSearch())
-        ) {
-            return true;
-        }
-
-        if ($attribute->getIsSearchable() || $attribute->getIsFilterable() || $attribute->getIsFilterableInSearch()) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Checks if specified attribute is using options.
-     *
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute Attribute to be tested
-     *
-     * @return bool
-     */
-    public function isAttributeUsingOptions($attribute)
-    {
-        $model = Mage::getModel($attribute->getSourceModel());
-
-        return $attribute->usesSource() &&
-               $attribute->getBackendType() == 'int' &&
-               $model instanceof Mage_Eav_Model_Entity_Attribute_Source_Table;
     }
 
     /**
