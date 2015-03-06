@@ -633,6 +633,13 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $attributes = Mage::getResourceModel($this->_attributeCollectionModel)
                 ->setEntityTypeFilter($entityType->getEntityTypeId());
 
+            $conditions = array(
+                'additional_table.is_searchable = 1',
+                'additional_table.is_used_in_autocomplete = 1',
+            );
+
+            $attributes->getSelect()->where(sprintf('(%s)', implode(' OR ', $conditions)));
+
             foreach ($attributes as $attribute) {
 
                 if ($attribute->getIsSearchable() || $attribute->getAttributeCode() == 'name') {
