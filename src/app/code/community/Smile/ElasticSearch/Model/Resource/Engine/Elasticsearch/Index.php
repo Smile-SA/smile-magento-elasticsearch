@@ -322,6 +322,27 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     }
 
     /**
+     * Load a mapping from ES.
+     *
+     * @param string $type The type of document we want the mapping for.
+     *
+     * @return array|null
+     */
+    public function loadMappingPropertiesFromIndex($type)
+    {
+        $result = null;
+        $params = array('index'=> $this->getCurrentName());
+        if ($this->getClient()->indices()->exists($params)) {
+            $params['type'] = $type;
+            $mappings = $this->getClient()->indices()->getMapping($params);
+            if (isset($mappings[$this->getCurrentName()]['mappings'][$type])) {
+                $result = $mappings[$this->getCurrentName()]['mappings'][$type];
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Create document to index.
      *
      * @param string $id   Document Id
