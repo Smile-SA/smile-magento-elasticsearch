@@ -215,4 +215,28 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
     {
         return $this->getSearchEngineQuery()->isSpellchecked();
     }
+
+    /**
+     * Retrieve unique attribute set ids in collection
+     *
+     * @return array
+     */
+    public function getSetIds()
+    {
+        $searchQuery = clone $this->getSearchEngineQuery();
+
+        if ($this->getStoreId()) {
+            $searchQuery->addFilter('terms', array('store_id' => $this->getStoreId()));
+        }
+
+        $options = array('field' => 'attribute_set_id', 'size' => 1000);
+        $searchQuery->addFacet('attribute_set_id', 'terms', $options);
+
+        $searchQuery->setPageParams(0,0);
+
+        $resp = $searchQuery->search();
+
+        return array_keys($resp['faceted_data']['attribute_set_id']);
+    }
+
 }
