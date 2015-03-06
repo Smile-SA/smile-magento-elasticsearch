@@ -35,6 +35,12 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     protected $_authorizedBackendModels  = array();
 
     /**
+     * @var Store all attributes by ids
+     */
+    protected $_attributesById;
+
+
+    /**
      * Get mapping properties as stored into the index
      *
      * @return array
@@ -44,17 +50,14 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         $mapping = array('properties' => array());
 
         $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
-
-        $attributes = Mage::getResourceModel($this->_attributeCollectionModel)
-            ->setEntityTypeFilter($entityType->getEntityTypeId());
-
+        $attributes = $this->_getAttributesById();
         foreach ($attributes as $attribute) {
             $mapping['properties'] = array_merge($mapping['properties'], $this->_getAttributeMapping($attribute));
         }
 
-        $mapping['properties']['unique']   = array('type' => 'string');
-        $mapping['properties']['id']       = array('type' => 'long');
-        $mapping['properties']['store_id'] = array('type' => 'integer');
+        $mapping['properties']['unique']   = array('type' => 'string', 'stored' => false);
+        $mapping['properties']['id']       = array('type' => 'long', 'stored' => false);
+        $mapping['properties']['store_id'] = array('type' => 'integer', 'stored' => false);
 
         return $mapping;
     }
@@ -75,10 +78,10 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $type = $this->_getAttributeType($attribute);
 
             if ($type === 'string' && !$attribute->getBackendModel() && $attribute->getFrontendInput() != 'media_image') {
-                foreach (Mage::app()->getStores() as $store) {
-                    $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
+                foreach ($this->_stores as $store) {
+                    $languageCode = $this->_helper->getLanguageCodeByStore($store);
                     $fieldName = $attributeCode . '_' . $languageCode;
-                    $mapping[$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode);
+                    $mapping[$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode, 'stored' => false);
 
                     $multiTypeField = $attribute->getBackendType() == 'varchar' || $attribute->getBackendType() == 'text';
                     $multiTypeField = $multiTypeField && !($attribute->usesSource());
@@ -90,21 +93,22 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                             $type,
                             $attribute->getBackendType() == 'varchar'
                         );
-                        $mapping = array_merge($mapping, $fieldMapping);
+                        $mapping = $fieldMapping;
                     }
                 }
             } else if ($type === 'date') {
                 $mapping[$attributeCode] = array(
+                    'stored' => false,
                     'type' => $type,
                     'format' => implode('||', array(Varien_Date::DATETIME_INTERNAL_FORMAT, Varien_Date::DATE_INTERNAL_FORMAT))
                 );
             } else {
-                $mapping[$attributeCode] = array('type' => $type);
+                $mapping[$attributeCode] = array('type' => $type, 'stored' => false);
             }
 
             if ($attribute->usesSource()) {
-                foreach (Mage::app()->getStores() as $store) {
-                    $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
+                foreach ($this->_stores as $store) {
+                    $languageCode = $this->_helper->getLanguageCodeByStore($store);
                     $fieldName = 'options' . '_' .  $attributeCode . '_' . $languageCode;
                     $fieldMapping = $this->_getStringMapping($fieldName, $languageCode);
                     $mapping = array_merge($mapping, $fieldMapping);
@@ -140,8 +144,8 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             'edge_ngram_back' => array('norms' => array('enabled' => false, 'index_options' => "docs"))
         );
         $mapping[$fieldName] = array('type' => 'multi_field', 'fields' => array());
-        $mapping[$fieldName]['fields'][$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode);
-        $mapping[$fieldName]['fields']['untouched'] = array('type' => $type, 'index' => 'not_analyzed');
+        $mapping[$fieldName]['fields'][$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode, 'stored' => false);
+        $mapping[$fieldName]['fields']['untouched'] = array('type' => $type, 'index' => 'not_analyzed', 'stored' => false);
 
         foreach ($analyzers as $analyzer) {
             $mapping[$fieldName]['fields'][$analyzer] = array('type' => $type, 'analyzer' => $analyzer, 'stored' => false);
@@ -211,7 +215,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     public function rebuildIndex($storeId = null, $ids = null)
     {
         if (is_null($storeId)) {
-            $storeIds = array_keys(Mage::app()->getStores());
+            $storeIds = array_keys($this->_stores);
             foreach ($storeIds as $storeId) {
                 $this->_rebuildStoreIndex($storeId, $ids);
             }
@@ -257,7 +261,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         $store = Mage::app()->getStore($storeId);
         $websiteId = $store->getWebsiteId();
 
-        $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
+        $languageCode = $this->_helper->getLanguageCodeByStore($store);
 
         $dynamicFields = array();
         $attributesById = $this->_getAttributesById();
@@ -367,19 +371,25 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      */
     protected function _getAttributesById()
     {
-        $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
-        $attributes = Mage::getResourceModel($this->_attributeCollectionModel)
-            ->setEntityTypeFilter($entityType->getEntityTypeId());
+        if ($this->_attributesById === null) {
+            $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
+            $attributes = Mage::getResourceModel($this->_attributeCollectionModel)
+                ->setEntityTypeFilter($entityType->getEntityTypeId());
 
-        $attributesById = array();
+            if (method_exists($attributes, 'addToIndexFilter')) {
+                $attributes->addToIndexFilter();
+            }
 
-        foreach ($attributes as $attribute) {
-            if ($this->_canIndexAttribute($attribute) && $attribute->getBackendType() != 'static') {
-                $attributesById[$attribute->getAttributeId()] = $attribute;
+            $this->_attributesById = array();
+
+            foreach ($attributes as $attribute) {
+                if ($this->_canIndexAttribute($attribute)) {
+                    $this->_attributesById[$attribute->getAttributeId()] = $attribute;
+                }
             }
         }
 
-        return $attributesById;
+        return $this->_attributesById;
     }
 
     /**
@@ -637,7 +647,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                             'used_in_autocomplete' => (bool) $attribute->getIsUsedInAutocomplete()
                         );
 
-                        if ($this->_mapping['properties'][$field]['type'] == "multi_field") {
+                        if (isset($this->_mapping['properties'][$field]) && $this->_mapping['properties'][$field]['type'] == "multi_field") {
                             if ($attribute->getIsSnowballUsed()) {
                                 $this->_searchFields[$field] = $currentAttributeConfig;
                             }
