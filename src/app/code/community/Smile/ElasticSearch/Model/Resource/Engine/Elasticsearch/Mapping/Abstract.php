@@ -39,6 +39,25 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
     protected $_searchFields = null;
 
     /**
+     * @var array
+     */
+    protected $_stores = array();
+
+    /**
+     * @var Smile_ElasticSearch_Helper_Data
+     */
+    protected $_helper;
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->_stores = Mage::app()->getStores();
+        $this->_helper = Mage::helper('smile_elasticsearch');
+    }
+
+    /**
      * Set index type for the current mapping.
      *
      * @param string $type The new type.
@@ -124,16 +143,33 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
 
         if ($this->_mapping === null) {
 
-            $this->_mapping = $this->_getMappingProperties();
+            $this->_mapping = $this->_loadMappingFromIndex();
+
+            if ($this->_mapping === null) {
+                $this->_mapping = $this->_getMappingProperties();
+            }
+
             $mapping = serialize($this->_mapping);
 
             Mage::app()->saveCache(
                 $mapping, $cacheKey, array('CONFIG', 'EAV_ATTRIBUTE'),
-                Mage::helper('smile_elasticsearch')->getCacheLifetime()
+                $this->_helper->getCacheLifetime()
             );
         }
 
         return $this->_mapping;
+    }
+
+    /**
+     * Retrive the mapping of the current index.
+     *
+     * @return array|null
+     */
+    protected function _loadMappingFromIndex()
+    {
+        $engine = Mage::helper('catalogsearch')->getEngine();
+        $currentIndex = $engine->getCurrentIndex();
+        return $currentIndex->loadMappingPropertiesFromIndex($this->_type);
     }
 
     /**
