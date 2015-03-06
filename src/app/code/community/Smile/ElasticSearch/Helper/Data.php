@@ -85,7 +85,10 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getLanguageCodeByStore($store = null)
     {
-        return $this->getLanguageCodeByLocaleCode($this->getLocaleCode($store));
+        if (!isset($this->_languageCodes[$store->getStoreId()])) {
+            $this->_languageCodes[$store->getStoreId()] = $this->getLanguageCodeByLocaleCode($this->getLocaleCode($store));
+        }
+        return $this->_languageCodes[$store->getStoreId()];
     }
 
     /**
