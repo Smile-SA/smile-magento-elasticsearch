@@ -57,7 +57,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         $mapping['properties']['categories'] = array('type' => 'long');
         $mapping['properties']['in_stock']   = array('type' => 'integer');
 
-        foreach (Mage::app()->getStores() as $store) {
+        foreach ($this->_stores as $store) {
             $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
             $fieldMapping = $this->_getStringMapping('category_name_' . $languageCode, $languageCode, 'varchar', false);
         }
