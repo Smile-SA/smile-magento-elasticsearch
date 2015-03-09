@@ -221,9 +221,20 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
      */
     public function saveEntityIndexes($storeId, $indexes, $type = 'product')
     {
-        $docs = $this->_prepareDocs($indexes, $type);
+        $object = new Varien_Object();
+        $eventDatas = array(
+            'type'    => $type,
+            'indexes' => $object->setBulk($indexes),
+            'engine'  => $this,
+        );
+        Mage::dispatchEvent('search_engine_save_entity_index_before', $eventDatas);
+        Mage::dispatchEvent('search_engine_save_'.(string) $type.'_index_before', $eventDatas);
+
+        $docs = $this->_prepareDocs($object->getBulk(), $type);
         $this->getCurrentIndex()->addDocuments($docs);
 
+        Mage::dispatchEvent('search_engine_save_entity_index_after', $eventDatas);
+        Mage::dispatchEvent('search_engine_save_'.(string) $type.'_index_after', $eventDatas);
         return $this;
     }
 
