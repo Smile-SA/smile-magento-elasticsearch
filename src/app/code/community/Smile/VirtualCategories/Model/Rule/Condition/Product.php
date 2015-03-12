@@ -63,23 +63,9 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
      */
     public function loadAttributeOptions()
     {
-        $productAttributes = Mage::getResourceSingleton('catalog/product')
-            ->loadAllAttributes()
-            ->getAttributesByCode();
-
         $attributes = array();
-        foreach ($productAttributes as $attribute) {
-            foreach ($this->_isUsedForRuleProperty as $usedField) {
-                if (!$attribute->isAllowedForRuleCondition() || !$attribute->getDataUsingMethod($usedField)) {
-                    continue;
-                }
-                $attributes[$attribute->getAttributeCode()] = $attribute->getFrontendLabel();
-            }
-        }
-
-        $this->_addSpecialAttributes($attributes);
-
-        asort($attributes);
+        $attributeLoader = Mage::getSingleton('smile_virtualcategories/rule_condition_product_attribute');
+        $attributes = $attributeLoader->loadAttributeOptions();
         $this->setAttributeOption($attributes);
 
         return $this;
@@ -246,14 +232,14 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
      *
      * @return void
      */
-    protected function _addSpecialAttributes(array &$attributes)
+    /*protected function _addSpecialAttributes(array &$attributes)
     {
         $attributes['category_ids'] = Mage::helper('catalogrule')->__('Category');
         $attributes['in_stock'] = Mage::helper('smile_virtualcategories')->__('Only in stock products');
         $attributes['has_image'] = Mage::helper('smile_virtualcategories')->__('Only products with images');
         $attributes['has_discount'] = Mage::helper('smile_virtualcategories')->__('Only discounted products');
         $attributes['is_new'] = Mage::helper('smile_virtualcategories')->__('Only new products');
-    }
+    }*/
 
     /**
      * Return the ES field name to build filter.
