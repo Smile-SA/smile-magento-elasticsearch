@@ -66,7 +66,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         $fieldTemplate = array('match' => 'position_category_*', 'mapping' => array('type' => 'integer'));
         $mapping['dynamic_templates'][] = array('category_position' => $fieldTemplate);
 
-        return $mapping;
+        $object = new Varien_Object();
+        Mage::dispatchEvent('search_engine_product_mapping_properties', array('mapping' => $object->setBulk($mapping)));
+
+        return $object->getBulk();
     }
 
     /**
