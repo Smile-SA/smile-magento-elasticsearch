@@ -43,6 +43,11 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
     protected $_sortBy = array();
 
     /**
+     * @var array
+     */
+    protected $_productCountBySetId = null;
+
+    /**
      * Stores query text filter.
      *
      * @param string $query Fulltext search query to be applied
@@ -217,26 +222,40 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
     }
 
     /**
+     * Get product count by attribute set id.
+     *
+     * @return array
+     */
+    public function getProductCountBySetId()
+    {
+        if ($this->_productCountBySetId == null) {
+            $searchQuery = clone $this->getSearchEngineQuery();
+            $searchQuery->resetFacets()
+                        ->setQueryType(null);
+            if ($this->getStoreId()) {
+                $searchQuery->addFilter('terms', array('store_id' => $this->getStoreId()));
+            }
+
+            $options = array('field' => 'attribute_set_id', 'size' => 1000);
+            $searchQuery->addFacet('attribute_set_id', 'terms', $options);
+
+            $searchQuery->setPageParams(0,0);
+            $response = $searchQuery->search();
+
+            $this->_productCountBySetId = $response['faceted_data']['attribute_set_id'];
+        }
+
+        return $this->_productCountBySetId;
+    }
+
+    /**
      * Retrieve unique attribute set ids in collection
      *
      * @return array
      */
     public function getSetIds()
     {
-        $searchQuery = clone $this->getSearchEngineQuery();
-
-        if ($this->getStoreId()) {
-            $searchQuery->addFilter('terms', array('store_id' => $this->getStoreId()));
-        }
-
-        $options = array('field' => 'attribute_set_id', 'size' => 1000);
-        $searchQuery->addFacet('attribute_set_id', 'terms', $options);
-
-        $searchQuery->setPageParams(0,0);
-
-        $resp = $searchQuery->search();
-
-        return array_keys($resp['faceted_data']['attribute_set_id']);
+        return array_keys($this->getProductCountBySetId());
     }
 
 }

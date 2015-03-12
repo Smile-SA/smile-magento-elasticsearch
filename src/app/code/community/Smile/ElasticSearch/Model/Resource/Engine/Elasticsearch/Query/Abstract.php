@@ -596,4 +596,15 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
     {
         return $this->_isSpellChecked;
     }
+
+    /**
+     * Allow to reset the facet for a query.
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
+     */
+    public function resetFacets()
+    {
+        $this->_facets = array();
+        return $this;
+    }
 }

@@ -67,4 +67,42 @@ class Smile_ElasticSearch_Model_Catalogsearch_Layer extends Mage_CatalogSearch_M
 
         return parent::prepareProductCollection($collection);
     }
+
+    /**
+     * Get collection of all filterable attributes for layer products set
+     *
+     * @return Mage_Catalog_Model_Resource_Eav_Mysql4_Attribute_Collection
+     */
+    public function getFilterableAttributes()
+    {
+        $setIds = $this->_getSetIds();
+        if (!$setIds) {
+            return array();
+        }
+        /** @var $collection Mage_Catalog_Model_Resource_Product_Attribute_Collection */
+        $collection = Mage::getResourceModel('catalog/product_attribute_collection');
+        $collection
+            ->setItemObjectClass('catalog/resource_eav_attribute')
+            ->setAttributeSetFilter($setIds)
+            ->addStoreLabel(Mage::app()->getStore()->getId())
+            ->addSetInfo(true)
+            ->setOrder('position', 'ASC');
+
+        $collection = $this->_prepareAttributeCollection($collection);
+        $collection->load();
+
+        $setIdsWithProductCount = $this->getProductCollection()->getProductCountBySetId();
+        $totalSize = array_sum($setIdsWithProductCount);
+
+        foreach ($collection as $attribute) {
+            $currentAttributeSets = $attribute->getAttributeSetInfo();
+            $currentCountByAttributeSet = array_intersect_key($setIdsWithProductCount, $currentAttributeSets);
+            $countProduct = array_sum($currentCountByAttributeSet);
+            if ($countProduct < 0.9 * $totalSize) {
+                $collection->removeItemByKey($attribute->getAttributeId());
+            }
+        }
+
+        return $collection;
+    }
 }
