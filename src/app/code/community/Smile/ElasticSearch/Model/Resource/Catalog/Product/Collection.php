@@ -229,14 +229,20 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
     public function getProductCountBySetId()
     {
         if ($this->_productCountBySetId == null) {
+
             $searchQuery = clone $this->getSearchEngineQuery();
+
             $searchQuery->resetFacets()
-                        ->setQueryType(null);
+                ->setQueryType(null);
+
             if ($this->getStoreId()) {
                 $searchQuery->addFilter('terms', array('store_id' => $this->getStoreId()));
             }
 
-            $options = array('field' => 'attribute_set_id', 'size' => 1000);
+            $facetMaxSize = Mage::getResourceModel('eav/entity_attribute_set_collection')
+                ->getSize();
+
+            $options = array('field' => 'attribute_set_id', 'size' => $facetMaxSize);
             $searchQuery->addFacet('attribute_set_id', 'terms', $options);
 
             $searchQuery->setPageParams(0,0);
