@@ -63,6 +63,68 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
     }
 
     /**
+     * Filters applied to the layer should be added even if not meeting the coverage rate condition.
+     *
+     * @return array
+     */
+    protected function _addAppliedFilters()
+    {
+        $entityType = Mage_Catalog_Model_Product::ENTITY;
+        $filters = array();
+        foreach ($this->getRequest()->getParams() as $paramName => $value) {
+            $attribute = Mage::getSingleton('eav/config')->getAttribute($entityType, $paramName);
+            if ($attribute && $attribute->getId() && $attribute->getIsFilterableInSearch()) {
+                $filters[$attribute->getAttributeCode() . '_filter'] = $this->_addFilter($attribute);
+            }
+        }
+
+        return $filters;
+    }
+
+    /**
+     * Create the block filter for an attribute into the layer.
+     *
+     * @param Mage_Catalog_Model_Entity_Attribute $attribute Filtered attributes.
+     *
+     * @return Mage_Catalog_Block_Layer_Filter_Abstract
+     */
+    protected function _addFilter($attribute)
+    {
+        if ($attribute->getAttributeCode() == 'price') {
+            $filterBlockName = $this->_priceFilterBlockName;
+        } elseif ($attribute->getAttributeCode() == 'rating_filter') {
+            $filterBlockName = $this->_ratingFilterBlockName;
+        } elseif ($attribute->getSourceModel() == 'eav/entity_attribute_source_boolean') {
+            $filterBlockName = $this->_booleanFilterBlockName;
+        } elseif ($attribute->getBackendType() == 'decimal') {
+            $filterBlockName = $this->_decimalFilterBlockName;
+        } else {
+            $filterBlockName = $this->_attributeFilterBlockName;
+        }
+
+        $filter = $this->getLayout()->createBlock($filterBlockName)
+            ->setLayer($this->getLayer())
+            ->setAttributeModel($attribute)
+            ->init();
+
+        return $filter;
+    }
+
+    /**
+     * Get all fiterable attributes of current category
+     *
+     * @return array
+     */
+    protected function _getFilterableAttributes()
+    {
+        $filterablesAttributes = parent::_getFilterableAttributes();
+        if (!is_array($filterablesAttributes)) {
+            $filterablesAttributes = $filterablesAttributes->getItems();
+        }
+        return $filterablesAttributes;
+    }
+
+    /**
      * Prepares layout if engine is active.
      * Difference between parent method is addFacetCondition() call on each created block.
      *
@@ -86,31 +148,16 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
             $this->setChild('layer_state', $stateBlock);
             $this->setChild('category_filter', $categoryBlock->addFacetCondition());
 
+            $filters = $this->_addAppliedFilters();
+
             $filterableAttributes = $this->_getFilterableAttributes();
 
-            $filters = array();
             foreach ($filterableAttributes as $attribute) {
-
-                if ($attribute->getAttributeCode() == 'price') {
-                    $filterBlockName = $this->_priceFilterBlockName;
-                } elseif ($attribute->getAttributeCode() == 'rating_filter') {
-                    $filterBlockName = $this->_ratingFilterBlockName;
-                } elseif ($attribute->getBackendType() == 'decimal') {
-                    $filterBlockName = $this->_decimalFilterBlockName;
-                } elseif ($attribute->getSourceModel() == 'eav/entity_attribute_source_boolean') {
-                    $filterBlockName = $this->_booleanFilterBlockName;
-                } else {
-                    $filterBlockName = $this->_attributeFilterBlockName;
+                $blockName = $attribute->getAttributeCode() . '_filter';
+                if (!array_key_exists($blockName, $filters)) {
+                    $filters[$blockName] = $this->_addFilter($attribute);
                 }
-
-                $filters[$attribute->getAttributeCode() . '_filter'] = $this->getLayout()->createBlock($filterBlockName)
-                    ->setLayer($this->getLayer())
-                    ->setAttributeModel($attribute)
-                    ->init();
-            }
-            //die;
-            foreach ($filters as $filterName => $block) {
-                $this->setChild($filterName, $block->addFacetCondition());
+                $this->setChild($blockName, $filters[$blockName]->addFacetCondition());
             }
 
             $this->getLayer()->apply();
