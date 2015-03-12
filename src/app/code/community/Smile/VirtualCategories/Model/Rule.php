@@ -141,9 +141,9 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
             if ($category->getIsVirtual()) {
                 $query = $this->getConditions()->getSearchQuery($excludedCategories);
             } else {
-                $query = array('categories:' . $category->getId());
-                $childrenQueries = $this->getChildrenCategoryQueries($excludedCategories);
-                $query = implode(' OR ', array_merge($query, $childrenQueries));
+                $query = '(categories:' . $category->getId() . ') OR (show_in_categories:' . $category->getId() . ')';
+                $childrenQueries = $this->getChildrenCategoryQueries($excludedCategories, true);
+                $query = implode(' OR ', array_merge(array($query), $childrenQueries));
             }
 
             if (empty($excludedCategories)) {
@@ -162,30 +162,40 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
      * - Used to build category facet
      * - Compute inhereted products queries
      *
-     * @param array $excludedCategories Indicates if some categories should be excluded (avoid infinite loops)
+     * @param array $excludedCategories Indicates if some categories should be excluded (avoid infinite loops).
+     * @param bool  $onlyVirtual        Indicates if you want to fetch only rules for children that are virtual categories.
+     * @param bool  $depth              Indicates if you want to fetch only rules for children with a max depth.
      *
      * @return array
      */
-    public function getChildrenCategoryQueries($excludedCategories = array())
+    public function getChildrenCategoryQueries($excludedCategories = array(), $onlyVirtual = false, $depth = false)
     {
         $queries = array();
 
         $rootCategory = $this->getCategory();
-        $childrenIds  = explode(',', $rootCategory->getChildren());
-        $childrenIds  = array_diff($childrenIds, $excludedCategories);
 
         $categories = Mage::getResourceModel('smile_virtualcategories/catalog_virtualCategory_collection')
             ->setStoreId($rootCategory->getStoreId())
             ->addIsActiveFilter()
-            ->addIdFilter($childrenIds)
+            ->addFieldToFilter('path', array('like' => $rootCategory->getPath() . '/%'))
             ->addAttributeToSelect('virtual_category');
 
+        if (!empty($excludedCategories)) {
+            $categories->addFieldToFilter('entity_id', array('nin' => $excludedCategories));
+        }
+
+        if ($depth !== false) {
+            $categories->addFieldToFilter('level', $rootCategory->getLevel() + 1);
+        }
+
         foreach ($categories as $currentCategory) {
-            $virtualRule = $currentCategory->getVirtualRule();
-            $query = $virtualRule->getSearchQuery($excludedCategories);
-            if ($query) {
-                $queries[$currentCategory->getId()] = '(' . $query . ')';
-                $this->addUsedCategoryIds($virtualRule->getUsedCategoryIds());
+            if ($currentCategory->getIsVirtual() || ($onlyVirtual == false)) {
+                $virtualRule = $currentCategory->getVirtualRule();
+                $query = $virtualRule->getSearchQuery($excludedCategories);
+                if ($query) {
+                    $queries[$currentCategory->getId()] = '(' . $query . ')';
+                    $this->addUsedCategoryIds($virtualRule->getUsedCategoryIds());
+                }
             }
         }
 
