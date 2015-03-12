@@ -98,7 +98,8 @@ class Smile_ElasticSearch_Model_Catalogsearch_Layer extends Mage_CatalogSearch_M
             $currentAttributeSets = $attribute->getAttributeSetInfo();
             $currentCountByAttributeSet = array_intersect_key($setIdsWithProductCount, $currentAttributeSets);
             $countProduct = array_sum($currentCountByAttributeSet);
-            if ($countProduct < 0.9 * $totalSize) {
+
+            if ($countProduct < ($attribute->getFacetMinCoverageRate() / 100) * $totalSize) {
                 $collection->removeItemByKey($attribute->getAttributeId());
             }
         }

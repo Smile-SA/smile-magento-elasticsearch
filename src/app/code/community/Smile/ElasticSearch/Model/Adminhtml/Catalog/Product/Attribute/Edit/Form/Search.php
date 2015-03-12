@@ -127,6 +127,20 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
             'fuzziness_value'
         );
 
+        $fieldset->addField(
+            'facet_min_coverage_rate',
+            'text',
+            array(
+                'name'  => 'facet_min_coverage_rate',
+                'label' => Mage::helper('smile_elasticsearch')->__('Facet coverage rate'),
+                'class' => 'validate-digits validate-digits-range digits-range-0-100',
+                'note'  => Mage::helper('smile_elasticsearch')->__(
+                    'Ex: Brand facet will be displayed only if 90% of the product have a brand.'
+                )
+            ),
+            'fuzziness_prefix_length'
+        );
+
 
         if ($attribute->getAttributeCode() == 'name') {
             $form->getElement('is_searchable')->setDisabled(1);
