@@ -47,12 +47,20 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      */
     protected function _getMappingProperties()
     {
-        $mapping = array('properties' => array());
+        $mapping = array(
+            //'_all' => array('enabled' => false),
+            'properties' => array()
+        );
 
         $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
         $attributes = $this->_getAttributesById();
         foreach ($attributes as $attribute) {
             $mapping['properties'] = array_merge($mapping['properties'], $this->_getAttributeMapping($attribute));
+        }
+
+        foreach ($this->_stores as $store) {
+            $languageCode = $this->_helper->getLanguageCodeByStore($store);
+            $mapping['properties']['spelling_' . $languageCode] = array('type' => 'string', 'analyzer' => 'shingle', 'stored' => false);
         }
 
         $mapping['properties']['unique']   = array('type' => 'string', 'stored' => false);
@@ -91,7 +99,8 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                             $fieldName,
                             $languageCode,
                             $type,
-                            $attribute->getBackendType() == 'varchar'
+                            $attribute->getBackendType() == 'varchar',
+                            $attribute->getIsFuzzinessEnabled()
                         );
                         $mapping = $fieldMapping;
                     }
@@ -129,7 +138,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      *
      * @return array string
      */
-    protected function _getStringMapping($fieldName, $languageCode, $type = 'string', $sortable = false)
+    protected function _getStringMapping($fieldName, $languageCode, $type = 'string', $sortable = false, $fuzzy = true)
     {
         $mapping = array();
 
@@ -153,6 +162,10 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             if (isset($analyzersOptions[$analyzer])) {
                 $mapping[$fieldName]['fields'][$analyzer] = array_merge($mapping[$fieldName]['fields'][$analyzer], $analyzersOptions[$analyzer]);
             }
+        }
+
+        if ($fuzzy) {
+            $mapping[$fieldName]['fields'][$fieldName]['copy_to'] = 'spelling_' . $languageCode;
         }
 
         return $mapping;

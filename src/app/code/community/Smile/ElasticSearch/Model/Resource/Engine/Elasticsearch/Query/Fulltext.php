@@ -45,7 +45,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
 
             if (isset($spellingParts['unmatched']) && !empty($spellingParts['unmatched'])) {
                 foreach ($spellingParts['unmatched'] as $fuzzyQueryText) {
-                    $query['bool']['must'][] = $this->getFuzzyMatchesQuery($fuzzyQueryText, $searchFields);
+                    $query['bool']['should'][] = $this->getFuzzyMatchesQuery($fuzzyQueryText, $searchFields);
                 }
             }
 
@@ -111,9 +111,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         $query['body']['suggest']['spelling'] = array(
             'text' => $queryText,
             'term' => array(
-                'field'           => '_all',
+                'field'           => 'spelling_' . $this->getLanguageCode(),
                 'min_word_length' => 2,
-                'analyzer'        => 'whitespace'
+                'analyzer'        => 'whitespace',
             )
         );
 

@@ -234,37 +234,37 @@
                     <analyzer>
                         <whitespace>
                             <tokenizer>standard</tokenizer>
-                            <filter>ascii_folding,lowercase,trim</filter>
+                            <filter>lowercase,ascii_folding,trim</filter>
                             <char_filter>html_strip</char_filter>
                         </whitespace>
                         <edge_ngram_front>
                             <tokenizer>standard</tokenizer>
-                            <filter>length,ascii_folding,lowercase,trim,edge_ngram_front</filter>
+                            <filter>ascii_folding,length,lowercase,trim,edge_ngram_front</filter>
                             <char_filter>html_strip</char_filter>
                         </edge_ngram_front>
                         <edge_ngram_back>
                             <tokenizer>standard</tokenizer>
-                            <filter>length,ascii_folding,lowercase,trim,edge_ngram_back</filter>
+                            <filter>ascii_folding,length,lowercase,trim,edge_ngram_back</filter>
                             <char_filter>html_strip</char_filter>
                         </edge_ngram_back>
                         <edge_ngram_front_strip_apos_and_ws>
                             <tokenizer>standard</tokenizer>
-                            <filter>shingle,length,edge_ngram_front,strip_apostrophes,strip_whitespaces,ascii_folding,lowercase,trim</filter>
+                            <filter>shingle,length,edge_ngram_front,strip_apostrophes,strip_whitespaces,lowercase,ascii_folding,trim</filter>
                             <char_filter>html_strip</char_filter>
                         </edge_ngram_front_strip_apos_and_ws>
                         <shingle>
                             <tokenizer>standard</tokenizer>
-                            <filter>shingle,length,ascii_folding,lowercase,trim</filter>
+                            <filter>shingle,length,lowercase,ascii_folding,trim</filter>
                             <char_filter>html_strip</char_filter>
                         </shingle>
                         <shingle_strip_apos_and_ws>
                             <tokenizer>standard</tokenizer>
-                            <filter>shingle,strip_apostrophes,strip_whitespaces,length,ascii_folding,lowercase,trim</filter>
+                            <filter>shingle,strip_apostrophes,strip_whitespaces,length,lowercase,ascii_folding,trim</filter>
                             <char_filter>html_strip</char_filter>
                         </shingle_strip_apos_and_ws>
                         <sortable>
                             <tokenizer>keyword</tokenizer>
-                            <filter>ascii_folding,lowercase,trim</filter>
+                            <filter>lowercase,ascii_folding,trim</filter>
                             <char_filter>html_strip</char_filter>
                         </sortable>
                     </analyzer>
@@ -302,7 +302,7 @@
                         </length>
                         <ascii_folding>
                             <type>asciifolding</type>
-                            <preserve_original>2</preserve_original>
+                            <preserve_original>0</preserve_original>
                         </ascii_folding>
                     </filter>
                 </elasticsearch_analysis_index_settings>
