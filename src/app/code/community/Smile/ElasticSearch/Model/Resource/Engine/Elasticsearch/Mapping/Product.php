@@ -59,7 +59,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
 
         foreach ($this->_stores as $store) {
             $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
-            $fieldMapping = $this->_getStringMapping('category_name_' . $languageCode, $languageCode, 'varchar', false);
+            $fieldMapping = $this->_getStringMapping('category_name_' . $languageCode, $languageCode, 'varchar', false, true);
         }
 
         // Append dynamic mapping for product category position field

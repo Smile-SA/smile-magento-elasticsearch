@@ -148,7 +148,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode] = array(
                 'type' => 'custom',
                 'tokenizer' => 'standard',
-                'filter' => array('length', 'lowercase'),
+                'filter' => array('length', 'lowercase', 'asciifolding'),
                 'char_filter' => array('html_strip')
             );
 
@@ -164,6 +164,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         if ($this->isIcuFoldingEnabled()) {
             foreach ($indexSettings['analysis']['analyzer'] as &$analyzer) {
                 array_unshift($analyzer['filter'], 'icu_folding');
+                array_unshift($analyzer['filter'], 'icu_normalizer');
             }
             unset($analyzer);
         }
