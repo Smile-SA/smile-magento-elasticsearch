@@ -51,12 +51,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
 
             if (isset($spellingParts['autocomplete']) && !empty($spellingParts['autocomplete'])) {
 
+                $autocompleteText = $spellingParts['autocomplete'];
                 $fuzzyAutocompleteQuery = array(
                     'multi_match' => array(
-                        'analyzer' => 'analyzer_' . $this->getLanguageCode(),
-                        'query'   => $spellingParts['autocomplete'],
-                        'fields'  => $this->getAutocompleSearchFields(),
-                        'type'    => 'most_fields'
+                        'analyzer' => strlen($autocompleteText) > 1 ? 'analyzer_' . $this->getLanguageCode() : 'standard',
+                        'query'    => $autocompleteText,
+                        'fields'   => $this->getAutocompleSearchFields(),
+                        'type'     => 'most_fields'
                     )
                 );
 
@@ -64,7 +65,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
                     $fuzzyAutocompleteQuery['multi_match']['fuzziness'] = 0.75;
                 }
 
-                $query['bool']['must'][] = $fuzzyAutocompleteQuery;
+                $query['bool']['should'][] = $fuzzyAutocompleteQuery;
             }
 
             $this->_fulltextQuery = $query;
@@ -134,17 +135,17 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
 
         if (count($queryTerms) > 1) {
             $query['body']['suggest']['spelling'] = array(
-                'text' => array_slice($queryTerms, 0, -1),
+                'text' => implode(' ', array_slice($queryTerms, 0, -1)),
                 'term' => array(
-                    'field'           => '_all',
-                    'min_word_length' => 2,
+                    'field'           => 'spelling_' . $this->getLanguageCode(),
+                    'min_word_length' => 1,
                     'analyzer'        => 'whitespace'
                 )
             );
         }
 
         $query['body']['aggs']['autocomplete'] = array(
-            'filter' => array('prefix' => ['_all' => strtolower(end($queryTerms))])
+            'filter' => array('prefix' => ['spelling_' . $this->getLanguageCode() => strtolower(end($queryTerms))])
         );
 
         Varien_Profiler::start('ES:EXECUTE:SPELLING_QUERY');
@@ -167,7 +168,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
         if (isset($response['aggregations']) && $response['aggregations']['autocomplete']['doc_count'] == 0) {
             $result['autocomplete_fuzzy'] = array_slice($queryTerms, -1, 1);
         }
-        $result['autocomplete'] = array_slice($queryTerms, -1, 1);
+        $result['autocomplete'] = current(array_slice($queryTerms, -1, 1));
 
         return $result;
     }
