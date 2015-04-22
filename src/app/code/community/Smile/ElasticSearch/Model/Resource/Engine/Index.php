@@ -169,7 +169,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         $helper->addGroupConcatColumn($select, 'parents', 'category_id', ' ', ',', 'is_parent = 1');
         $helper->addGroupConcatColumn($select, 'anchors', 'category_id', ' ', ',', 'is_parent = 0');
         $helper->addGroupConcatColumn($select, 'positions', array('category_id', 'position'), ' ', '_');
-        $helper->addGroupConcatColumn($select, 'category_name', new Zend_Db_Expr('IF(cat.category_id = 2, "", name.value)'), '|');
+        $helper->addGroupConcatColumn($select, 'category_name', new Zend_Db_Expr(
+             'IF(cat.category_id = 2 OR is_parent = 0, "", name.value)'), '|'
+        );
 
         $select  = $helper->getQueryUsingAnalyticFunction($select);
 
