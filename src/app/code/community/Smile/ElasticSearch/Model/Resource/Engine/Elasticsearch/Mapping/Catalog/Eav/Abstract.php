@@ -48,7 +48,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     protected function _getMappingProperties()
     {
         $mapping = array(
-            //'_all' => array('enabled' => false),
+            '_all' => array('enabled' => false),
             'properties' => array()
         );
 
@@ -119,7 +119,13 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 foreach ($this->_stores as $store) {
                     $languageCode = $this->_helper->getLanguageCodeByStore($store);
                     $fieldName = 'options' . '_' .  $attributeCode . '_' . $languageCode;
-                    $fieldMapping = $this->_getStringMapping($fieldName, $languageCode);
+                    $fieldMapping = $this->_getStringMapping(
+                        $fieldName,
+                        $languageCode,
+                        'string',
+                        true,
+                        $attribute->getIsFuzzinessEnabled()
+                    );
                     $mapping = array_merge($mapping, $fieldMapping);
                 }
             }
