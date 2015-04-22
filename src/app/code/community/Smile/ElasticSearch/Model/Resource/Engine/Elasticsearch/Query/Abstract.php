@@ -107,7 +107,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
     {
         if ($this->_languageCode == null) {
             $currentStore        = Mage::app()->getStore();
-            $this->_languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
+            $this->_languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($currentStore);
         }
         return $this->_languageCode;
     }
