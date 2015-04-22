@@ -364,11 +364,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             $headerData['_parent'] = $data['_parent'];
         }
 
-        $headerRow = json_encode(array('index' => $headerData));
-        $dataRow = json_encode($data);
+        $headerRow = array('index' => $headerData);
+        $dataRow = $data;
 
         $result = array($headerRow, $dataRow);
-        return implode("\n", $result);
+        return $result;
     }
 
     /**
@@ -384,15 +384,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     {
         try {
             if (!empty($docs)) {
-                $docs[] = '';
-                $bulkParams = array('body' => implode("\n", $docs));
+                $bulkParams = array('body' => $docs);
                 $ret = $this->getClient()->bulk($bulkParams);
             }
         } catch (Exception $e) {
             throw($e);
         }
-
-        $this->refresh();
 
         return $this;
     }
@@ -426,7 +423,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                     $data = $this->getClient()->scroll($scroller);
 
                     foreach ($data['hits']['hits'] as $item) {
-                        $docs[] = $this->createDocument($item['_id'], $item['_source'], 'stats');
+                        $docs = array_merge(
+                            $docs,
+                            $this->createDocument($item['_id'], $item['_source'], 'stats')
+                        );
                     }
 
                     $this->addDocuments($docs);
