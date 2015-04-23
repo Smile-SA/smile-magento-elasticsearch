@@ -63,9 +63,9 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $mapping['properties']['spelling_' . $languageCode] = array('type' => 'string', 'analyzer' => 'shingle', 'stored' => false);
         }
 
-        $mapping['properties']['unique']   = array('type' => 'string', 'stored' => false);
-        $mapping['properties']['id']       = array('type' => 'long', 'stored' => false);
-        $mapping['properties']['store_id'] = array('type' => 'integer', 'stored' => false);
+        $mapping['properties']['unique']   = array('type' => 'string', 'stored' => false, 'index' => 'not_analyzed');
+        $mapping['properties']['id']       = array('type' => 'long', 'stored' => false, 'index' => 'not_analyzed');
+        $mapping['properties']['store_id'] = array('type' => 'integer', 'stored' => false, 'index' => 'not_analyzed');
 
         return $mapping;
     }
@@ -100,7 +100,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                             $languageCode,
                             $type,
                             $attribute->getBackendType() == 'varchar',
-                            $attribute->getIsFuzzinessEnabled()
+                            (bool) $attribute->getIsFuzzinessEnabled()
                         );
                         $mapping = $fieldMapping;
                     }
@@ -124,7 +124,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                         $languageCode,
                         'string',
                         true,
-                        $attribute->getIsFuzzinessEnabled()
+                        (bool) $attribute->getIsFuzzinessEnabled()
                     );
                     $mapping = array_merge($mapping, $fieldMapping);
                 }
@@ -148,19 +148,16 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     {
         $mapping = array();
 
-        $analyzers = array('edge_ngram_front', 'edge_ngram_back', 'shingle');
+        $analyzers = array('shingle');
+
+        $mapping[$fieldName] = array('type' => 'multi_field', 'fields' => array());
+        $mapping[$fieldName]['fields'][$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode, 'stored' => false);
 
         if ($sortable == true) {
             $analyzers[] = 'sortable';
+            $analyzers[] = 'edge_ngram_front';
+            $mapping[$fieldName]['fields']['untouched'] = array('type' => $type, 'index' => 'not_analyzed', 'stored' => false, 'doc_values' => true);
         }
-
-        $analyzersOptions = array(
-            'edge_ngram_front' => array('norms' => array('enabled' => false, 'index_options' => 'docs')),
-            'edge_ngram_back' => array('norms' => array('enabled' => false, 'index_options' => "docs"))
-        );
-        $mapping[$fieldName] = array('type' => 'multi_field', 'fields' => array());
-        $mapping[$fieldName]['fields'][$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode, 'stored' => false);
-        $mapping[$fieldName]['fields']['untouched'] = array('type' => $type, 'index' => 'not_analyzed', 'stored' => false);
 
         foreach ($analyzers as $analyzer) {
             $mapping[$fieldName]['fields'][$analyzer] = array('type' => $type, 'analyzer' => $analyzer, 'stored' => false);
@@ -170,7 +167,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             }
         }
 
-        if ($fuzzy) {
+        if ($fuzzy == true) {
             $mapping[$fieldName]['fields'][$fieldName]['copy_to'] = 'spelling_' . $languageCode;
         }
 

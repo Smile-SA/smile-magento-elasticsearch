@@ -54,8 +54,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
     protected function _getMappingProperties()
     {
         $mapping = parent::_getMappingProperties(true);
-        $mapping['properties']['categories'] = array('type' => 'long');
-        $mapping['properties']['in_stock']   = array('type' => 'integer');
+        $mapping['properties']['categories'] = array('type' => 'long', 'doc_values' => true);
+        $mapping['properties']['show_in_categories'] = array('type' => 'long', 'doc_values' => true);
+        $mapping['properties']['in_stock']   = array('type' => 'integer', 'doc_values' => true);
 
         foreach ($this->_stores as $store) {
             $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
@@ -63,8 +64,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         }
 
         // Append dynamic mapping for product category position field
-        $fieldTemplate = array('match' => 'position_category_*', 'mapping' => array('type' => 'integer'));
+        $fieldTemplate = array('match' => 'position_category_*', 'mapping' => array('type' => 'integer', 'doc_values' => true));
         $mapping['dynamic_templates'][] = array('category_position' => $fieldTemplate);
+
+        $fieldTemplate = array('match' => 'price_*', 'mapping' => array('type' => 'double', 'doc_values' => true));
+        $mapping['dynamic_templates'][] = array('prices' => $fieldTemplate);
+
+        $fieldTemplate = array('match' => 'has_discount_*', 'mapping' => array('type' => 'boolean', 'doc_values' => true));
+        $mapping['dynamic_templates'][] = array('has_discount' => $fieldTemplate);
 
         $object = new Varien_Object();
         Mage::dispatchEvent('search_engine_product_mapping_properties', array('mapping' => $object->setBulk($mapping)));
