@@ -409,6 +409,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
     {
         $result = array();
         $hasRelevance = false;
+        $category = Mage::registry('current_category');
 
         foreach ($this->_sort as $sort) {
             $_sort = each($sort);
@@ -419,10 +420,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
                 // Score has to be reversed
                 $hasRelevance = true;
             } elseif ($sortField == 'position') {
-                $category = Mage::registry('current_category');
-                if ($category) {
-                    $sortField = 'position_category_' . Mage::registry('current_category')->getId();
-                } else {
+                if ($category == null) {
                     $sortField = '_score';
                     $sortType = $sortType == 'asc' ? 'desc' : 'asc';
                 }
@@ -434,9 +432,15 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
                 $sortField = $this->getMapping()->getFieldName($sortField, $this->getLanguageCode(), 'sort');
             }
 
-            $result[] = array(
-                $sortField => array('order' => trim(strtolower($sortType)), 'missing' => '_last', 'ignore_unmapped' => true)
-            );
+            $sortDefinition = array('order' => trim(strtolower($sortType)), 'missing' => '_last', 'ignore_unmapped' => true);
+
+            if ($sortField == 'position' && $category != null) {
+                $sortDefinition['nested_path'] = 'category_position';
+                $sortDefinition['nested_filter'] = array(
+                    'term' => array('category_id' => $category->getId())
+                );
+            }
+            $result[] = array($sortField => $sortDefinition);
         }
 
         if (!$hasRelevance) {

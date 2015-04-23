@@ -149,31 +149,35 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
     {
         $adapter = $this->_getWriteAdapter();
 
-        $columns = array('product_id' => 'product_id');
+        $columns = array('product_id' => 'catIndex.product_id');
 
         if ($visibility) {
             $columns[] = 'visibility';
         }
 
         $nameAttr = $this->_getCategoryNameAttribute();
-        $joinCond = $adapter->quoteInto(
-            'cat.category_id = name.entity_id AND name.attribute_id = ? AND name.store_id IN(0, cat.store_id)',
+        $joinNameCond = $adapter->quoteInto(
+            'catIndex.category_id = name.entity_id AND name.attribute_id = ? AND name.store_id IN(0, catIndex.store_id)',
             $nameAttr->getAttributeId()
+        );
+        $joinCatCond = $adapter->quoteInto(
+            'catIndex.category_id = cat.category_id AND catIndex.product_id = cat.product_id'
         );
 
         $select = $adapter->select()
-            ->from(array('cat'  => $this->getTable('catalog/category_product_index')), $columns)
-            ->join(array('name' => $nameAttr->getBackendTable()), $joinCond, array())
-            ->where('product_id IN (?)', $productIds)
-            ->where('cat.store_id = ?', $storeId)
-            ->group('product_id');
+            ->from(array('catIndex'  => $this->getTable('catalog/category_product_index')), $columns)
+            ->join(array('cat' => $this->getTable('catalog/category_product')), $joinCatCond, array())
+            ->join(array('name' => $nameAttr->getBackendTable()), $joinNameCond, array())
+            ->where('catIndex.product_id IN (?)', $productIds)
+            ->where('catIndex.store_id = ?', $storeId)
+            ->group('catIndex.product_id');
 
         $helper = Mage::getResourceHelper('core');
-        $helper->addGroupConcatColumn($select, 'parents', 'category_id', ' ', ',', 'is_parent = 1');
-        $helper->addGroupConcatColumn($select, 'anchors', 'category_id', ' ', ',', 'is_parent = 0');
-        $helper->addGroupConcatColumn($select, 'positions', array('category_id', 'position'), ' ', '_');
+        $helper->addGroupConcatColumn($select, 'parents', 'catIndex.category_id', ' ', ',', 'is_parent = 1');
+        $helper->addGroupConcatColumn($select, 'anchors', 'catIndex.category_id', ' ', ',', 'is_parent = 0');
+        $helper->addGroupConcatColumn($select, 'positions', array('catIndex.category_id', 'cat.position'), ' ', '_');
         $helper->addGroupConcatColumn($select, 'category_name', new Zend_Db_Expr(
-             'IF(cat.category_id = 2 OR is_parent = 0, "", name.value)'), '|'
+             'IF(catIndex.category_id = 2 OR is_parent = 0, "", name.value)'), '|'
         );
 
         $select  = $helper->getQueryUsingAnalyticFunction($select);
@@ -188,8 +192,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
 
             foreach (explode(' ', $row['positions']) as $value) {
                 list($categoryId, $position) = explode('_', $value);
-                $key = sprintf('position_category_%d', $categoryId);
-                $data[$key] = $position;
+                $data['category_position'][] = array(
+                    'category_id' => $categoryId,
+                    'position'    => $position
+                );
             }
             if ($visibility) {
                 $data['visibility'] = $row['visibility'];

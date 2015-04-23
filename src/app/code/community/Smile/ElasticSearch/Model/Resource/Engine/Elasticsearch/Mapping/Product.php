@@ -63,10 +63,19 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
             $fieldMapping = $this->_getStringMapping('category_name_' . $languageCode, $languageCode, 'string', false, true);
         }
 
-        // Append dynamic mapping for product category position field
-        $fieldTemplate = array('match' => 'position_category_*', 'mapping' => array('type' => 'integer', 'doc_values' => true));
-        $mapping['dynamic_templates'][] = array('category_position' => $fieldTemplate);
+        $mapping['properties']['category_position'] = array(
+            'type' => 'nested',
+            'properties' => array(
+                'category_id' => array('type' => 'long', 'doc_values' => true),
+                'position'    => array('type' => 'long', 'doc_values' => true)
+            )
+        );
 
+        // Append dynamic mapping for product category position field
+        /*$fieldTemplate = array('match' => 'position_category_*', 'mapping' => array('type' => 'integer', 'doc_values' => true));
+        $mapping['dynamic_templates'][] = array('category_position' => $fieldTemplate);*/
+
+        // Append dynamic mapping for product prices and discount fields
         $fieldTemplate = array('match' => 'price_*', 'mapping' => array('type' => 'double', 'doc_values' => true));
         $mapping['dynamic_templates'][] = array('prices' => $fieldTemplate);
 
