@@ -31,7 +31,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
 
         if ($this->_fulltextQuery && is_string($this->_fulltextQuery)) {
 
-            $query = array('bool' => array('disable_coord' => true));
+            $query = array();
             $queryText = $this->prepareFilterQueryText($this->_fulltextQuery);
             $searchFields = $this->getSearchFields();
 
@@ -54,7 +54,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
                 $autocompleteText = $spellingParts['autocomplete'];
                 $fuzzyAutocompleteQuery = array(
                     'multi_match' => array(
-                        'analyzer' => strlen($autocompleteText) > 1 ? 'analyzer_' . $this->getLanguageCode() : 'standard',
+                        'analyzer' => strlen($autocompleteText) > 1 ? 'edge_ngram_front' : 'whitespace',
                         'query'    => $autocompleteText,
                         'fields'   => $this->getAutocompleSearchFields(),
                         'type'     => 'most_fields'
@@ -62,10 +62,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
                 );
 
                 if (isset($spellingParts['autocomplete_fuzzy'])) {
-                    $fuzzyAutocompleteQuery['multi_match']['fuzziness'] = 0.75;
+                    $fuzzyAutocompleteQuery['multi_match']['fuzziness'] = 1 - 0.75;
                 }
 
-                $query['bool']['should'][] = $fuzzyAutocompleteQuery;
+                $query['bool']['must'][] = $fuzzyAutocompleteQuery;
             }
 
             $this->_fulltextQuery = $query;
@@ -198,7 +198,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
     public function getAutocompleSearchFields()
     {
 
-        $analyzers = array('edge_ngram_front', 'edge_ngram_back');
+        $analyzers = array('edge_ngram_front', 'shingle');
         $allFields = parent::getSearchFields();
         $searchFields = array();
 

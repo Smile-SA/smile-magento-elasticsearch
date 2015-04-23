@@ -187,7 +187,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                             'analyzer'      => 'analyzer' . '_' .$this->getLanguageCode(),
                             'query'         => $queryText,
                             'boost'         => $currentField['weight'],
-                            'fuzziness'     => $currentField['fuzziness'],
+                            'fuzziness'     => 1 - $currentField['fuzziness'],
                             'prefix_length' => $currentField['prefix_length'],
                         )
                     )
