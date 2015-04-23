@@ -46,9 +46,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
             if (isset($spellingParts['unmatched']) && !empty($spellingParts['unmatched'])) {
                 foreach ($spellingParts['unmatched'] as $fuzzyQueryText) {
                     $query['bool']['should'][] = $this->getFuzzyMatchesQuery($fuzzyQueryText, $searchFields);
+                    $query['bool']['minimum_should_match']  = "2<100% 100<50%";
                 }
             }
-
             $this->_fulltextQuery = $query;
         } else if (is_array($this->_fulltextQuery)) {
             $query = $this->_fulltextQuery;
