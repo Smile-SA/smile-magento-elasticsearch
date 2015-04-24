@@ -264,20 +264,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     }
 
     /**
-     * Adds advanced index fields to index data.
-     *
-     * @param array $index      Product data
-     * @param int   $storeId    Store id
-     * @param array $productIds Product ids
-     *
-     * @return array
-     */
-    public function addAdvancedIndex($index, $storeId, $productIds = null)
-    {
-        return Mage::getResourceSingleton('smile_elasticsearch/engine_index')->addAdvancedIndex($index, $storeId, $productIds);
-    }
-
-    /**
      * Returns advanced search results.
      *
      * @return Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection
