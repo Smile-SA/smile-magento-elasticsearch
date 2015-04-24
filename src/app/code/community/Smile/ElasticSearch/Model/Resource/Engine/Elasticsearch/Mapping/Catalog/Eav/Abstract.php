@@ -239,6 +239,8 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $this->_rebuildStoreIndex($storeId, $ids);
         }
 
+        $this->getCurrentIndex()->refresh();
+
         return $this;
     }
 
@@ -697,5 +699,5 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      *
      * @return array
      */
-    abstract protected function _getSearchableEntities($storeId, $ids = null, $lastId = 0, $limit = 100);
+    abstract protected function _getSearchableEntities($storeId, $ids = null, $lastId = 0);
 }

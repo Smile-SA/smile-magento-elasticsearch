@@ -130,7 +130,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
      */
     public function getMappingProperties($useCache = true)
     {
-        $indexName = Mage::helper('catalogsearch')->getEngine()->getCurrentIndex()->getCurrentName();
+        $indexName = $this->getCurrentIndex()->getCurrentName();
 
         $cacheKey = 'SEARCH_ENGINE_MAPPING_' . $indexName . $this->_type;
 
@@ -161,15 +161,35 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
     }
 
     /**
+     * Get the size of each bulk of product indexed
+     *
+     * @return int
+     */
+    protected function _getBatchIndexingSize()
+    {
+        return max(1, (int) Mage::getStoreConfig('catalog/search/elasticsearch_batch_indexing_size'));
+    }
+
+    /**
      * Retrive the mapping of the current index.
      *
      * @return array|null
      */
     protected function _loadMappingFromIndex()
     {
+        return $this->getCurrentIndex()->loadMappingPropertiesFromIndex($this->_type);
+    }
+
+
+    /**
+     * Return the current index.
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
+     */
+    public function getCurrentIndex()
+    {
         $engine = Mage::helper('catalogsearch')->getEngine();
-        $currentIndex = $engine->getCurrentIndex();
-        return $currentIndex->loadMappingPropertiesFromIndex($this->_type);
+        return $engine->getCurrentIndex();
     }
 
     /**

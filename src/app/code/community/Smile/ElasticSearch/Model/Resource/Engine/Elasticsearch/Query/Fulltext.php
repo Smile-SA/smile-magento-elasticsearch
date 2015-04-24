@@ -49,6 +49,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                     $query['bool']['minimum_should_match']  = "2<100% 100<50%";
                 }
             }
+
+            Mage::log($query);
+
             $this->_fulltextQuery = $query;
         } else if (is_array($this->_fulltextQuery)) {
             $query = $this->_fulltextQuery;
@@ -158,6 +161,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                 'type'                  => 'cross_fields',
                 'analyzer'              => 'analyzer' . '_' .$this->getLanguageCode(),
                 'minimum_should_match'  => "2<100% 100<50%",
+                "cutoff_frequency"      => 0.1
             )
         );
 
@@ -181,10 +185,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
 
             if ($currentField['fuzziness'] !== false) {
 
-                $fuzzyQuery['dis_max']['queries'][] = array(
+                $baseQuery = array(
                     'match' => array(
                         $fieldName  => array(
-                            'analyzer'      => 'analyzer' . '_' .$this->getLanguageCode(),
                             'query'         => $queryText,
                             'boost'         => $currentField['weight'],
                             'fuzziness'     => 1 - $currentField['fuzziness'],
@@ -192,6 +195,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                         )
                     )
                 );
+
+                $baseQuery['match'][$fieldName]['analyzer'] ='analyzer' . '_' . $this->getLanguageCode();
+                $fuzzyQuery['dis_max']['queries'][] = $baseQuery;
+
+                $baseQuery['match'][$fieldName]['analyzer'] ='shingle';
+                $fuzzyQuery['dis_max']['queries'][] = $baseQuery;
             }
         }
 

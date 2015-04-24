@@ -52,8 +52,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Category
      *
      * @return array
      */
-    protected function _getSearchableEntities($storeId, $ids = null, $lastId = 0, $limit = 100)
+    protected function _getSearchableEntities($storeId, $ids = null, $lastId = 0)
     {
+        $limit = $this->_getBatchIndexingSize();
         $rootCategoryId = Mage::app()->getStore($storeId)->getRootCategoryId();
         $rootCategory = Mage::getModel('catalog/category')->load($rootCategoryId);
         $rootPath = $rootCategory->getPath();

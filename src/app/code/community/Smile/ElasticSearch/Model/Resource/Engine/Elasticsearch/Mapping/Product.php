@@ -98,8 +98,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
      *
      * @return array
      */
-    protected function _getSearchableEntities($storeId, $ids = null, $lastId = 0, $limit = 100)
+    protected function _getSearchableEntities($storeId, $ids = null, $lastId = 0)
     {
+        $limit = $this->_getBatchIndexingSize();
+
         $websiteId = Mage::app()->getStore($storeId)->getWebsiteId();
         $adapter   = $this->getConnection();
 

@@ -230,6 +230,7 @@
                 <elasticsearch_enable_options_search>1</elasticsearch_enable_options_search>
                 <elasticsearch_enable_icu_folding>0</elasticsearch_enable_icu_folding>
                 <elasticsearch_min_category_filter_level>2</elasticsearch_min_category_filter_level>
+                <elasticsearch_batch_indexing_size>100</elasticsearch_batch_indexing_size>
                 <elasticsearch_analysis_index_settings>
                     <analyzer>
                         <whitespace>
