@@ -32,6 +32,26 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     /**
      * @var string
      */
+    const FULL_REINDEX_REFRESH_INTERVAL = '10s';
+
+    /**
+     * @var string
+     */
+    const DIFF_REINDEX_REFRESH_INTERVAL = '1s';
+
+    /**
+     * @var string
+     */
+    const FULL_REINDEX_MERGE_FACTOR = '20';
+
+    /**
+     * @var string
+     */
+    const DIFF_REINDEX_MERGE_FACTOR = '3';
+
+    /**
+     * @var string
+     */
     protected $_name;
 
     /**
@@ -121,6 +141,20 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         return $this;
     }
 
+    /**
+     * Optimizes index
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index Self reference
+     */
+    public function optimize()
+    {
+        $indices = $this->getClient()->indices();
+        $params  = array('index' => $this->getCurrentName());
+        if ($indices->exists($params)) {
+            $indices->optimize($params);
+        }
+        return $this;
+    }
 
     /**
      * Return index settings.
@@ -129,8 +163,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
      */
     protected function _getSettings()
     {
-        $indexSettings = array();
-        $indexSettings['number_of_replicas'] = (int) $this->getConfig('number_of_replicas');
+        $indexSettings = array(
+            'number_of_replicas'               => (int) $this->getConfig('number_of_replicas'),
+            "refresh_interval"                 => self::FULL_REINDEX_REFRESH_INTERVAL,
+            "merge.policy.merge_factor"        => self::FULL_REINDEX_MERGE_FACTOR,
+            "merge.scheduler.max_thread_count" => 1
+        );
 
         $indexSettings['analysis'] = $this->getConfig('analysis_index_settings');
         foreach ($indexSettings['analysis']['analyzer'] as &$analyzer) {
@@ -307,11 +345,21 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     public function installNewIndex()
     {
         if ($this->_indexNeedInstall) {
-
+            $this->optimize();
             Mage::dispatchEvent('smile_elasticsearch_index_install_before', array('index_name' => $this->getCurrentName()));
 
             $indices = $this->getClient()->indices();
             $alias = $this->getConfig('alias');
+            $indices->putSettings(
+                array(
+                    'index' => $this->getCurrentName(),
+                    'body'  => array(
+                        "refresh_interval"          => self::DIFF_REINDEX_REFRESH_INTERVAL,
+                        "merge.policy.merge_factor" => self::DIFF_REINDEX_MERGE_FACTOR,
+                    )
+                )
+            );
+
             $indices->putAlias(array('index' => $this->getCurrentName(), 'name' => $alias));
             $allIndices = $indices->getMapping(array('index'=> $alias));
             foreach (array_keys($allIndices) as $index) {
