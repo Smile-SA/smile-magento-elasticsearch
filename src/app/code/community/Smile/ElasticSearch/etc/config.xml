@@ -274,6 +274,7 @@
                             <type>shingle</type>
                             <min_shingle_size>2</min_shingle_size>
                             <max_shingle_size>10</max_shingle_size>
+                            <output_unigram>1</output_unigram>
                         </shingle>
                         <strip_whitespaces>
                             <type>pattern_replace</type>
