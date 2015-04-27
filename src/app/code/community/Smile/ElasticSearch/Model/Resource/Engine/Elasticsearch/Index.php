@@ -180,7 +180,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             );
         }
 
-        $availableFilters = array_keys($indexSettings['analysis']['filter']);
+        $availableFilters = array_merge('lowercase', 'length', array_keys($indexSettings['analysis']['filter']));
 
         foreach ($indexSettings['analysis']['analyzer'] as &$analyzer) {
             $analyzer['filter'] = isset($analyzer['filter']) ? explode(',', $analyzer['filter']) : array();
