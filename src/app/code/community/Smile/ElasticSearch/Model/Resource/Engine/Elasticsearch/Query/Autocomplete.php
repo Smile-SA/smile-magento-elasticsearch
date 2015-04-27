@@ -77,7 +77,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
                 );
 
                 if (isset($spellingParts['autocomplete_fuzzy'])) {
-                    $fuzzyAutocompleteQuery['multi_match']['fuzziness'] = 1 - $this->_getAutocompleteFuzziness();
+                    $fuzzyAutocompleteQuery['multi_match']['fuzziness'] = $this->_getAutocompleteFuzziness();
                 }
 
                 $query['bool']['must'][] = $fuzzyAutocompleteQuery;

@@ -37,7 +37,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         if ($this->_fulltextQuery && is_string($this->_fulltextQuery)) {
 
             $queryText = $this->prepareFilterQueryText($this->_fulltextQuery);
-            $query = array('bool' => array('disable_coord' => true));
+            $query = array('bool' => array());
             $searchFields = $this->getSearchFields();
 
             $spellingParts = $this->getSpellingParts($queryText, $searchFields);
@@ -49,7 +49,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
 
             if (isset($spellingParts['unmatched']) && !empty($spellingParts['unmatched'])) {
                 foreach ($spellingParts['unmatched'] as $fuzzyQueryText) {
-                    $query['bool']['must'][] = $this->getFuzzyMatchesQuery($fuzzyQueryText, $searchFields);
+                    $query['bool']['should'][] = $this->getFuzzyMatchesQuery($fuzzyQueryText, $searchFields);
                 }
             }
 
@@ -189,7 +189,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     public function getFuzzyMatchesQuery($queryText, $searchFields)
     {
 
-        $fuzzyQuery = array('dis_max' => array('tie_breaker' => 0));
+        $fuzzyQuery = array('dis_max' => array('tie_breaker' => 0.5));
 
         foreach ($searchFields as $fieldName => $currentField) {
 
@@ -200,7 +200,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                         $fieldName  => array(
                             'query'         => $queryText,
                             'boost'         => $currentField['weight'],
-                            'fuzziness'     => 1 - $currentField['fuzziness'],
+                            'fuzziness'     => $currentField['fuzziness'],
                             'prefix_length' => $currentField['prefix_length'],
                         )
                     )
