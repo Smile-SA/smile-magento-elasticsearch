@@ -184,7 +184,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
 
         foreach ($indexSettings['analysis']['analyzer'] as &$analyzer) {
             $analyzer['filter'] = isset($analyzer['filter']) ? explode(',', $analyzer['filter']) : array();
-            $analyzer['filter'] = array_intersect($availableFilters, $analyzer['filter']);
+            $analyzer['filter'] = array_values(array_intersect($availableFilters, $analyzer['filter']));
             $analyzer['char_filter'] = isset($analyzer['char_filter']) ? explode(',', $analyzer['char_filter']) : array();
         }
 
@@ -202,9 +202,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                 'char_filter' => array('html_strip')
             );
 
-            $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'] = array_intersect(
-                $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'],
-                $availableFilters
+            $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'] = array_values(
+                array_intersect(
+                    $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'],
+                    $availableFilters
+                )
             );
 
             if (in_array($lang, $this->_snowballLanguages)) {
