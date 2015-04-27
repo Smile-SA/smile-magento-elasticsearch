@@ -54,8 +54,8 @@ public class CollectRestHandler extends BaseRestHandler {
 	 * @param controller Controller where to append the REST route.
 	 */
     @Inject
-    public CollectRestHandler(Settings settings, Client client, RestController controller) {
-    	super(settings, client);
+    public CollectRestHandler(Settings settings, RestController controller, Client client) {
+        super(settings, controller, client);
         controller.registerHandler(GET, "/tracker/hit", this);
         indexer = new Indexer(client);
         indexer.start();
@@ -67,9 +67,9 @@ public class CollectRestHandler extends BaseRestHandler {
      * @param request Request to be proccessed.
      * @param channel Response channel.
      */
-    public void handleRequest(final RestRequest request, final RestChannel channel) {
-    	CollectRestHandler.Buffer.addQuery(request.params());
-    	BytesRestResponse resp = new BytesRestResponse(OK, PNG_CONTENT_TYPE, getEmptyImage());
+    public void handleRequest(RestRequest request, RestChannel channel, Client client) throws Exception {
+        CollectRestHandler.Buffer.addQuery(request.params());
+        BytesRestResponse resp = new BytesRestResponse(OK, PNG_CONTENT_TYPE, getEmptyImage());
         channel.sendResponse(resp);
     }
     

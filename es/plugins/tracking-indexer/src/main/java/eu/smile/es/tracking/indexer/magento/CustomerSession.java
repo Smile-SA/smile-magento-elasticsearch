@@ -47,7 +47,8 @@ public class CustomerSession extends Processor {
 		try {;
 			UpdateRequest request = new UpdateRequest(this.getIndexName(), "session", data.get("session.uid"));
 			Map<String, Object> pageData = getPageParams(data);
-			request.script(this.script, pageData);
+			request.script(this.script);
+			request.scriptParams(pageData);
 			request.upsert(getSessionData(data, pageData));
 			indexer.addRequestToBulk(request);
 		} catch (IOException e) {

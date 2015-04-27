@@ -33,7 +33,7 @@ public class TrackingIndexerPlugin extends AbstractPlugin {
 	 * Returns the name of the plugin.
 	 */
 	public String name() {
-		return "Smile tracking indexer";
+		return "eu.smile.es/tracking-indexer/1.0";
 	}
 	
 	/**
