@@ -171,6 +171,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         );
 
         $indexSettings['analysis'] = $this->getConfig('analysis_index_settings');
+
+        $indexSettings['analysis']['filter']['synonym'] = array(
+            'type'     => 'synonym',
+            'synonyms' => Mage::getResourceModel('smile_elasticsearch/catalogSearch_synonym_collection')->exportSynonymList()
+        );
+
         foreach ($indexSettings['analysis']['analyzer'] as &$analyzer) {
             $analyzer['filter'] = isset($analyzer['filter']) ? explode(',', $analyzer['filter']) : array();
             $analyzer['char_filter'] = isset($analyzer['char_filter']) ? explode(',', $analyzer['char_filter']) : array();
@@ -186,16 +192,19 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode] = array(
                 'type' => 'custom',
                 'tokenizer' => 'standard',
-                'filter' => array('length', 'lowercase', 'asciifolding'),
+                'filter' => array('length', 'lowercase', 'asciifolding', 'synonym'),
                 'char_filter' => array('html_strip')
             );
 
             if (in_array($lang, $this->_snowballLanguages)) {
+                $lang = strtolower($lang);
+                if (in_array($lang, $this->_stopLanguages)) {
+                    $indexSettings['analysis']['filter']['stop_' . $languageCode] = array('type' => 'stop', 'stopwords' => '_' . $lang . '_');
+                    $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'][] = 'stop_' . $languageCode;
+                }
+
+                $indexSettings['analysis']['filter']['snowball_' . $languageCode] = array('type' => 'stemmer', 'language' => 'light_' . $lang);
                 $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'][] = 'snowball_' . $languageCode;
-                $indexSettings['analysis']['filter']['snowball_' . $languageCode] = array(
-                    'type' => 'snowball',
-                    'language' => $lang,
-                );
             }
         }
 
@@ -254,7 +263,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                 $indices->close($params);
 
                 $settingsParams = $params;
-                $settingsParams['body']['settings'] = $this->_getSettings();
+                $settingsParams['body']['settings'] = $indexSettings;
                 $indices->putSettings($settingsParams);
 
                 $mapping = $params;
@@ -266,7 +275,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
 
                 $indices->open();
             } else {
-                $params['body']['settings'] = $this->_getSettings();
+                $params['body']['settings'] = $indexSettings;
                 $params['body']['settings']['number_of_shards'] = (int) $this->getConfig('number_of_shards');
                 foreach ($this->_mappings as $type => $mappingModel) {
                     $mappingModel->setType($type);

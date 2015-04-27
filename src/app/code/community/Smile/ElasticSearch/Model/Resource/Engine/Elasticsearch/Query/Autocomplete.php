@@ -21,6 +21,21 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
 {
 
     /**
+     * @var string
+     */
+    const AUTOCOMPLETE_FUZZINESS_CONFIG_XMLPATH = 'elasticsearch_advanced_search_settings/fulltext_relevancy/search_autocomplete_fuzziness';
+
+    /**
+     * Returns autocompelete fuzziness from config.
+     *
+     * @return float
+     */
+    protected function _getAutocompleteFuzziness()
+    {
+        return (float) Mage::getStoreConfig(self::AUTOCOMPLETE_FUZZINESS_CONFIG_XMLPATH);
+    }
+
+    /**
      * Build the fulltext query condition for the query.
      *
      * @return array
@@ -62,7 +77,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
                 );
 
                 if (isset($spellingParts['autocomplete_fuzzy'])) {
-                    $fuzzyAutocompleteQuery['multi_match']['fuzziness'] = 1 - 0.75;
+                    $fuzzyAutocompleteQuery['multi_match']['fuzziness'] = 1 - $this->_getAutocompleteFuzziness();
                 }
 
                 $query['bool']['must'][] = $fuzzyAutocompleteQuery;

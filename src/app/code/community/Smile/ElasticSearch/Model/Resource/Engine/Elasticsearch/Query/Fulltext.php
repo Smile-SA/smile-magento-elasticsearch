@@ -21,6 +21,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
 {
 
     /**
+     * @var string
+     */
+    const MIN_SHOULD_MATCH_CONFIG_XMLPATH = 'elasticsearch_advanced_search_settings/fulltext_relevancy/search_minimum_should_match';
+
+    /**
+     * @var string
+     */
+    const CUTOFF_FREQUENCY_CONFIG_XMLPATH = 'elasticsearch_advanced_search_settings/fulltext_relevancy/search_cutoff_frequency';
+
+    /**
      * Build the fulltext query condition for the query.
      *
      * @return array
@@ -42,15 +52,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                 $query['bool']['must'][] = $this->getExactMatchesQuery($queryText, $searchFields);
             }
 
-
             if (isset($spellingParts['unmatched']) && !empty($spellingParts['unmatched'])) {
                 foreach ($spellingParts['unmatched'] as $fuzzyQueryText) {
                     $query['bool']['should'][] = $this->getFuzzyMatchesQuery($fuzzyQueryText, $searchFields);
-                    $query['bool']['minimum_should_match']  = "2<100% 100<50%";
                 }
             }
-
-            Mage::log($query);
 
             $this->_fulltextQuery = $query;
         } else if (is_array($this->_fulltextQuery)) {
@@ -160,12 +166,32 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                 'fields'                => $exactFields,
                 'type'                  => 'cross_fields',
                 'analyzer'              => 'analyzer' . '_' .$this->getLanguageCode(),
-                'minimum_should_match'  => "2<100% 100<50%",
-                "cutoff_frequency"      => 0.1
+                'minimum_should_match'  => $this->_getMinimumShouldMatch(),
+                "cutoff_frequency"      => $this->_getCutoffFrequency()
             )
         );
 
         return $query;
+    }
+
+    /**
+     * Returns the minimum should match clause from config.
+     *
+     * @return string
+     */
+    protected function _getMinimumShouldMatch()
+    {
+        return (string) Mage::getStoreConfig(self::MIN_SHOULD_MATCH_CONFIG_XMLPATH);
+    }
+
+    /**
+     * Returns cutoff_frequency from config.
+     *
+     * @return float
+     */
+    protected function _getCutoffFrequency()
+    {
+        return (float) Mage::getStoreConfig(self::CUTOFF_FREQUENCY_CONFIG_XMLPATH);
     }
 
     /**
