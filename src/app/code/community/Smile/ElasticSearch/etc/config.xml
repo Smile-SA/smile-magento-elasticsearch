@@ -274,7 +274,7 @@
                             <type>shingle</type>
                             <min_shingle_size>2</min_shingle_size>
                             <max_shingle_size>10</max_shingle_size>
-                            <output_unigrams_if_no_shingles>1</output_unigrams_if_no_shingles>
+                            <output_unigrams>1</output_unigrams>
                         </shingle>
                         <strip_whitespaces>
                             <type>pattern_replace</type>
@@ -319,7 +319,6 @@
                 <search_in_category_name_prefix_length>2</search_in_category_name_prefix_length>
                 <search_in_category_name_use_in_autocomplete>1</search_in_category_name_use_in_autocomplete>
                 <search_minimum_should_match><![CDATA[2<75% 6<50%]]></search_minimum_should_match>
-                <search_cutoff_frequency>0.01</search_cutoff_frequency>
                 <search_autocomplete_fuzziness>0.01</search_autocomplete_fuzziness>
             </fulltext_relevancy>
             <popular_terms_autocomplete>

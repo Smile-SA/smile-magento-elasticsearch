@@ -26,11 +26,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     const MIN_SHOULD_MATCH_CONFIG_XMLPATH = 'elasticsearch_advanced_search_settings/fulltext_relevancy/search_minimum_should_match';
 
     /**
-     * @var string
-     */
-    const CUTOFF_FREQUENCY_CONFIG_XMLPATH = 'elasticsearch_advanced_search_settings/fulltext_relevancy/search_cutoff_frequency';
-
-    /**
      * Build the fulltext query condition for the query.
      *
      * @return array
@@ -54,7 +49,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
 
             if (isset($spellingParts['unmatched']) && !empty($spellingParts['unmatched'])) {
                 foreach ($spellingParts['unmatched'] as $fuzzyQueryText) {
-                    $query['bool']['should'][] = $this->getFuzzyMatchesQuery($fuzzyQueryText, $searchFields);
+                    $query['bool']['must'][] = $this->getFuzzyMatchesQuery($fuzzyQueryText, $searchFields);
                 }
             }
 
@@ -166,8 +161,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                 'fields'                => $exactFields,
                 'type'                  => 'cross_fields',
                 'analyzer'              => 'analyzer' . '_' .$this->getLanguageCode(),
-                'minimum_should_match'  => $this->_getMinimumShouldMatch(),
-                "cutoff_frequency"      => $this->_getCutoffFrequency()
+                'minimum_should_match'  => $this->_getMinimumShouldMatch()
             )
         );
 
@@ -182,16 +176,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     protected function _getMinimumShouldMatch()
     {
         return (string) Mage::getStoreConfig(self::MIN_SHOULD_MATCH_CONFIG_XMLPATH);
-    }
-
-    /**
-     * Returns cutoff_frequency from config.
-     *
-     * @return float
-     */
-    protected function _getCutoffFrequency()
-    {
-        return (float) Mage::getStoreConfig(self::CUTOFF_FREQUENCY_CONFIG_XMLPATH);
     }
 
     /**
