@@ -235,7 +235,7 @@
                     <analyzer>
                         <whitespace>
                             <tokenizer>standard</tokenizer>
-                            <filter>lowercase,ascii_folding,trim</filter>
+                            <filter>lowercase,ascii_folding,trim,synonym</filter>
                             <char_filter>html_strip</char_filter>
                         </whitespace>
                         <edge_ngram_front>
@@ -255,12 +255,12 @@
                         </edge_ngram_front_strip_apos_and_ws>
                         <shingle>
                             <tokenizer>standard</tokenizer>
-                            <filter>shingle,length,lowercase,ascii_folding,trim</filter>
+                            <filter>shingle,length,lowercase,ascii_folding,trim,synonym</filter>
                             <char_filter>html_strip</char_filter>
                         </shingle>
                         <shingle_strip_apos_and_ws>
                             <tokenizer>standard</tokenizer>
-                            <filter>shingle,strip_apostrophes,strip_whitespaces,length,lowercase,ascii_folding,trim</filter>
+                            <filter>shingle,strip_apostrophes,strip_whitespaces,length,lowercase,ascii_folding,trim,synonym</filter>
                             <char_filter>html_strip</char_filter>
                         </shingle_strip_apos_and_ws>
                         <sortable>
@@ -274,7 +274,7 @@
                             <type>shingle</type>
                             <min_shingle_size>2</min_shingle_size>
                             <max_shingle_size>10</max_shingle_size>
-                            <output_unigram>1</output_unigram>
+                            <output_unigrams_if_no_shingles>1</output_unigrams_if_no_shingles>
                         </shingle>
                         <strip_whitespaces>
                             <type>pattern_replace</type>
@@ -318,6 +318,9 @@
                 <search_in_category_name_fuzziness>0.75</search_in_category_name_fuzziness>
                 <search_in_category_name_prefix_length>2</search_in_category_name_prefix_length>
                 <search_in_category_name_use_in_autocomplete>1</search_in_category_name_use_in_autocomplete>
+                <search_minimum_should_match><![CDATA[2<75% 6<50%]]></search_minimum_should_match>
+                <search_cutoff_frequency>0.01</search_cutoff_frequency>
+                <search_autocomplete_fuzziness>0.01</search_autocomplete_fuzziness>
             </fulltext_relevancy>
             <popular_terms_autocomplete>
                 <max_size>3</max_size>
