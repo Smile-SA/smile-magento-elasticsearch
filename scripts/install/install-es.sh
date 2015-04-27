@@ -5,7 +5,7 @@
 #
 
 # Configuration stuffs
-ES_VERSION=1.2
+ES_VERSION=1.5
 ES_PLUGIN_CMD=/usr/share/elasticsearch/bin/plugin
 ES_LOCAL_PLUGIN_DIR=`dirname $0`/../../es/plugins
 
@@ -34,4 +34,6 @@ update-rc.d elasticsearch defaults
 $ES_PLUGIN_CMD -r mobz/elasticsearch-head
 $ES_PLUGIN_CMD -install mobz/elasticsearch-head
 $ES_PLUGIN_CMD -r elasticsearch/elasticsearch-analysis-icu
-$ES_PLUGIN_CMD -install elasticsearch/elasticsearch-analysis-icu/2.2.0
+$ES_PLUGIN_CMD -install elasticsearch/elasticsearch-analysis-icu/2.5.0
+$ES_PLUGIN_CMD -r tracking-indexer 
+$ES_PLUGIN_CMD -install tracking-indexer -u file:$ES_LOCAL_PLUGIN_DIR/tracking-indexer/tracking-indexer-current.jar
