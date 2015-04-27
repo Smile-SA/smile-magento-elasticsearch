@@ -180,7 +180,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             );
         }
 
-        $availableFilters = array_merge('lowercase', 'length', array_keys($indexSettings['analysis']['filter']));
+        $availableFilters = array_keys($indexSettings['analysis']['filter']);
+
+        foreach ($indexSettings['analysis']['filter'] as &$filter) {
+            if ($filter['type'] == 'elision') {
+                $filter['articles'] = explode(',', $filter['articles']);
+            }
+        }
 
         foreach ($indexSettings['analysis']['analyzer'] as &$analyzer) {
             $analyzer['filter'] = isset($analyzer['filter']) ? explode(',', $analyzer['filter']) : array();
@@ -193,7 +199,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         foreach (Mage::app()->getStores() as $store) {
             /** @var $store Mage_Core_Model_Store */
             $languageCode = $helper->getLanguageCodeByStore($store);
-            $lang = Zend_Locale_Data::getContent('en', 'language', $languageCode);
+            $lang = strtolower(Zend_Locale_Data::getContent('en', 'language', $languageCode));
 
             $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode] = array(
                 'type' => 'custom',
@@ -201,6 +207,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                 'filter' => array('length', 'lowercase', 'asciifolding', 'synonym'),
                 'char_filter' => array('html_strip')
             );
+
+            if (isset($indexSettings['analysis']['language_filters'][$lang])) {
+                $additionalFilters = explode(',', $indexSettings['analysis']['language_filters'][$lang]);
+                $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'] = array_merge(
+                    $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'],
+                    $additionalFilters
+                );
+            }
 
             $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'] = array_values(
                 array_intersect(
@@ -210,7 +224,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             );
 
             if (in_array($lang, $this->_snowballLanguages)) {
-                $lang = strtolower($lang);
                 if (in_array($lang, $this->_stopLanguages)) {
                     $indexSettings['analysis']['filter']['stop_' . $languageCode] = array('type' => 'stop', 'stopwords' => '_' . $lang . '_');
                     $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'][] = 'stop_' . $languageCode;
