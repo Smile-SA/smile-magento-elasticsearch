@@ -270,6 +270,12 @@
                         </sortable>
                     </analyzer>
                     <filter>
+                        <trim>
+                            <type>trim</type>
+                        </trim>
+                        <lowercase>
+                            <type>lowercase</type>
+                        </lowercase>
                         <shingle>
                             <type>shingle</type>
                             <min_shingle_size>2</min_shingle_size>
@@ -306,7 +312,14 @@
                             <type>asciifolding</type>
                             <preserve_original>0</preserve_original>
                         </ascii_folding>
+                        <elision_fr>
+                            <type>elision</type>
+                            <articles>l,m,t,qu,n,s,j</articles>
+                        </elision_fr>
                     </filter>
+                    <language_filters>
+                        <french>elision_fr</french>
+                    </language_filters>
                 </elasticsearch_analysis_index_settings>
             </search>
         </catalog>
