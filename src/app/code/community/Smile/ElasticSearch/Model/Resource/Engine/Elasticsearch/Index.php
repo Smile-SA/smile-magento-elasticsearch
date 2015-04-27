@@ -171,11 +171,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         );
 
         $indexSettings['analysis'] = $this->getConfig('analysis_index_settings');
+        $synonyms = Mage::getResourceModel('smile_elasticsearch/catalogSearch_synonym_collection')->exportSynonymList();
 
-        $indexSettings['analysis']['filter']['synonym'] = array(
-            'type'     => 'synonym',
-            'synonyms' => Mage::getResourceModel('smile_elasticsearch/catalogSearch_synonym_collection')->exportSynonymList()
-        );
+        if (!empty($synonyms)) {
+            $indexSettings['analysis']['filter']['synonym'] = array(
+                'type'     => 'synonym',
+                'synonyms' => $synonyms
+            );
+        }
 
         foreach ($indexSettings['analysis']['analyzer'] as &$analyzer) {
             $analyzer['filter'] = isset($analyzer['filter']) ? explode(',', $analyzer['filter']) : array();
