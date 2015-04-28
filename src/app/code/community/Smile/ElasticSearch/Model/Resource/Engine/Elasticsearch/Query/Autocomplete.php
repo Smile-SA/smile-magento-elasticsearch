@@ -69,7 +69,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
                 $autocompleteText = $spellingParts['autocomplete'];
                 $fuzzyAutocompleteQuery = array(
                     'multi_match' => array(
-                        'analyzer' => strlen($autocompleteText) > 1 ? 'edge_ngram_front' : 'whitespace',
+                        'analyzer' => strlen($autocompleteText) > 1 ? 'analyzer_' . $this->getLanguageCode() : 'edge_ngram_front',
                         'query'    => $autocompleteText,
                         'fields'   => $this->getAutocompleSearchFields(),
                         'type'     => 'most_fields'
@@ -80,7 +80,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
                     $fuzzyAutocompleteQuery['multi_match']['fuzziness'] = $this->_getAutocompleteFuzziness();
                 }
 
-                $query['bool']['must'][] = $fuzzyAutocompleteQuery;
+                $query['bool']['should'][] = $fuzzyAutocompleteQuery;
             }
 
             $this->_fulltextQuery = $query;
@@ -153,7 +153,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
                 'text' => implode(' ', array_slice($queryTerms, 0, -1)),
                 'term' => array(
                     'field'           => 'spelling_' . $this->getLanguageCode(),
-                    'min_word_length' => 1,
                     'analyzer'        => 'whitespace'
                 )
             );
