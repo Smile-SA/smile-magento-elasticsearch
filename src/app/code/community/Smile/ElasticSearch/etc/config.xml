@@ -240,12 +240,12 @@
                         </whitespace>
                         <edge_ngram_front>
                             <tokenizer>standard</tokenizer>
-                            <filter>ascii_folding,length,lowercase,trim,edge_ngram_front</filter>
+                            <filter>ascii_folding,lowercase,trim,edge_ngram_front</filter>
                             <char_filter>html_strip</char_filter>
                         </edge_ngram_front>
                         <edge_ngram_back>
                             <tokenizer>standard</tokenizer>
-                            <filter>ascii_folding,length,lowercase,trim,edge_ngram_back</filter>
+                            <filter>ascii_folding,lowercase,trim,edge_ngram_back</filter>
                             <char_filter>html_strip</char_filter>
                         </edge_ngram_back>
                         <edge_ngram_front_strip_apos_and_ws>
@@ -314,7 +314,7 @@
                         </ascii_folding>
                         <elision_fr>
                             <type>elision</type>
-                            <articles>l,m,t,qu,n,s,j</articles>
+                            <articles>l,d,m,t,qu,n,s,j</articles>
                         </elision_fr>
                     </filter>
                     <language_filters>
