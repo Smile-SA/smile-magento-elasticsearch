@@ -273,7 +273,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
      * @link http://www.elasticsearch.org/guide/reference/mapping/core-types.html
      * @link http://www.elasticsearch.org/guide/reference/mapping/multi-field-type.html
      *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
      *
      * @throws Exception
      */
@@ -315,6 +315,31 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             Mage::logException($e);
             Mage::getSingleton('adminhtml/session')->addError($e->getMessage());
             throw $e;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Update index settings to refresh the synomyms list.
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
+     */
+    public function updateSynonyms()
+    {
+        $synonyms = Mage::getResourceModel('smile_elasticsearch/catalogSearch_synonym_collection')->exportSynonymList();
+        $indices = $this->getClient()->indices();
+        $params = array('index' => $this->getCurrentName());
+
+        if ($indices->exists($params) && !empty($synonyms)) {
+            $updateSettings = $params;
+            $updateSettings['body']['analysis']['filter']['synonym'] = array(
+                'type'     => 'synonym',
+                'synonyms' => $synonyms
+            );
+            $indices->close($params);
+            $indices->putSettings($updateSettings);
+            $indices->open($params);
         }
 
         return $this;
