@@ -21,4 +21,10 @@
             <action method="setTemplate"><template>smile/elasticsearch/catalog/product/attribute/js.phtml</template></action>
         </reference>
     </adminhtml_catalog_product_attribute_edit>
+    
+    <adminhtml_catalog_search_index>
+        <reference name="content">
+            <block type="smile_elasticsearch/adminhtml_synonym_updateButton"/>
+        </reference>
+    </adminhtml_catalog_search_index>
 </layout>
