@@ -530,7 +530,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 /**
                  * Add additional external limitation
                 */
-                $eventName = sprintf('prepare_catalog_%s_index_select', $this->_type);
+                $eventName = sprintf('prepare_catalog_atttibutes_%s_index_select', $this->_type);
                 Mage::dispatchEvent(
                     $eventName,
                     array(
