@@ -85,9 +85,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
      * @link http://www.elasticsearch.org/guide/reference/index-modules/analysis/snowball-tokenfilter.html
     */
     protected $_snowballLanguages = array(
-        'Armenian', 'Basque', 'Catalan', 'Danish', 'Dutch', 'English', 'Finnish', 'French',
-        'German', 'Hungarian', 'Italian', 'Kp', 'Lovins', 'Norwegian', 'Porter', 'Portuguese',
-        'Romanian', 'Russian', 'Spanish', 'Swedish', 'Turkish',
+        'armenian', 'basque', 'catalan', 'danish', 'dutch', 'english', 'finnish', 'french',
+        'german', 'hungarian', 'italian', 'kp', 'lovins', 'norwegian', 'porter', 'portuguese',
+        'romanian', 'russian', 'spanish', 'swedish', 'turkish',
     );
 
     /**
