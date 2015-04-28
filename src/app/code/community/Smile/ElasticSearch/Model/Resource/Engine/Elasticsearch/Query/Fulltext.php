@@ -50,10 +50,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
             if (isset($spellingParts['unmatched']) && !empty($spellingParts['unmatched'])) {
                 foreach ($spellingParts['unmatched'] as $fuzzyQueryText) {
                     $query['bool']['should'][] = $this->getFuzzyMatchesQuery($fuzzyQueryText, $searchFields);
+                    $query['bool']['minimum_should_match'] = $this->_getMinimumShouldMatch();
                 }
             }
 
             $this->_fulltextQuery = $query;
+
         } else if (is_array($this->_fulltextQuery)) {
             $query = $this->_fulltextQuery;
         }
@@ -117,6 +119,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
             'term' => array(
                 'field'           => 'spelling_' . $this->getLanguageCode(),
                 'min_word_length' => 2,
+                'prefix_length'   => 1,
+                'suggest_mode'    => 'missing',
                 'analyzer'        => 'whitespace',
             )
         );
@@ -125,13 +129,27 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         $response = $this->getClient()->search($query);
         Varien_Profiler::stop('ES:EXECUTE:SPELLING_QUERY');
 
+        $duplicatesMatches = array();
         foreach ($response['suggest']['spelling'] as $token) {
-            if (empty($token['options'])) {
+            if (!empty($token['options'])) {
+                $duplicatesMatches[$token['offset'] . '_' . $token['length']] = $token;
+            }
+        }
+
+        foreach ($response['suggest']['spelling'] as $token) {
+            if (empty($token['options']) && !isset($duplicatesMatches[$token['offset'] . '_' . $token['length']])) {
                 $result['matched'][] = Mage::helper('core/string')->substr($queryText, $token['offset'], $token['length']);
             } else {
                 $this->_isSpellChecked = true;
                 $result['unmatched'][] = Mage::helper('core/string')->substr($queryText, $token['offset'], $token['length']);
             }
+
+        }
+        if (isset($result['matched'])) {
+            $result['matched'] = array_unique($result['matched']);
+        }
+        if (isset($result['unmatched'])) {
+            $result['unmatched'] = array_unique($result['unmatched']);
         }
 
         return $result;
