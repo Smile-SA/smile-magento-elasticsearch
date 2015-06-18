@@ -19,12 +19,12 @@ You need to choose a name for your cluster. You can use the name of your project
 Then you can run the installer :
 
 ```bash
-./install_es.sh cluster_name localhost:9200
+./install-es.sh cluster_name localhost:9200
 ```
 
 If you want to install ES on several nodes, you need to modify the setup command in the following way (fqdn = Full Qualified Domain Name, the address of the node) :
 ```bash
-./install_es.sh cluster_name node1.fqdn:9200 node2.fqdn:9200 node3.fqdn:9200
+./install-es.sh cluster_name node1.fqdn:9200 node2.fqdn:9200 node3.fqdn:9200
 ```
 
 One the installer have finished, you should be able to access the engine at this address : http://localhost:9200/_plugin/head.
