@@ -102,7 +102,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                             $attribute->getBackendType() == 'varchar',
                             (bool) $attribute->getIsFuzzinessEnabled()
                         );
-                        $mapping = $fieldMapping;
+                        $mapping = array_merge($mapping, $fieldMapping);
                     }
                 }
             } else if ($type === 'date') {
