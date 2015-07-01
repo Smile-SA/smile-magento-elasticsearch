@@ -38,7 +38,10 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     public function addFacetCondition()
     {
         $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
-        $options = array('field' => $this->_getFilterField());
+        $options = array(
+            'field' => $this->_getFilterField(),
+            'size'  => $this->_getFacetMaxSize(),
+        );
         $query->addFacet($this->_requestVar, 'terms', $options);
 
         return $this;
@@ -122,6 +125,18 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
         $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
         $fieldName = $mapping->getFieldName($attribute->getAttributeCode(), $languageCode, 'facet');
         return $fieldName;
+    }
+
+    /**
+     * Returns attribute field facet max size
+     *
+     * @return string
+     */
+    protected function _getFacetMaxSize()
+    {
+        /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
+        $attribute = $this->getAttributeModel()->getData();
+        return $attribute['facets_max_size'];
     }
 
     /**
