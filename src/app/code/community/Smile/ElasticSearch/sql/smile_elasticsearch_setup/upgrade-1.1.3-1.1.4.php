@@ -26,7 +26,7 @@ try {
     // Append a column 'facets_max_size' into the db
     $connection = $installer->getConnection();
     $table = $installer->getTable('catalog/eav_attribute');
-    $connection->addColumn($table, 'facets_max_size', "int unsigned NOT NULL DEFAULT '50'");
+    $connection->addColumn($table, 'facets_max_size', "int unsigned NOT NULL DEFAULT '1000'");
 
 } catch (Exception $e) {
     Mage::logException($e);
