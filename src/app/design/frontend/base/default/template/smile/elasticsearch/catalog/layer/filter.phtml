@@ -20,7 +20,7 @@
             <?php if ($this->getIsMultipleSelect()) : ?>
                 <input type="checkbox" <?php if ($_item->getSelected()) : ?>checked<?php endif; ?> onclick="this.parentNode.click();"/>
             <?php endif; ?>
-            <label><?php echo $_item->getLabel(); ?></label>
+            <label><?php echo $this->escapeHtml($_item->getLabel()); ?></label>
         </a>
         <?php if ($this->shouldDisplayProductCount()): ?>
         (<?php echo $_item->getCount() ?>)
