@@ -596,8 +596,9 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      */
     protected function _getAttributeFieldName($attribute, $languageCode)
     {
+        $mapping = $this->getMappingProperties();
+        $mapping = $mapping['properties'];
 
-        $mapping = $this->getMappingProperties()['properties'];
         $fieldName = $attribute->getAttributeCode();
 
         if (!isset($mapping[$fieldName])) {
