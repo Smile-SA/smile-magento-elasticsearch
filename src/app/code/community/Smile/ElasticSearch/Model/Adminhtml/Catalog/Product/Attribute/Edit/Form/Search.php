@@ -141,6 +141,22 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
             'fuzziness_prefix_length'
         );
 
+        $fieldset->addField(
+            'facets_max_size',
+            'text',
+            array(
+                'name'  => 'facets_max_size',
+                'label' => Mage::helper('smile_elasticsearch')->__('Facets Max Size'),
+                'class' => 'validate-digits validate-greater-than-zero',
+                'note'  => implode(
+                    '</br>',
+                    array(
+                        Mage::helper('smile_elasticsearch')->__('Max number of values returned by a facet query.'),
+                    )
+                )
+            ),
+            'facet_min_coverage_rate'
+        );
 
         if ($attribute->getAttributeCode() == 'name') {
             $form->getElement('is_searchable')->setDisabled(1);

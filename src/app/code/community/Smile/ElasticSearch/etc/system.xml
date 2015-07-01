@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- 
+<!--
 /**
  * Module specific editable configguration
  *
@@ -16,7 +16,7 @@
  * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
- */ 
+ */
  -->
 <config>
    <sections>
@@ -101,17 +101,6 @@
                             <validate>required-entry validate-digits</validate>
                             <depends><engine>smile_elasticsearch/engine_elasticsearch</engine></depends>
                         </elasticsearch_number_of_replicas>
-                        <elasticsearch_facets_max_size translate="label comment" module="smile_elasticsearch">
-                            <label>Facets Max Size</label>
-                            <frontend_type>text</frontend_type>
-                            <comment>Max number of values returned by a facet query.</comment>
-                            <sort_order>59</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <validate>required-entry validate-greater-than-zero validate-digits</validate>
-                            <depends><engine>smile_elasticsearch/engine_elasticsearch</engine></depends>
-                        </elasticsearch_facets_max_size>
                         <elasticsearch_enable_icu_folding translate="label comment" module="smile_elasticsearch">
                             <label>Enable ICU Folding Token Filter</label>
                             <frontend_type>select</frontend_type>
@@ -133,7 +122,7 @@
                 </search>
             </groups>
         </catalog>
-        
+
         <elasticsearch_advanced_search_settings translate="label" module="smile_searchandisingsuite">
             <class>separator-top</class>
             <label>Advanced search settings</label>
