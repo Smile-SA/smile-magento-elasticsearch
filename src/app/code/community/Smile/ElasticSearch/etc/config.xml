@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- 
+<!--
 /**
  * Module configuration
  *
@@ -16,12 +16,12 @@
  * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
- */ 
+ */
  -->
 <config>
     <modules>
         <Smile_ElasticSearch>
-            <version>1.1.3</version>
+            <version>1.1.4</version>
         </Smile_ElasticSearch>
     </modules>
     <global>
@@ -226,7 +226,6 @@
                 <elasticsearch_indices_pattern>{{YYYYMMdd}}-{{HHmmss}}</elasticsearch_indices_pattern>
                 <elasticsearch_number_of_shards>1</elasticsearch_number_of_shards>
                 <elasticsearch_number_of_replicas>0</elasticsearch_number_of_replicas>
-                <elasticsearch_facets_max_size>50</elasticsearch_facets_max_size>
                 <elasticsearch_enable_options_search>1</elasticsearch_enable_options_search>
                 <elasticsearch_enable_icu_folding>0</elasticsearch_enable_icu_folding>
                 <elasticsearch_min_category_filter_level>2</elasticsearch_min_category_filter_level>
