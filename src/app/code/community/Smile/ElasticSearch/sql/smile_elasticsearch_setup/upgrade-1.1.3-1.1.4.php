@@ -11,8 +11,8 @@
  *
  * @category  Smile
  * @package   Smile_ElasticSearch
- * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
- * @copyright 2013 Smile
+ * @author    Nicolas LŒUILLET <nicolas.loeuillet@smile.fr>
+ * @copyright 2015 Smile
  * @license   Apache License Version 2.0
  */
 
