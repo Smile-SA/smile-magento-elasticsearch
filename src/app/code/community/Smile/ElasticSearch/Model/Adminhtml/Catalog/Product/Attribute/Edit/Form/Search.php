@@ -50,6 +50,7 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
                 'name'  => 'search_weight',
                 'label' => Mage::helper('smile_elasticsearch')->__('Search Weight'),
                 'class' => 'validate-number validate-greater-than-zero',
+                'value' => '1',
                 'default' => 1
             ),
             'is_searchable'
@@ -95,6 +96,7 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
                 'name'  => 'fuzziness_value',
                 'label' => Mage::helper('smile_elasticsearch')->__('Fuzziness'),
                 'class' => 'validate-number validate-number-range number-range-0-1',
+                'value' => '0.75',
                 'note'  => implode(
                     '</br>',
                     array(
@@ -116,6 +118,7 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
                 'name'  => 'fuzziness_prefix_length',
                 'label' => Mage::helper('smile_elasticsearch')->__('Fuzzy prefix range'),
                 'class' => 'validate-digits validate-digits-range digits-range-0-9',
+                'value' => '2',
                 'note'  => implode(
                     '</br>',
                     array(
@@ -134,6 +137,7 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
                 'name'  => 'facet_min_coverage_rate',
                 'label' => Mage::helper('smile_elasticsearch')->__('Facet coverage rate'),
                 'class' => 'validate-digits validate-digits-range digits-range-0-100',
+                'value' => '90',
                 'note'  => Mage::helper('smile_elasticsearch')->__(
                     'Ex: Brand facet will be displayed only if 90% of the product have a brand.'
                 )
@@ -148,6 +152,7 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
                 'name'  => 'facets_max_size',
                 'label' => Mage::helper('smile_elasticsearch')->__('Facets Max Size'),
                 'class' => 'validate-digits validate-greater-than-zero',
+                'value' => '1000',
                 'note'  => implode(
                     '</br>',
                     array(
