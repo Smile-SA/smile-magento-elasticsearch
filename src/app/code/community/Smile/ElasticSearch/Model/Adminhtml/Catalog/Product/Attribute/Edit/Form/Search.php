@@ -158,6 +158,26 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
             'facet_min_coverage_rate'
         );
 
+        $fieldset->addField(
+            'facets_sort_order',
+            'select',
+            array(
+                'name'    => 'facets_sort_order',
+                'label'   => Mage::helper('smile_elasticsearch')->__('Facet sort order'),
+                'values'  => array(
+                    array(
+                        'value' => Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_Terms::SORT_ORDER_COUNT,
+                        'label' => Mage::helper('smile_elasticsearch')->__('By results number'),
+                    ),
+                    array(
+                        'value' => Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_Terms::SORT_ORDER_TERM,
+                        'label' => Mage::helper('smile_elasticsearch')->__('By name'),
+                    ),
+                )
+            ),
+            'facets_max_size'
+        );
+
         if ($attribute->getAttributeCode() == 'name') {
             $form->getElement('is_searchable')->setDisabled(1);
             $form->getElement('is_used_in_autocomplete')->setDisabled(1);
