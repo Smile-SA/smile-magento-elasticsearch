@@ -41,6 +41,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
         $options = array(
             'field' => $this->_getFilterField(),
             'size'  => $this->_getFacetMaxSize(),
+            'order' => $this->_getFacetSortOrder(),
         );
         $query->addFacet($this->_requestVar, 'terms', $options);
 
@@ -137,6 +138,18 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
         /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
         $attribute = $this->getAttributeModel()->getData();
         return $attribute['facets_max_size'];
+    }
+
+    /**
+     * Returns attribute field facet sort order
+     *
+     * @return string
+     */
+    protected function _getFacetSortOrder()
+    {
+        /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
+        $attribute = $this->getAttributeModel()->getData();
+        return $attribute['facets_sort_order'];
     }
 
     /**
