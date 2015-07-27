@@ -67,6 +67,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
      */
     protected $_facetModelNames = array(
        'terms'      => 'smile_elasticsearch/engine_elasticsearch_query_facet_terms',
+       'termsStats' => 'smile_elasticsearch/engine_elasticsearch_query_facet_termsStats',
        'histogram'  => 'smile_elasticsearch/engine_elasticsearch_query_facet_histogram',
        'queryGroup' => 'smile_elasticsearch/engine_elasticsearch_query_facet_queryGroup',
     );
