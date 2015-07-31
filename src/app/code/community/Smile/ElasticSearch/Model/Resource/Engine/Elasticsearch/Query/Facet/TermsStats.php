@@ -24,7 +24,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_TermsS
      *
      * @return array
      */
-    public function getFacetQuery()
+    protected function _getFacetQuery()
     {
         return array('terms_stats' => $this->_options);
     }

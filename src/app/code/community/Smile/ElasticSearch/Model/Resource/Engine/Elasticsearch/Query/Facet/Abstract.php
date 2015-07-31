@@ -68,7 +68,38 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fac
      *
      * @return array
      */
-    abstract public function getFacetQuery();
+    public function getFacetQuery()
+    {
+        $filters = false;
+
+        if (isset($this->_options['facet_filter'])) {
+            $filters = $this->_options['facet_filter'];
+            unset($this->_options['facet_filter']);
+        }
+
+        $facets = $this->_getFacetQuery();
+
+        if ($filters !== false) {
+            if ($this->isGroup()) {
+                foreach ($facets as &$facet) {
+                    $facet['facet_filter']['bool']['must'][] = $filters;
+                }
+            } else {
+                $facets['facet_filter']['bool']['must'][] = $filters;
+            }
+            $this->_options['facet_filter'] = $filters;
+        }
+
+        return $facets;
+    }
+
+    /**
+     * Transform the facet into an ES syntax compliant array.
+     * Real implemntation needed.
+     *
+     * @return array
+     */
+    abstract protected function _getFacetQuery();
 
     /**
      * Parse the response to extract facet items.
