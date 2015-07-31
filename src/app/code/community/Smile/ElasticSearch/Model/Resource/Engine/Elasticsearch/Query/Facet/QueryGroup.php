@@ -32,7 +32,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_QueryG
      *
      * @return array
      */
-    public function getFacetQuery()
+    protected function _getFacetQuery()
     {
         $queries = array();
         $prefix = $this->getPrefix();
