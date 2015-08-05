@@ -182,6 +182,10 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
         Varien_Profiler::stop('ES:ASSEMBLE:QUERY:OBSERVERS');
         $query = $eventData->getQuery();
 
+        if ($this->getConfig('enable_debug_mode')) {
+            Mage::log(json_encode($query), Zend_Log::DEBUG, 'es-queries.log');
+        }
+
         Varien_Profiler::start('ES:EXECUTE:QUERY');
         $response = $this->getClient()->search($query);
         Varien_Profiler::stop('ES:EXECUTE:QUERY');
