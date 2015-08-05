@@ -85,7 +85,19 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
     public function getSize()
     {
         if (is_null($this->_totalRecords)) {
-            $this->_beforeLoad();
+            $query = clone $this->getSearchEngineQuery();
+
+            $query->setPageParams(0, 0);
+
+            if ($this->getStoreId()) {
+                $store = Mage::app()->getStore($this->getStoreId());
+                $this->_searchEngineQuery->setLanguageCode(Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store));
+            }
+
+            $result = $query->search();
+
+            $this->_totalRecords = isset($result['total_count']) ? $result['total_count'] : null;
+            $this->_facetedData = isset($result['faceted_data']) ? $result['faceted_data'] : array();
         }
 
         return $this->_totalRecords;
@@ -116,7 +128,6 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
     public function setOrder($attribute, $dir = self::SORT_ORDER_DESC)
     {
         $this->_sortBy[] = array($attribute => $dir);
-
         return $this;
     }
 
@@ -152,10 +163,15 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
         $this->_prepareQuery();
 
         $ids = array();
+        if (!empty($this->_facetedData)) {
+            $this->getSearchEngineQuery()->resetFacets();
+        }
         $result = $this->getSearchEngineQuery()->search();
 
         $ids = isset($result['ids']) ? $result['ids'] : array();
-        $this->_facetedData = isset($result['faceted_data']) ? $result['faceted_data'] : array();
+        if (!empty($this->_facetedData)) {
+            $this->_facetedData = isset($result['faceted_data']) ? $result['faceted_data'] : array();
+        }
         $this->_totalRecords = isset($result['total_count']) ? $result['total_count'] : null;
         $this->_isSpellChecked = isset($result['is_spellchecked']) ? $result['is_spellchecked'] : false;
 
