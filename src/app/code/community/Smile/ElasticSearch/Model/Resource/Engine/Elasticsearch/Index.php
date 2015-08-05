@@ -91,6 +91,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     );
 
     /**
+     * Beider-Morse algorithm supported languages (can be used for phonetic matching)
+     */
+    protected $_beiderMorseLanguages = array(
+        'english', 'french', 'german', 'hungarian', 'italian', 'romanian', 'russian', 'spanish', 'turkish'
+    );
+
+    /**
      * Init mappings while the index is init
      */
     public function __construct()
@@ -236,6 +243,18 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                 $indexSettings['analysis']['filter']['snowball_' . $languageCode] = array('type' => 'stemmer', 'language' => $languageStemmer);
                 $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'][] = 'snowball_' . $languageCode;
             }
+
+            if (in_array($lang, $this->_beiderMorseLanguages)) {
+                $indexSettings['analysis']['filter']['beidermorse_' . $languageCode] = array(
+                    'type' => 'phonetic', 'encoder' => 'beider_morse', 'languageset' => $lang
+                );
+                $indexSettings['analysis']['analyzer']['phonetic_' . $languageCode] = array(
+                    'type' => 'custom', 'tokenizer' => 'standard', 'char_filter' => 'html_strip',
+                    'filter' => array(
+                        "standard", "ascii_folding", "lowercase", "stemmer", "shingle_limiter", "beidermorse_" . $languageCode
+                    )
+                );
+            }
         }
 
         if ($this->isIcuFoldingEnabled()) {
@@ -322,6 +341,17 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         }
 
         return $this;
+    }
+
+    /**
+     * Indicates if the phonetic machine is enabled for the current locale
+     *
+     * @param boolean
+     */
+    public function isPhoneticSupported($languageCode)
+    {
+        $lang = strtolower(Zend_Locale_Data::getContent('en', 'language', $languageCode));
+        return in_array($lang, $this->_beiderMorseLanguages);
     }
 
     /**
