@@ -19,6 +19,36 @@
 class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Category extends Mage_Core_Block_Template
 {
     /**
+     * Block cache key
+     *
+     * @return string
+     */
+    public function getCacheKey()
+    {
+        return __CLASS__ . md5($this->_getQuery()) . '_' . Mage::app()->getStore()->getId();
+    }
+
+    /**
+     * Block cache lifetime
+     *
+     * @return int
+     */
+    public function getCacheLifetime()
+    {
+        return Mage_Core_Model_Cache::DEFAULT_LIFETIME;
+    }
+
+    /**
+     * Block cache tags
+     *
+     * @return array
+     */
+    public function getCacheTags()
+    {
+        return array(Mage_Catalog_Model_Category::CACHE_TAG);
+    }
+
+    /**
      * Check if the block is active or not. Block is disabled if :
      * - ES is not the selected engine into Magento
      *

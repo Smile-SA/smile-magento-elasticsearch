@@ -21,6 +21,36 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product exten
     const AUTOCOMPLETE_ATTRIBUTES_XPATH = 'global/smile_elasticsearch/autocomplete/product/attributes';
 
     /**
+     * Block cache key
+     *
+     * @return string
+     */
+    public function getCacheKey()
+    {
+        return __CLASS__ . md5($this->_getQuery()) . '_' . Mage::app()->getStore()->getId();
+    }
+
+    /**
+     * Block cache lifetime
+     *
+     * @return int
+     */
+    public function getCacheLifetime()
+    {
+        return Mage_Core_Model_Cache::DEFAULT_LIFETIME;
+    }
+
+    /**
+     * Block cache tags
+     *
+     * @return array
+     */
+    public function getCacheTags()
+    {
+        return array(Mage_Catalog_Model_Product::CACHE_TAG);
+    }
+
+    /**
      * @var Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
      */
     protected $_collection;
