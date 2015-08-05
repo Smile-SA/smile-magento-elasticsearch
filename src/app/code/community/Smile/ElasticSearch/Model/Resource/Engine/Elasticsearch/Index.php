@@ -229,7 +229,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                     $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'][] = 'stop_' . $languageCode;
                 }
 
-                $indexSettings['analysis']['filter']['snowball_' . $languageCode] = array('type' => 'stemmer', 'language' => 'light_' . $lang);
+                $languageStemmer = $lang;
+                if (isset($indexSettings['analysis']['language_stemmers'][$lang])) {
+                    $languageStemmer = $indexSettings['analysis']['language_stemmers'][$lang];
+                }
+                $indexSettings['analysis']['filter']['snowball_' . $languageCode] = array('type' => 'stemmer', 'language' => $languageStemmer);
                 $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'][] = 'snowball_' . $languageCode;
             }
         }

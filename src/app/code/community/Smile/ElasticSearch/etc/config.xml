@@ -319,6 +319,9 @@
                     <language_filters>
                         <french>elision_fr</french>
                     </language_filters>
+                    <language_stemmers>
+                        <french>light_french</french>
+                    </language_stemmers>
                 </elasticsearch_analysis_index_settings>
             </search>
         </catalog>
