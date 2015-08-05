@@ -159,6 +159,10 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $mapping[$fieldName]['fields']['untouched'] = array('type' => $type, 'index' => 'not_analyzed', 'stored' => false, 'doc_values' => true);
         }
 
+        if ($this->getCurrentIndex()->isPhoneticSupported($languageCode)) {
+            $analyzers[] = 'phonetic_' . $languageCode;
+        }
+
         foreach ($analyzers as $analyzer) {
             $mapping[$fieldName]['fields'][$analyzer] = array('type' => $type, 'analyzer' => $analyzer, 'stored' => false);
 

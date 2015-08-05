@@ -315,6 +315,10 @@
                             <type>elision</type>
                             <articles>l,d,m,t,qu,n,s,j</articles>
                         </elision_fr>
+                        <shingle_limiter>
+                            <type>limit</type>
+                            <max_token_count>5</max_token_count>
+                        </shingle_limiter>
                     </filter>
                     <language_filters>
                         <french>elision_fr</french>
