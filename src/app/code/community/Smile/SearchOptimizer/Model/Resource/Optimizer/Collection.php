@@ -132,4 +132,26 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer_Collection extends Mage_Cor
         $this->walk('afterLoad');
         return $this;
     }
+
+    /**
+     * Returns only active optimizers.
+     *
+     * @param string|Zend_Date $date Date the filter need to be active (UTC).
+     *
+     * @return Smile_SearchOptimizer_Model_Resource_Optimizer_Collection Self reference
+     */
+    public function addIsActiveFilter($date = null) {
+
+        $this->addFieldToFilter('is_active', true);
+
+        if (is_null($date)) {
+            $date = Mage::getModel('core/date')->date('Y-m-d');
+        }
+
+        $this->getSelect()
+          ->where('from_date is null or from_date <= ?', $date)
+          ->where('to_date is null or to_date >= ?', $date);
+
+        return $this;
+    }
 }

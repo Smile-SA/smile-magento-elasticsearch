@@ -18,7 +18,7 @@
 <config>
     <modules>
         <Smile_SearchOptimizer>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
         </Smile_SearchOptimizer>
     </modules>
     <global>

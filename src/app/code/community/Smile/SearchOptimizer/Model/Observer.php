@@ -134,7 +134,7 @@ class Smile_SearchOptimizer_Model_Observer
         $queryType = $data->getQueryType();
 
         $optimizers = Mage::getResourceModel('smile_searchoptimizer/optimizer_collection')
-            ->addFieldToFilter('is_active', true)
+            ->addIsActiveFilter()
             ->addStoreFilter(Mage::app()->getStore())
             ->addQueryTypeFilter($queryType);
 

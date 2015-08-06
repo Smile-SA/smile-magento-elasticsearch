@@ -128,6 +128,25 @@ class Smile_SearchOptimizer_Block_Adminhtml_Optimizer_Edit_Form extends Mage_Adm
             )
         );
 
+        $dateFormatIso = Mage::app()->getLocale()->getDateFormat(Mage_Core_Model_Locale::FORMAT_TYPE_SHORT);
+        $fieldset->addField('from_date', 'date', array(
+            'name'         => 'from_date',
+            'label'        => Mage::helper('smile_searchoptimizer')->__('From Date'),
+            'title'        => Mage::helper('smile_searchoptimizer')->__('From Date'),
+            'image'        => $this->getSkinUrl('images/grid-cal.gif'),
+            'input_format' => Varien_Date::DATE_INTERNAL_FORMAT,
+            'format'       => $dateFormatIso
+        ));
+        $fieldset->addField('to_date', 'date', array(
+            'name'         => 'to_date',
+            'label'        => Mage::helper('smile_searchoptimizer')->__('To Date'),
+            'title'        => Mage::helper('smile_searchoptimizer')->__('To Date'),
+            'image'        => $this->getSkinUrl('images/grid-cal.gif'),
+            'input_format' => Varien_Date::DATE_INTERNAL_FORMAT,
+            'format'       => $dateFormatIso
+        ));
+
+
         $model->prepareForm($form);
 
         if (!$model->getId()) {

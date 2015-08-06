@@ -145,7 +145,7 @@ class Smile_SearchOptimizer_Adminhtml_Search_OptimizerController extends Mage_Ad
             }
 
             // init model and set data
-
+            $data = $this->_filterDates($data, array('from_date', 'to_date'));
             $model->setData($data);
 
             // try to save it
