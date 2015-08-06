@@ -397,10 +397,15 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
         }
         // Patch : score not computed when using another sort order than score
         //         as primary sort order
-        $query['body']['fields'] = array('entity_id');
-        $query['body']['track_scores'] = true;
-        $query['body']['sort'] = $this->_prepareSortCondition();
-        $query['body'] = array_merge($query['body'], $this->_page);
+
+        if (isset($this->_page['size']) && $this->_page['size'] > 0) {
+            $query['body']['fields'] = array('entity_id');
+            $query['body']['track_scores'] = true;
+            $query['body']['sort'] = $this->_prepareSortCondition();
+            $query['body'] = array_merge($query['body'], $this->_page);
+        } else {
+            $query['search_type'] = 'count';
+        }
 
         return $query;
     }
