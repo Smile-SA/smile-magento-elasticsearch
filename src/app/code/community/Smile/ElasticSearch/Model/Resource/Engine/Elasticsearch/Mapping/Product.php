@@ -60,7 +60,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
 
         foreach ($this->_stores as $store) {
             $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
-            $fieldMapping = $this->_getStringMapping('category_name_' . $languageCode, $languageCode, 'string', false, true);
+            $fieldMapping = $this->_getStringMapping('category_name_' . $languageCode, $languageCode, 'string', true, true);
+            $mapping['properties'] = array_merge($mapping['properties'], $fieldMapping);
         }
 
         $mapping['properties']['category_position'] = array(
@@ -71,10 +72,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
             )
         );
 
-        // Append dynamic mapping for product category position field
-        /*$fieldTemplate = array('match' => 'position_category_*', 'mapping' => array('type' => 'integer', 'doc_values' => true));
-        $mapping['dynamic_templates'][] = array('category_position' => $fieldTemplate);*/
-
         // Append dynamic mapping for product prices and discount fields
         $fieldTemplate = array('match' => 'price_*', 'mapping' => array('type' => 'double', 'doc_values' => true));
         $mapping['dynamic_templates'][] = array('prices' => $fieldTemplate);
@@ -82,10 +79,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         $fieldTemplate = array('match' => 'has_discount_*', 'mapping' => array('type' => 'boolean', 'doc_values' => true));
         $mapping['dynamic_templates'][] = array('has_discount' => $fieldTemplate);
 
-        $object = new Varien_Object();
-        Mage::dispatchEvent('search_engine_product_mapping_properties', array('mapping' => $object->setBulk($mapping)));
+        $mappingObject = new Varien_Object($mapping);
+        Mage::dispatchEvent('search_engine_product_mapping_properties', array('mapping' => $mappingObject));
 
-        return $object->getBulk();
+        return $mappingObject->getData();
     }
 
     /**
@@ -179,7 +176,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         return parent::_saveIndexes($storeId, $entityIndexes);
     }
 
-
     /**
      * Retrieve entities children ids (simple products for configurable, grouped and bundles).
      *
@@ -257,7 +253,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
                 'weight'               => Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_weight'),
                 'fuzziness'            => $fuzziness,
                 'prefix_length'        => $prefixLength,
-                'used_in_autocomplete' => true
+                'used_in_autocomplete' => $usedInAutocomplete
             );
         }
         return $searchFields;

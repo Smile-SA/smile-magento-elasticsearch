@@ -20,171 +20,37 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
 {
 
+    protected static $_analyzedQueries = array();
+
     /**
      * @var string
      */
     const MIN_SHOULD_MATCH_CONFIG_XMLPATH = 'elasticsearch_advanced_search_settings/fulltext_relevancy/search_minimum_should_match';
 
     /**
-     * Build the fulltext query condition for the query.
-     *
-     * @return array
+     * @var string
      */
-    protected function _prepareFulltextCondition()
-    {
-        $query = array('match_all' => array());
-
-        if ($this->_fulltextQuery && is_string($this->_fulltextQuery)) {
-
-            $queryText = $this->prepareFilterQueryText($this->_fulltextQuery);
-            $query = array('bool' => array());
-            $searchFields = $this->getSearchFields();
-
-            $spellingParts = $this->getSpellingParts($queryText, $searchFields);
-
-            if (isset($spellingParts['matched']) && !empty($spellingParts['matched'])) {
-                $queryText = implode(' ', $spellingParts['matched']);
-                $query['bool']['must'][] = $this->getExactMatchesQuery($queryText, $searchFields);
-            }
-
-            if (isset($spellingParts['unmatched']) && !empty($spellingParts['unmatched'])) {
-                foreach ($spellingParts['unmatched'] as $fuzzyQueryText) {
-                    $query['bool']['should'][] = $this->getFuzzyMatchesQuery($fuzzyQueryText, $searchFields);
-                    $query['bool']['minimum_should_match'] = $this->_getMinimumShouldMatch();
-                }
-            }
-
-            $this->_fulltextQuery = $query;
-
-        } else if (is_array($this->_fulltextQuery)) {
-            $query = $this->_fulltextQuery;
-        }
-
-        return $query;
-    }
+    const MAX_FUZZINESS = 2;
 
     /**
-     * Retrieve the spelling part of a query through self::_analyzeQuerySpelling
-     *
-     * @param string $queryText    Text to be searched.
-     * @param array  $searchFields Search fields configuration.
-     *
-     * @return array
+     * @var int
      */
-    public function getSpellingParts($queryText, $searchFields)
-    {
-        $hasFuzzyFields = false;
-
-        foreach ($searchFields as $fieldName => $currentField) {
-            if ($currentField['fuzziness'] !== false) {
-                $hasFuzzyFields = true;
-            }
-        }
-
-        if ($hasFuzzyFields === true) {
-            $spellingParts = $this->_analyzeQuerySpelling($queryText);
-            $spellingParts = empty($spellingParts) ? $spellingParts = array('matched' => array($queryText)) : $spellingParts;
-
-        } else {
-            $spellingParts = array('matched' => array($queryText));
-        }
-
-        return $spellingParts;
-    }
-
+    const SPELLING_TYPE_EXACT      = 0;
 
     /**
-     * Dispatches query terms in two classes :
-     * - matched terms   : Terms present into the indexes. Fuzzy search will not be applied on these terms
-     * - unmatched terms : Terms missing into the indexes. Fuzzy search will be applied on these terms
-     *
-     * The spellchecker will be used to classify terms.
-     *
-     * @param string $queryText The analyzed query text
-     *
-     * @return array
+     * @var int
      */
-    protected function _analyzeQuerySpelling($queryText)
-    {
-        $result = array();
-
-        $query = array(
-            'index' => $this->getAdapter()->getCurrentIndex()->getCurrentName(),
-            'type'  => $this->getType(),
-            'size'  => 0,
-        );
-
-        $query['body']['suggest']['spelling'] = array(
-            'text' => $queryText,
-            'term' => array(
-                'field'           => 'spelling_' . $this->getLanguageCode(),
-                'min_word_length' => 2,
-                'prefix_length'   => 1,
-                'suggest_mode'    => 'missing',
-                'analyzer'        => 'whitespace',
-            )
-        );
-
-        Varien_Profiler::start('ES:EXECUTE:SPELLING_QUERY');
-        $response = $this->getClient()->search($query);
-        Varien_Profiler::stop('ES:EXECUTE:SPELLING_QUERY');
-
-        $duplicatesMatches = array();
-        foreach ($response['suggest']['spelling'] as $token) {
-            if (!empty($token['options'])) {
-                $duplicatesMatches[$token['offset'] . '_' . $token['length']] = $token;
-            }
-        }
-
-        foreach ($response['suggest']['spelling'] as $token) {
-            if (empty($token['options']) && !isset($duplicatesMatches[$token['offset'] . '_' . $token['length']])) {
-                $result['matched'][] = Mage::helper('core/string')->substr($queryText, $token['offset'], $token['length']);
-            } else {
-                $this->_isSpellChecked = true;
-                $result['unmatched'][] = Mage::helper('core/string')->substr($queryText, $token['offset'], $token['length']);
-            }
-
-        }
-        if (isset($result['matched'])) {
-            $result['matched'] = array_unique($result['matched']);
-        }
-        if (isset($result['unmatched'])) {
-            $result['unmatched'] = array_unique($result['unmatched']);
-        }
-
-        return $result;
-    }
+    const SPELLING_TYPE_MOST_EXACT = 1;
 
     /**
-     * Build the exact matches query part.
-     *
-     * @param string $queryText    Text to be searched.
-     * @param array  $searchFields Search fields configuration.
-     *
-     * @return array
+     * @var int
      */
-    public function getExactMatchesQuery($queryText, $searchFields)
-    {
+    const SPELLING_TYPE_MOST_FUZZY = 2;
 
-        $query = array();
-        $exactFields = array();
-
-        foreach ($searchFields as $fieldName => $currentField) {
-            $exactFields[] = sprintf("%s^%d", $fieldName, $currentField['weight']);
-        }
-
-        $query = array(
-            'multi_match' => array(
-                'query'                 => $queryText,
-                'fields'                => $exactFields,
-                'type'                  => 'cross_fields',
-                'analyzer'              => 'analyzer' . '_' .$this->getLanguageCode(),
-                'minimum_should_match'  => $this->_getMinimumShouldMatch()
-            )
-        );
-
-        return $query;
-    }
+    /**
+     * @var int
+     */
+    const SPELLING_TYPE_FUZZY      = 3;
 
     /**
      * Returns the minimum should match clause from config.
@@ -197,41 +63,262 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     }
 
     /**
-     * Build a fuzzy search query for a search term
+      * Build the fulltext query condition for the query.
+      *
+      * @return array
+      */
+    protected function _prepareFulltextCondition()
+    {
+        $query = array('match_all' => array());
+
+        if ($this->_fulltextQuery && is_string($this->_fulltextQuery)) {
+            $spellingType = $this->_analyzeSpelling($this->_fulltextQuery);
+            if ($spellingType != self::SPELLING_TYPE_EXACT) {
+                $this->_isSpellChecked = true;
+            }
+            $this->_fulltextQuery = $this->_buildFulltextQuery($this->_fulltextQuery, $spellingType);
+            $query = $this->_fulltextQuery;
+        }
+
+        if (is_array($this->_fulltextQuery)) {
+            $query = $this->_fulltextQuery;
+        }
+
+        return $query;
+    }
+
+    /**
+     * Build the fulltext query.
      *
-     * @param string $queryText    Text to be searched.
-     * @param array  $searchFields Search fields configuration.
+     * @param string $textQuery    Text submitted by the user.
+     * @param int    $spellingType Type of spelling applied.
      *
      * @return array
      */
-    public function getFuzzyMatchesQuery($queryText, $searchFields)
+    protected function _buildFulltextQuery($textQuery, $spellingType)
     {
+        $query = array('bool' => array());
 
-        $fuzzyQuery = array('dis_max' => array('tie_breaker' => 0.5));
+        if ($spellingType != self::SPELLING_TYPE_FUZZY) {
+            $query['bool']['must'][] = $this->_getExactQueryMatch($textQuery, $spellingType);
+        }
 
-        foreach ($searchFields as $fieldName => $currentField) {
+        if ($spellingType != self::SPELLING_TYPE_EXACT) {
+            $fuzzyQuery = $this->_getFuzzyQueryMatch($textQuery, $spellingType);
+            if (in_array($spellingType, array(self::SPELLING_TYPE_FUZZY, self::SPELLING_TYPE_MOST_FUZZY))) {
+                $query['bool']['must'][] = $fuzzyQuery;
+            } else {
+                $query['bool']['should'][] = $fuzzyQuery;
+            }
+        } else {
+            $query['bool']['should'][] = $this->_getPhraseQueryMatch($textQuery, $spellingType);
+        }
 
-            if ($currentField['fuzziness'] !== false) {
+        return $query;
+    }
 
-                $baseQuery = array(
-                    'match' => array(
-                        $fieldName  => array(
-                            'query'         => $queryText,
-                            'boost'         => $currentField['weight'],
-                            'fuzziness'     => $currentField['fuzziness'],
-                            'prefix_length' => $currentField['prefix_length'],
-                        )
-                    )
-                );
+    /**
+     * Build the query part for correctly spelled query part.
+     *
+     * @param string $textQuery    Text submitted by the user.
+     * @param int    $spellingType Type of spelling applied.
+     *
+     * @return string
+     */
+    protected function _getExactQueryMatch($textQuery, $spellingType)
+    {
+        $languageCode = $this->getLanguageCode();
+        $exactSearchFields = array();
+        $exactSearchFields[] = 'spelling_' . $languageCode;
 
-                $baseQuery['match'][$fieldName]['analyzer'] ='analyzer' . '_' . $this->getLanguageCode();
-                $fuzzyQuery['dis_max']['queries'][] = $baseQuery;
-
-                $baseQuery['match'][$fieldName]['analyzer'] ='shingle';
-                $fuzzyQuery['dis_max']['queries'][] = $baseQuery;
+        foreach ($this->getSearchFields() as $fieldName => $fieldParam) {
+            if ($fieldParam['weight'] != 1) {
+                $exactSearchFields[] = $fieldName . '^' . $fieldParam['weight'];
             }
         }
 
+        $exactMatchQuery = array('multi_match' => array('query' => $textQuery, 'type' => 'cross_fields', 'tie_breaker' => 0.5));
+        $exactMatchQuery['multi_match']['fields'] = $exactSearchFields;
+        $exactMatchQuery['multi_match']['analyzer']  = 'analyzer_' .$languageCode;
+        if ($spellingType != self::SPELLING_TYPE_MOST_FUZZY) {
+            $exactMatchQuery['multi_match']['minimum_should_match'] = $this->_getMinimumShouldMatch();
+        }
+
+        return $exactMatchQuery;
+    }
+
+    /**
+     * Build the query part for phrase matching.
+     *
+     * @param string $textQuery    Text submitted by the user.
+     * @param int    $spellingType Type of spelling applied.
+     *
+     * @return string
+     */
+    protected function _getPhraseQueryMatch($textQuery, $spellingType) {
+        $languageCode = $this->getLanguageCode();
+        $phraseSearchFields = array();
+        $phraseSearchFields[] = 'spelling_' . $languageCode . '.shingle';
+        foreach ($this->getSearchFields() as $fieldName => $fieldParam) {
+            if ($fieldParam['fuzziness'] !== false && $fieldParam['weight'] != 1) {
+                $phraseSearchFields[] = $fieldName . '.shingle^' . $fieldParam['weight'];
+            }
+        }
+
+        $phraseMatchQuery = array(
+            'multi_match' => array(
+                'fields'        => $phraseSearchFields,
+                'query'         => $textQuery,
+                'analyzer'      => 'shingle',
+                'type'          => 'best_fields'
+            )
+        );
+
+        return $phraseMatchQuery;
+    }
+
+    /**
+     * Build the query part for incorrect spelling matching.
+     *
+     * @param string $textQuery    Text submitted by the user.
+     * @param int    $spellingType Type of spelling applied.
+     *
+     * @return string
+     */
+    protected function _getFuzzyQueryMatch($textQuery, $spellingType)
+    {
+        $fuzzyQuery = array();
+        $languageCode = $this->getLanguageCode();
+        $fuzzySearchFields = array();
+        $fuzzySearchFields[] = 'spelling_' . $languageCode . '.shingle';
+        foreach ($this->getSearchFields() as $fieldName => $fieldParam) {
+            if ($fieldParam['fuzziness'] !== false && $fieldParam['weight'] != 1) {
+                $fuzzySearchFields[] = $fieldName . '^' . $fieldParam['weight'];
+            }
+        }
+
+        $fuzzyQuery['bool']['must'][] = array(
+            'multi_match' => array(
+                'fields'        => $fuzzySearchFields,
+                'query'         => $textQuery,
+                'fuzziness'     => 2,
+                'prefix_length' => 0,
+                'minimum_should_match' => '100%',
+                'type'          => 'best_fields'
+            )
+        );
+
+        $phoneticSearchFields = array();
+        $phoneticAnalyzer = 'phonetic_'. $languageCode;
+        $phoneticSearchFields[] = 'spelling_' . $languageCode . '.' . $phoneticAnalyzer;
+        foreach ($this->getSearchFields() as $fieldName => $fieldParam) {
+            if ($fieldParam['fuzziness'] !== false && $fieldParam['weight'] != 1) {
+                $phoneticSearchFields[] = $fieldName . '.' . $phoneticAnalyzer . '^' . $fieldParam['weight'];
+            }
+        }
+
+        if (!empty($phoneticAnalyzer)) {
+            $fuzzyQuery['bool']['must'][] = array(
+                'multi_match' => array(
+                    'fields'        => $phoneticSearchFields,
+                    'query'         => $textQuery,
+                    'analyzer'      => $phoneticAnalyzer,
+                    'minimum_should_match' => 1,
+                    'type'          => 'cross_fields'
+                )
+            );
+        }
+
         return $fuzzyQuery;
+    }
+
+    /**
+     * Try to detect if user mispelled some words.
+     *
+     * @param string $textQuery
+     *
+     * @return int
+     */
+    protected function _analyzeSpelling($textQuery)
+    {
+        if (!isset(self::$_analyzedQueries[$textQuery])) {
+            $result = self::SPELLING_TYPE_FUZZY;
+            $spellingQuery = self::_buildSpellingQuery($textQuery);
+            Varien_Profiler::start('ES:EXECUTE:SPELLING_QUERY');
+            $response = $this->getClient()->search($spellingQuery);
+            Varien_Profiler::stop('ES:EXECUTE:SPELLING_QUERY');
+
+            if ($response['aggregations']['exact_match']['doc_count'] > 0) {
+                $result = self::SPELLING_TYPE_EXACT;
+            } else if ($response['aggregations']['most_exact_match']['doc_count'] > 0) {
+                $result = self::SPELLING_TYPE_MOST_EXACT;
+            } else if ($response['aggregations']['most_fuzzy_match']['doc_count'] > 0) {
+                $result = self::SPELLING_TYPE_MOST_FUZZY;
+            }
+
+            self::$_analyzedQueries[$textQuery] = $result;
+        }
+
+        return self::$_analyzedQueries[$textQuery];
+    }
+
+    /**
+     * Build the query which detect if some words have been mispelled by the user.
+     *
+     * @param string $textQuery
+     *
+     * @return array
+     */
+    protected function _buildSpellingQuery($textQuery)
+    {
+        $languageCode = $this->getLanguageCode();
+        $query = array(
+            'index' => $this->getAdapter()->getCurrentIndex()->getCurrentName(),
+            'type'  => $this->getType(),
+            'size'  => 0,
+            'search_type' => 'count'
+        );
+
+        $query['body']['query']['bool']['should'] = array(
+            array(
+                'match' => array(
+                    'spelling_' . $languageCode => array(
+                        'analyzer'             => 'analyzer_' . $languageCode,
+                        'query'                => $textQuery,
+                        'minimum_should_match' => $this->_getMinimumShouldMatch(),
+                        'fuzziness'            => self::MAX_FUZZINESS,
+                        'prefix_length'        => 0
+                    )
+                )
+            ),
+            array(
+                'match' => array(
+                    'spelling_' . $languageCode => array(
+                        'analyzer'             => 'analyzer_' . $languageCode,
+                        'query'                => $textQuery,
+                        'minimum_should_match' => $this->_getMinimumShouldMatch(),
+                    )
+                )
+            ),
+        );
+
+        $query['body']['aggs']['exact_match']['filter']['query']['match']['spelling_' . $languageCode . '.shingle'] = array(
+            'analyzer'             => 'shingle',
+            'query'                => $textQuery,
+            'minimum_should_match' => '100%'
+        );
+
+        $query['body']['aggs']['most_exact_match']['filter']['query']['match']['spelling_' . $languageCode] = array(
+            'analyzer'             => 'analyzer_' . $languageCode,
+            'query'                => $textQuery,
+            'minimum_should_match' => $this->_getMinimumShouldMatch(),
+        );
+
+        $query['body']['aggs']['most_fuzzy_match']['filter']['query']['match']['spelling_' . $languageCode] = array(
+            'analyzer'             => 'analyzer_' . $languageCode,
+            'query'                => $textQuery
+        );
+
+        return $query;
     }
 }
