@@ -27,6 +27,7 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer_Collection extends Mage_Cor
     {
         $this->_init('smile_searchoptimizer/optimizer');
         $this->_map['fields']['store'] = 'store_table.store_id';
+        $this->_map['fields']['query_type'] = 'querytype_table.query_type';
     }
 
     /**
@@ -53,6 +54,22 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer_Collection extends Mage_Cor
 
         $this->addFilter('store', array('in' => $store), 'public');
 
+        return $this;
+    }
+
+    /**
+     * Add query type filer
+     *
+     * @param string $queryType Query type code
+     *
+     * @return Smile_SearchOptimizer_Model_Resource_Optimizer_Collection
+     */
+    public function addQueryTypeFilter($queryType)
+    {
+        if (!is_array($queryType)) {
+            $queryType = array($queryType);
+        }
+        $this->addFilter('query_type', array('in' => $queryType));
         return $this;
     }
 
@@ -88,6 +105,17 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer_Collection extends Mage_Cor
             /*
              * Allow analytic functions usage because of one field grouping
             */
+            $this->_useAnalyticFunction = true;
+        }
+        if ($this->getFilter('query_type')) {
+            $this->getSelect()
+                 ->join(
+                    array('querytype_table' => $this->getTable('smile_searchoptimizer/optimizer_querytype')),
+                    'main_table.optimizer_id = querytype_table.optimizer_id',
+                    array()
+                )
+                ->group('main_table.optimizer_id');
+
             $this->_useAnalyticFunction = true;
         }
         return parent::_renderFiltersBefore();

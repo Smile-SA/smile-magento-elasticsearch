@@ -39,7 +39,7 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer extends Mage_Core_Model_Res
     protected function _afterSave(Mage_Core_Model_Abstract $object)
     {
         $oldStores = $this->lookupStoreIds($object->getId());
-        $newStores = (array) $object->getStores();
+        $newStores = (array)$object->getStores();
 
         $table  = $this->getTable('smile_searchoptimizer/optimizer_store');
         $insert = array_diff($newStores, $oldStores);
@@ -66,8 +66,41 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer extends Mage_Core_Model_Res
 
             $this->_getWriteAdapter()->insertMultiple($table, $data);
         }
+        $this->_updateQueryType($object);
 
         return parent::_afterSave($object);
+    }
+
+    protected function _updateQueryType($object)
+    {
+        $oldTypes = $this->lookupQueryTypeIds($object->getId());
+        $newTypes = (array)$object->getQueryTypes();
+
+        $table  = $this->getTable('smile_searchoptimizer/optimizer_querytype');
+        $insert = array_diff($newTypes, $oldTypes);
+        $delete = array_diff($oldTypes, $newTypes);
+
+        if ($delete) {
+            $where = array(
+                'optimizer_id = ?' => (int) $object->getId(),
+                'query_type IN (?)'  => $delete
+            );
+
+            $this->_getWriteAdapter()->delete($table, $where);
+        }
+
+        if ($insert) {
+            $data = array();
+
+            foreach ($insert as $queryType) {
+                $data[] = array(
+                    'optimizer_id' => (int) $object->getId(),
+                    'query_type'     => $queryType
+                );
+            }
+
+            $this->_getWriteAdapter()->insertMultiple($table, $data);
+        }
     }
 
     /**
@@ -83,6 +116,9 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer extends Mage_Core_Model_Res
             $stores = $this->lookupStoreIds($object->getId());
             $object->setData('store_id', $stores);
             $object->setData('stores', $stores);
+            $queryTypes = $this->lookupQueryTypeIds($object->getId());
+            $object->setData('query_type', $queryTypes);
+            $object->setData('query_types', $queryTypes);
         }
 
         return parent::_afterLoad($object);
@@ -111,11 +147,12 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer extends Mage_Core_Model_Res
                 array('os' => $this->getTable('smile_searchoptimizer/optimizer_store')),
                 $this->getMainTable().'.optimizer_id = os.optimizer_id',
                 array('store_id')
-            )
-                ->where('is_active = ?', 1)
-                ->where('os.store_id in (?) ', $stores)
-                ->order('store_id DESC')
-                ->limit(1);
+            );
+
+            $select->where('is_active = ?', 1)
+              ->where('os.store_id in (?) ', $stores)
+              ->order('store_id DESC')
+              ->limit(1);
         }
 
         return $select;
@@ -135,6 +172,28 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer extends Mage_Core_Model_Res
         $select  = $adapter->select()
             ->from($this->getTable('smile_searchoptimizer/optimizer_store'), 'store_id')
             ->where('optimizer_id = :optimizer_id');
+
+        $binds = array(
+            ':optimizer_id' => (int) $id
+        );
+
+        return $adapter->fetchCol($select, $binds);
+    }
+
+    /**
+     * Get query types to which specified item is assigned
+     *
+     * @param int $id Id of the optmizer
+     *
+     * @return array
+     */
+    public function lookupQueryTypeIds($id)
+    {
+        $adapter = $this->_getReadAdapter();
+
+        $select  = $adapter->select()
+          ->from($this->getTable('smile_searchoptimizer/optimizer_querytype'), 'query_type')
+          ->where('optimizer_id = :optimizer_id');
 
         $binds = array(
             ':optimizer_id' => (int) $id

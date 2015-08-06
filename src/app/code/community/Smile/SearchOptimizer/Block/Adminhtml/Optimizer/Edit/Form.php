@@ -100,6 +100,19 @@ class Smile_SearchOptimizer_Block_Adminhtml_Optimizer_Edit_Form extends Mage_Adm
 
         }
 
+
+        $fieldset->addField(
+            'query_type',
+            'multiselect',
+            array(
+                'name' => 'query_types[]',
+                'label' => $this->__('Query type'),
+                'title' => $this->__('Query type'),
+                'required' => true,
+                'values' => Mage::getSingleton('smile_searchoptimizer/adminhtml_system_source_queryType')->toOptionArray(true)
+            )
+        );
+
         $fieldset->addField(
             'is_active',
             'select',

@@ -1,0 +1,53 @@
+<?php
+/**
+ * Query type implementation
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * This work is a fork of Johann Reinke <johann@bubblecode.net> previous module
+ * available at https://github.com/jreinke/magento-elasticsearch
+ *
+ * @category  Smile
+ * @package   Smile_SearchOptimizer
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2014 Smile
+ * @license   Apache License Version 2.0
+ */
+class Smile_SearchOptimizer_Model_Adminhtml_System_Source_QueryType
+{
+    /**
+     * @var array
+     */
+    protected $_baseOptions = array(
+        array('value' => 'product_search_layer', 'label' => 'Catalog product search query'),
+        array('value' => 'category_products_layer', 'label' => 'Catalog product category listing'),
+    );
+
+    protected $_options;
+
+    /**
+     * List available query types
+     *
+     * @param boolean $isMultiselect
+     *
+     * @return array
+     */
+    public function toOptionArray($isMultiselect=false)
+    {
+        if ($this->_options === null) {
+            foreach ($this->_baseOptions as $currentOption) {
+                $currentOption['label'] = Mage::helper('smile_searchoptimizer')->__($currentOption['label']);
+                $this->_options[] = $currentOption;
+            }
+        }
+        $options = $this->_options;
+        if(!$isMultiselect){
+            array_unshift($options, array('value'=>'', 'label'=> Mage::helper('adminhtml')->__('--Please Select--')));
+        }
+
+        return $options;
+    }
+}

@@ -133,20 +133,19 @@ class Smile_SearchOptimizer_Model_Observer
         $data = $observer->getQueryData();
         $queryType = $data->getQueryType();
 
-        if (in_array($queryType, array('product_search_layer', 'category_products_layer'))) {
+        $optimizers = Mage::getResourceModel('smile_searchoptimizer/optimizer_collection')
+            ->addFieldToFilter('is_active', true)
+            ->addStoreFilter(Mage::app()->getStore())
+            ->addQueryTypeFilter($queryType);
 
-            $optimizers = Mage::getResourceModel('smile_searchoptimizer/optimizer_collection')
-                ->addFieldToFilter('is_active', true)
-                ->addStoreFilter(Mage::app()->getStore());
+        $query = $data->getQuery();
 
-            $query = $data->getQuery();
-
-            foreach ($optimizers as $currentOptimizer) {
-                $query = $currentOptimizer->applyOptimizer($query);
-            }
-
-            $data->setQuery($query);
+        foreach ($optimizers as $currentOptimizer) {
+            $query = $currentOptimizer->applyOptimizer($query);
         }
+
+        $data->setQuery($query);
+
         return $this;
     }
 
