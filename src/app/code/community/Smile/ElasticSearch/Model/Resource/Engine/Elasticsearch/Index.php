@@ -210,8 +210,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
 
             $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode] = array(
                 'type' => 'custom',
-                'tokenizer' => 'standard',
-                'filter' => array('length', 'lowercase', 'asciifolding', 'synonym'),
+                'tokenizer' => 'whitespace',
+                'filter' => array( 'word_delimiter', 'length', 'lowercase', 'asciifolding', 'synonym'),
                 'char_filter' => array('html_strip')
             );
 

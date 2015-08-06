@@ -254,7 +254,7 @@
                         </edge_ngram_front_strip_apos_and_ws>
                         <shingle>
                             <tokenizer>standard</tokenizer>
-                            <filter>shingle,length,lowercase,ascii_folding,trim,synonym</filter>
+                            <filter>word_delimiter,shingle,length,lowercase,ascii_folding,trim,synonym</filter>
                             <char_filter>html_strip</char_filter>
                         </shingle>
                         <shingle_strip_apos_and_ws>
@@ -319,6 +319,16 @@
                             <type>limit</type>
                             <max_token_count>5</max_token_count>
                         </shingle_limiter>
+                        <word_delimiter>
+                            <type>word_delimiter</type>
+                            <generate_word_parts>1</generate_word_parts>
+                            <generate_number_parts>1</generate_number_parts>
+                            <catenate_words></catenate_words>
+                            <catenate_numbers>1</catenate_numbers>
+                            <catenate_all>1</catenate_all>
+                            <split_on_case_change>1</split_on_case_change>
+                            <preserve_original>1</preserve_original>
+                        </word_delimiter>
                     </filter>
                     <language_filters>
                         <french>elision_fr</french>
