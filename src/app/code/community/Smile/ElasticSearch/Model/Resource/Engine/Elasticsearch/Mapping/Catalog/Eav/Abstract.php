@@ -60,7 +60,14 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
 
         foreach ($this->_stores as $store) {
             $languageCode = $this->_helper->getLanguageCodeByStore($store);
-            $mapping['properties']['spelling_' . $languageCode] = array('type' => 'string', 'analyzer' => 'shingle', 'stored' => false);
+            $mapping['properties']['spelling_' . $languageCode] = array(
+                'type'       => 'multi_field',
+                'fields' => array(
+                    'spelling_' . $languageCode => array('type' => 'string', 'analyzer' => 'analyzer_' . $languageCode, 'stored' => false),
+                    'shingle'                   => array('type' => 'string', 'analyzer' => 'shingle', 'stored' => false),
+                    'phonetic_' . $languageCode => array('type' => 'string', 'analyzer' => 'phonetic_' . $languageCode, 'stored' => false),
+                )
+            );
         }
 
         $mapping['properties']['unique']   = array('type' => 'string', 'stored' => false, 'index' => 'not_analyzed');
@@ -677,15 +684,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                             'used_in_autocomplete' => (bool) $attribute->getIsUsedInAutocomplete()
                         );
 
-                        if (isset($this->_mapping['properties'][$field]) && $this->_mapping['properties'][$field]['type'] == "multi_field") {
-                            if ($attribute->getIsSnowballUsed()) {
-                                $this->_searchFields[$field] = $currentAttributeConfig;
-                            }
-
-                            $this->_searchFields[$field.'.shingle'] = $currentAttributeConfig;
-                        } else {
-                            $this->_searchFields[$field] = $currentAttributeConfig;
-                        }
+                        $this->_searchFields[$field] = $currentAttributeConfig;
                     }
                 }
             }
