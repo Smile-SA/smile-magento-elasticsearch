@@ -94,6 +94,8 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
                 $this->_searchEngineQuery->setLanguageCode(Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store));
             }
 
+            $query->addFilter('terms', array('store_id' => $this->getStoreId()));
+
             $result = $query->search();
 
             $this->_totalRecords = isset($result['total_count']) ? $result['total_count'] : null;
