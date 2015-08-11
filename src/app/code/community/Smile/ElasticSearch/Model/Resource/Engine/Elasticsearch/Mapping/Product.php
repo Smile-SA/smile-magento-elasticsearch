@@ -79,10 +79,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         $fieldTemplate = array('match' => 'has_discount_*', 'mapping' => array('type' => 'boolean', 'doc_values' => true));
         $mapping['dynamic_templates'][] = array('has_discount' => $fieldTemplate);
 
-        $object = new Varien_Object();
-        Mage::dispatchEvent('search_engine_product_mapping_properties', array('mapping' => $object->setBulk($mapping)));
+        $mappingObject = new Varien_Object($mapping);
+        Mage::dispatchEvent('search_engine_product_mapping_properties', array('mapping' => $mappingObject));
 
-        return $object->getBulk();
+        return $mappingObject->getData();
     }
 
     /**
@@ -175,7 +175,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
 
         return parent::_saveIndexes($storeId, $entityIndexes);
     }
-
 
     /**
      * Retrieve entities children ids (simple products for configurable, grouped and bundles).

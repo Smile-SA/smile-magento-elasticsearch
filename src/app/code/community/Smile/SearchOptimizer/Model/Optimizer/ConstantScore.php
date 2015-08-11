@@ -59,31 +59,29 @@ class Smile_SearchOptimizer_Model_Optimizer_ConstantScore extends Smile_SearchOp
      */
     public function apply($optimizer, $query)
     {
-        $boostFactor = 1 + ((float) $optimizer->getConfig('boost_value') / 100);
-        $rescoreQuery = array(
-          'function_score' => array(
-            'boost_factor' => $boostFactor,
-            'boost_mode'   => 'replace'
-          )
-        );
-
         $filterRuleSearchQuery = $optimizer->getFilterRuleSearchQuery();
 
         if ($filterRuleSearchQuery !== false) {
-            $rescoreQuery['function_score']['filter'] = array(
-              'query' => array('query_string' => array('query' => $filterRuleSearchQuery))
+            if (!isset($query['body']['query']['function_score'])) {
+                $query['body']['query'] = array(
+                    'function_score' => array(
+                        'query' => $query['body']['query'],
+                        'score_mode' => 'multiply',
+                        'boost_mode' => 'multiply',
+                    )
+                );
+            }
+            $boostFactor = 1 + ((float) $optimizer->getConfig('boost_value') / 100);
+            $query['body']['query']['function_score']['functions'][] = array(
+                'boost_factor' => $boostFactor,
+                'filter' => array(
+                    'fquery' => array(
+                        'query' => array('query_string' => array('query' => $filterRuleSearchQuery)),
+                        '_cache' => true
+                    )
+                )
             );
-        } else {
-            $rescoreQuery['function_score']['query'] = array('match_all' => array());
         }
-
-        $query['body']['rescore'][] = array(
-          'window_size' => 1000,
-          'query' => array(
-            'rescore_query' => $rescoreQuery,
-            'score_mode'    => 'multiply'
-          )
-        );
 
         return $query;
     }

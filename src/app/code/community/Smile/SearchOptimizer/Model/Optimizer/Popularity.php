@@ -70,7 +70,7 @@ class Smile_SearchOptimizer_Model_Optimizer_Popularity extends Smile_SearchOptim
                 'title'     => Mage::helper('smile_searchoptimizer')->__('Scale function'),
                 'required'  => true,
                 'options'   => array(
-                    'log10' => Mage::helper('smile_searchoptimizer')->__('Logarithmic'),
+                    'log' => Mage::helper('smile_searchoptimizer')->__('Logarithmic'),
                     'sqrt'  => Mage::helper('smile_searchoptimizer')->__('Square root'),
                     'none'  => Mage::helper('smile_searchoptimizer')->__('Linear'),
                 )
@@ -91,21 +91,6 @@ class Smile_SearchOptimizer_Model_Optimizer_Popularity extends Smile_SearchOptim
                 'required'  => true,
             )
         );
-
-        $fieldset->addField(
-            'config_decrease_duration',
-            'text',
-            array(
-                'name'      => 'config[decrease_duration]',
-                'label'     => Mage::helper('smile_searchoptimizer')->__('Decrease duration (in days)'),
-                'title'     => Mage::helper('smile_searchoptimizer')->__('Decrease duration (in days)'),
-                'note'      => Mage::helper('smile_searchoptimizer')->__(
-                    'Number of day before the boost reaches 50% of it\'s original value'
-                ),
-                'default'   => 1,
-                'required'  => true,
-            )
-        );
     }
 
     /**
@@ -118,107 +103,43 @@ class Smile_SearchOptimizer_Model_Optimizer_Popularity extends Smile_SearchOptim
      */
     public function apply($optimizer, $query)
     {
-        $query['body']['rescore'][] = array(
-          'window_size' => 1000,
-          'query' => array(
-            'rescore_query' => $this->getRescoreQuery($optimizer),
-            'score_mode'    => 'multiply'
-          )
+        $field = $optimizer->getConfig('popularity_type') == 'product_order' ? '_optimizer_sale_count' : '_optimizer_view_count';
+        $scaleType = $optimizer->getConfig('scale_type');
+        $valueFactor = (float) $optimizer->getConfig('boost_factor');
+        $minValue = ceil(max(1, 1 / $valueFactor));
+        $minValueQuery = sprintf('%s:[%d TO *]', $field, $minValue);
+
+        $filterRuleSearchQuery = $optimizer->getFilterRuleSearchQuery();
+        if ($filterRuleSearchQuery !== false) {
+            $filterRuleSearchQuery = sprintf('(%s) AND %s', $filterRuleSearchQuery, $minValueQuery);
+        } else {
+            $filterRuleSearchQuery = $minValueQuery;
+        }
+
+        if (!isset($query['body']['query']['function_score'])) {
+            $query['body']['query'] = array(
+                'function_score' => array(
+                    'query' => $query['body']['query'],
+                    'score_mode' => 'multiply',
+                    'boost_mode' => 'multiply',
+                )
+            );
+        }
+
+        $query['body']['query']['function_score']['functions'][] = array(
+            'field_value_factor' => array(
+                'field'    => $field,
+                'factor'   => $valueFactor,
+                'modifier' => $scaleType
+            ),
+            'filter' => array(
+                'fquery' => array(
+                    'query' => array('query_string' => array('query' => $filterRuleSearchQuery)),
+                    '_cache' => true
+                )
+            )
         );
 
         return $query;
-    }
-
-    /**
-     * Apply the model to the query.
-     *
-     * @param Smile_SearchOptimizer_Model_Optimizer $optimizer Current optimizer.
-     *
-     * @return array
-     */
-    public function getRescoreQuery($optimizer)
-    {
-        $rescoreChildrenQuery =  array(
-          'has_child' => array(
-            'score_mode' => 'sum',
-            'type'       => 'stats',
-            'query'      => array(
-              'function_score' => array(
-                'filter'    => array('term' => array('event_type' => $optimizer->getConfig('popularity_type'))),
-                'functions' => array(
-                  $this->getCountScoreFunction($optimizer),
-                  $this->getDateScoreFunction($optimizer)
-                )
-              )
-            )
-          )
-        );
-
-        $rescoreQuery = array(
-          'function_score' => array(
-            'query'     => $rescoreChildrenQuery,
-            'functions' => array()
-          )
-        );
-
-        if ($optimizer->getConfig('scale_type') != 'none') {
-            $rescoreQuery['function_score']['functions'] = array(
-                array('script_score' => array('script' => sprintf('%s(_score)', $optimizer->getConfig('scale_type')))),
-                array('script_score' => array('script' => '1'))
-            );
-            $rescoreQuery['function_score']['score_mode'] = 'max';
-            $rescoreQuery['function_score']['boost_mode'] = 'replace';
-        }
-
-        $filterRuleSearchQuery = $optimizer->getFilterRuleSearchQuery();
-
-        if ($filterRuleSearchQuery !== false) {
-            $rescoreQuery['function_score']['query'] = array(
-              'filtered' => array(
-                'query'  => $rescoreQuery['function_score']['query'],
-                'filter' => array('query' => array('query_string' => array('query' => $filterRuleSearchQuery)))
-              )
-            );
-        }
-
-        return $rescoreQuery;
-    }
-
-    /**
-     * Get the count view / orders function score.
-     *
-     * @param Smile_SearchOptimizer_Model_Optimizer $optimizer Current optimizer.
-     *
-     * @return array
-     */
-    public function getCountScoreFunction($optimizer)
-    {
-        return array(
-          'field_value_factor' => array(
-            'field'    => 'count',
-            'factor'   => (float) $optimizer->getConfig('boost_factor')
-          )
-        );
-    }
-
-    /**
-     * Get the date boost factor function score.
-     *
-     * @param Smile_SearchOptimizer_Model_Optimizer $optimizer Current optimizer.
-     *
-     * @return array
-     */
-    public function getDateScoreFunction($optimizer)
-    {
-
-        return array(
-          'linear' => array(
-            'date' => array(
-              'origin' => Mage::getSingleton('core/date')->gmtDate(Varien_Date::DATE_PHP_FORMAT),
-              'scale'  => sprintf('%dd', (int) $optimizer->getConfig('decrease_duration')),
-              'decay'  => 0.5
-            )
-          )
-        );
     }
 }

@@ -57,6 +57,23 @@ class Smile_SearchOptimizer_Model_Observer
     }
 
     /**
+     * Append popularity field to the mapping
+     *
+     * @param Varien_Event_Observer $observer Event data
+     *
+     * @return Modyf_Search_Model_Observer
+     */
+    public function addPopularityFieldToMapping($observer)
+    {
+        $mappingObject = $observer->getMapping();
+        $mapping = $mappingObject->getData();
+        $mapping['properties']['_optimizer_sale_count'] = array('type' => 'long', 'doc_values' => true);
+        $mapping['properties']['_optimizer_view_count'] = array('type' => 'long', 'doc_values' => true);
+        $mappingObject->setData($mapping);
+        return $this;
+    }
+
+    /**
      * Get tracking properties from the configuration.
      *
      * @return array
@@ -104,7 +121,7 @@ class Smile_SearchOptimizer_Model_Observer
         $client   = $engine->getClient();
 
         $template = array('name' => 'magento-session', 'body' => array());
-        $template['body']['template'] = 'magento-sessio*';
+        $template['body']['template'] = 'magento-session';
         $template['body']['settings']['number_of_replicas'] = (int) $engine->getConfig('number_of_replicas');
         $template['body']['settings']['number_of_shards']   = (int) $engine->getConfig('number_of_shards');
         $template['body']['settings']['analysis'] = array('analyzer' => array('standard' => array('type' => 'standard')));
@@ -132,19 +149,20 @@ class Smile_SearchOptimizer_Model_Observer
     {
         $data = $observer->getQueryData();
         $queryType = $data->getQueryType();
-
-        $optimizers = Mage::getResourceModel('smile_searchoptimizer/optimizer_collection')
-            ->addIsActiveFilter()
-            ->addStoreFilter(Mage::app()->getStore())
-            ->addQueryTypeFilter($queryType);
-
         $query = $data->getQuery();
 
-        foreach ($optimizers as $currentOptimizer) {
-            $query = $currentOptimizer->applyOptimizer($query);
-        }
+        if (!isset($query['search_type']) || $query['search_type'] != 'count') {
+            $optimizers = Mage::getResourceModel('smile_searchoptimizer/optimizer_collection')
+                ->addIsActiveFilter()
+                ->addStoreFilter(Mage::app()->getStore())
+                ->addQueryTypeFilter($queryType);
 
-        $data->setQuery($query);
+            foreach ($optimizers as $currentOptimizer) {
+                $query = $currentOptimizer->applyOptimizer($query);
+            }
+
+            $data->setQuery($query);
+        }
 
         return $this;
     }

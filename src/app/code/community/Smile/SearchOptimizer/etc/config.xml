@@ -62,6 +62,14 @@
                     </add_stats_mapping_to_index>
                 </observers>
             </smile_elasticsearch_index_create_before>
+            <search_engine_product_mapping_properties>
+                <observers>
+                    <add_popularity_field_to_mapping>
+                        <class>smile_searchoptimizer/observer</class>
+                        <method>addPopularityFieldToMapping</method>
+                    </add_popularity_field_to_mapping>
+                </observers>
+            </search_engine_product_mapping_properties>
             <smile_elasticsearch_index_install_before>
                 <observers>
                     <create_session_mapping_template>
