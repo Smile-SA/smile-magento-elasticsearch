@@ -201,4 +201,17 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
 
         return array_filter($queries);
     }
+
+    /**
+     * Update the rule current store from the store id.
+     *
+     * @param int $storeId The store id to be set.
+     *
+     * @return Smile_VirtualCategories_Model_Rule Self Reference.
+     */
+    public function setStoreId($storeId)
+    {
+        $this->setStore(Mage::app()->getStore($storeId));
+        return $this;
+    }
 }
