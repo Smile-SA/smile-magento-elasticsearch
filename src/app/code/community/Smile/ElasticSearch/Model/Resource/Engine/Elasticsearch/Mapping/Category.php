@@ -48,7 +48,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Category
      * @param int         $storeId Store id
      * @param string|null $ids     Ids filter
      * @param int         $lastId  First id
-     * @param int         $limit   Size of the bucket
      *
      * @return array
      */

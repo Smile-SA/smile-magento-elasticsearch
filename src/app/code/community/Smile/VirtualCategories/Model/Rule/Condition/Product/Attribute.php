@@ -18,6 +18,11 @@
  */
 class Smile_VirtualCategories_Model_Rule_Condition_Product_Attribute
 {
+    /**
+     * Catalog product entity type
+     *
+     * @var string
+     */
     protected $_entityType = Mage_Catalog_Model_Product::ENTITY;
 
     /**
@@ -28,6 +33,8 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product_Attribute
     protected $_isUsedForRuleProperty = array('is_filterable', 'is_filterable_in_search');
 
     /**
+     * List of all attributes.
+     *
      * @var array
      */
     protected $_attributes;
@@ -35,7 +42,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product_Attribute
     /**
      * Add special attributes
      *
-     * @param array $attributes List of existing attributes
+     * @param array &$attributes List of existing attributes
      *
      * @return void
      */
@@ -77,7 +84,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product_Attribute
             $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
 
             $productAttributes = Mage::getResourceModel('catalog/product_attribute_collection')
-            ->setEntityTypeFilter($entityType->getEntityTypeId());
+                ->setEntityTypeFilter($entityType->getEntityTypeId());
 
             $conditions = array();
             foreach ($this->_isUsedForRuleProperty as $usedField) {

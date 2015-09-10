@@ -109,6 +109,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     protected $_currentIndexName = null;
 
     /**
+     * Date formats used by the index.
+     *
      * @var array()
      */
     protected $_dateFormats = array();

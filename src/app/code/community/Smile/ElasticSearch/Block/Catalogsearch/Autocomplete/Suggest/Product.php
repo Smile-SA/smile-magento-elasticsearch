@@ -18,6 +18,11 @@
  */
 class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product extends Mage_Catalog_Block_Product_Abstract
 {
+    /**
+     * Configuration path for attributes loaded during autocomplete.
+     *
+     * @var string
+     */
     const AUTOCOMPLETE_ATTRIBUTES_XPATH = 'global/smile_elasticsearch/autocomplete/product/attributes';
 
     /**
@@ -58,8 +63,6 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product exten
     /**
      * Check if the block is active or not. Block is disabled if :
      * - ES is not the selected engine into Magento
-     *
-     * @todo : Implements a configuration per type of suggester
      *
      * @return bool
      */

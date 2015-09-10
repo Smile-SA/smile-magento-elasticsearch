@@ -24,11 +24,15 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
     const CACHE_KEY_PREFIX = 'SMILE_VIRTUALCATEGORIES_RULES';
 
     /**
+     * Local cache for queries.
+     *
      * @var array
      */
     private $_queryCache = array();
 
     /**
+     * Categories already used into query generation. Avoid infinte loop.
+     *
      * @var array
      */
     private $_usedCategories = array();

@@ -18,12 +18,10 @@
  */
 class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Catalog_Model_Layer_Filter_Attribute
 {
-    /**
-     * @var array()
-     */
-    protected $_appliedItems = array();
 
     /**
+     * List of filter in raw form.
+     *
      * @var array()
      */
     protected $_rawFilter = array();
@@ -68,7 +66,6 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
         }
 
         $this->_rawFilter = array_filter($filter);
-
 
         if (!empty($this->_rawFilter)) {
             $this->applyFilterToCollection($filter);

@@ -20,11 +20,17 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Category_Suggest_Collection
    extends Mage_Catalog_Model_Resource_Category_Collection
 {
     /**
-     * @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch Search engine.
+     * Search engine.
+     *
+     * @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
      */
     protected $_engine;
 
-
+    /**
+     * Current search query.
+     *
+     * @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
+     */
     protected $_searchEngineQuery = null;
 
     /**
@@ -208,7 +214,10 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Category_Suggest_Collection
     public function getSearchEngineQuery()
     {
         if ($this->_searchEngineQuery === null) {
-            $this->_searchEngineQuery = $this->_engine->createQuery('category', 'smile_elasticsearch/engine_elasticsearch_query_autocomplete');
+            $this->_searchEngineQuery = $this->_engine->createQuery(
+                'category',
+                'smile_elasticsearch/engine_elasticsearch_query_autocomplete'
+            );
 
             if ($this->getStoreId()) {
                 $store = Mage::app()->getStore();

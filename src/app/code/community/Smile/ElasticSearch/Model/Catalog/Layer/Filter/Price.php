@@ -18,8 +18,12 @@
  */
 class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_Model_Layer_Filter_Price
 {
-    const CACHE_TAG = 'MAXPRICE';
-
+    /**
+     * Fields stats available when the filter is loaded.
+     * Used to compute max & min prices.
+     *
+     * @var array|null
+     */
     protected $_stats = null;
 
     /**
@@ -37,17 +41,6 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_
 
         return $this;
     }
-
-    /**
-     * Returns cache tag.
-     *
-     * @return string
-     */
-    public function getCacheTag()
-    {
-        return self::CACHE_TAG;
-    }
-
 
     /**
      * Return stats (min, max, avg, ...) for the field

@@ -37,9 +37,9 @@ class Smile_ElasticSearch_Model_Indexer_Fulltext extends Mage_CatalogSearch_Mode
     /**
      * (Dummy) Process event
      *
-     * @param   Mage_Index_Model_Event $event Indexer event
+     * @param Mage_Index_Model_Event $event Indexer event
      *
-     * @return  Mage_Index_Model_Indexer_Abstract
+     * @return Mage_Index_Model_Indexer_Abstract
      */
     public function processEvent(Mage_Index_Model_Event $event)
     {

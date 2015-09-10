@@ -83,10 +83,10 @@ class Smile_ElasticSearch_Model_Catalog_Layer extends Mage_Catalog_Model_Layer
         /** @var $collection Mage_Catalog_Model_Resource_Product_Attribute_Collection */
         $collection = Mage::getResourceModel('catalog/product_attribute_collection');
         $collection->setItemObjectClass('catalog/resource_eav_attribute')
-          ->setAttributeSetFilter($setIds)
-          ->addStoreLabel(Mage::app()->getStore()->getId())
-          ->addSetInfo(true)
-          ->setOrder('position', 'ASC');
+            ->setAttributeSetFilter($setIds)
+            ->addStoreLabel(Mage::app()->getStore()->getId())
+            ->addSetInfo(true)
+            ->setOrder('position', 'ASC');
 
         $collection = $this->_prepareAttributeCollection($collection);
         $collection->load();
