@@ -184,12 +184,15 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
                 'category_name'       => array_values(array_filter(explode('|', $row['category_name']))),
             );
             foreach (explode(' ', trim($row['positions'])) as $value) {
-                list($categoryId, $position) = explode('_', $value);
-                if ($categoryId && $position) {
-                    $data['category_position'][] = array(
-                        'category_id' => $categoryId,
-                        'position'    => $position
-                    );
+                $value = explode('_', $value);
+                if (count($value) == 2) {
+                    list($categoryId, $position) = $value;
+                    if ($categoryId && $position) {
+                        $data['category_position'][] = array(
+                            'category_id' => $categoryId,
+                            'position'    => $position
+                        );
+                    }
                 }
             }
             if ($visibility) {
