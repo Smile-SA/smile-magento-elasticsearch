@@ -33,10 +33,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Filter_Terms
                 if (!is_array($values)) {
                     $values = array($values);
                 }
-
-                foreach ($values as &$values) {
-                    $values = $this->_query->prepareFilterQueryText($values);
-                }
             }
 
             $this->_parsedFilter = true;
