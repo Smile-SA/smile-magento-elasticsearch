@@ -50,27 +50,37 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     const DIFF_REINDEX_MERGE_FACTOR = '3';
 
     /**
+     * Index name.
+     *
      * @var string
      */
     protected $_name;
 
     /**
+     * Types mappings.
+     *
      * @var array
      */
     protected $_mappings = array();
 
     /**
+     * Does the index needs to be installed or not.
+     *
      * @var boolean
      */
     protected $_indexNeedInstall = false;
 
     /**
+     * Date format used by the index.
+     *
      * @var string
      */
     protected $_dateFormat = 'date';
 
     /**
-     * @var array Stop languages for token filter.
+     * Stop languages for token filter.
+     *
+     * @var array
      * @link http://www.elasticsearch.org/guide/reference/index-modules/analysis/stop-tokenfilter.html
      */
     protected $_stopLanguages = array(
@@ -81,7 +91,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     );
 
     /**
-     * @var array Snowball languages.
+     * Snowball languages.
+     *
+     * @var array
      * @link http://www.elasticsearch.org/guide/reference/index-modules/analysis/snowball-tokenfilter.html
     */
     protected $_snowballLanguages = array(
@@ -92,6 +104,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
 
     /**
      * Beider-Morse algorithm supported languages (can be used for phonetic matching)
+     *
+     * @var array
      */
     protected $_beiderMorseLanguages = array(
         'english', 'french', 'german', 'hungarian', 'italian', 'romanian', 'russian', 'spanish', 'turkish'
@@ -206,55 +220,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         foreach (Mage::app()->getStores() as $store) {
             /** @var $store Mage_Core_Model_Store */
             $languageCode = $helper->getLanguageCodeByStore($store);
-            $lang = strtolower(Zend_Locale_Data::getContent('en', 'language', $languageCode));
-
-            $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode] = array(
-                'type' => 'custom',
-                'tokenizer' => 'whitespace',
-                'filter' => array( 'word_delimiter', 'length', 'lowercase', 'asciifolding', 'synonym'),
-                'char_filter' => array('html_strip')
-            );
-
-            if (isset($indexSettings['analysis']['language_filters'][$lang])) {
-                $additionalFilters = explode(',', $indexSettings['analysis']['language_filters'][$lang]);
-                $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'] = array_merge(
-                    $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'],
-                    $additionalFilters
-                );
-            }
-
-            $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'] = array_values(
-                array_intersect(
-                    $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'],
-                    $availableFilters
-                )
-            );
-
-            if (in_array($lang, $this->_snowballLanguages)) {
-                if (in_array($lang, $this->_stopLanguages)) {
-                    $indexSettings['analysis']['filter']['stop_' . $languageCode] = array('type' => 'stop', 'stopwords' => '_' . $lang . '_');
-                    $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'][] = 'stop_' . $languageCode;
-                }
-
-                $languageStemmer = $lang;
-                if (isset($indexSettings['analysis']['language_stemmers'][$lang])) {
-                    $languageStemmer = $indexSettings['analysis']['language_stemmers'][$lang];
-                }
-                $indexSettings['analysis']['filter']['snowball_' . $languageCode] = array('type' => 'stemmer', 'language' => $languageStemmer);
-                $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'][] = 'snowball_' . $languageCode;
-            }
-
-            if (in_array($lang, $this->_beiderMorseLanguages)) {
-                $indexSettings['analysis']['filter']['beidermorse_' . $languageCode] = array(
-                    'type' => 'phonetic', 'encoder' => 'beider_morse', 'languageset' => $lang
-                );
-                $indexSettings['analysis']['analyzer']['phonetic_' . $languageCode] = array(
-                    'type' => 'custom', 'tokenizer' => 'standard', 'char_filter' => 'html_strip',
-                    'filter' => array(
-                        "standard", "ascii_folding", "lowercase", "stemmer", "shingle_limiter", "beidermorse_" . $languageCode
-                    )
-                );
-            }
+            $indexSettings = $this->_addLanguageAnalyzerToSettings($indexSettings, $languageCode, $availableFilters);
         }
 
         if ($this->isIcuFoldingEnabled()) {
@@ -263,6 +229,74 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                 array_unshift($analyzer['filter'], 'icu_normalizer');
             }
             unset($analyzer);
+        }
+
+        return $indexSettings;
+    }
+
+    /**
+     * Append analyzers for a given language.
+     *
+     * @param array  $indexSettings    Index settings.
+     * @param string $languageCode     New language code.
+     * @param array  $availableFilters List of available filters.
+     *
+     * @return array
+     */
+    protected function _addLanguageAnalyzerToSettings($indexSettings, $languageCode, $availableFilters)
+    {
+        $lang = strtolower(Zend_Locale_Data::getContent('en', 'language', $languageCode));
+
+        $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode] = array(
+            'type' => 'custom',
+            'tokenizer' => 'whitespace',
+            'filter' => array( 'word_delimiter', 'length', 'lowercase', 'asciifolding', 'synonym'),
+            'char_filter' => array('html_strip')
+        );
+
+        if (isset($indexSettings['analysis']['language_filters'][$lang])) {
+            $additionalFilters = explode(',', $indexSettings['analysis']['language_filters'][$lang]);
+            $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'] = array_merge(
+                $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'],
+                $additionalFilters
+            );
+        }
+
+        $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'] = array_values(
+            array_intersect(
+                $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'],
+                $availableFilters
+            )
+        );
+
+        if (in_array($lang, $this->_snowballLanguages)) {
+            if (in_array($lang, $this->_stopLanguages)) {
+                $indexSettings['analysis']['filter']['stop_' . $languageCode] = array(
+                    'type' => 'stop', 'stopwords' => '_' . $lang . '_'
+                );
+                $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'][] = 'stop_' . $languageCode;
+            }
+
+            $languageStemmer = $lang;
+            if (isset($indexSettings['analysis']['language_stemmers'][$lang])) {
+                $languageStemmer = $indexSettings['analysis']['language_stemmers'][$lang];
+            }
+            $indexSettings['analysis']['filter']['snowball_' . $languageCode] = array(
+                'type' => 'stemmer', 'language' => $languageStemmer
+            );
+            $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'][] = 'snowball_' . $languageCode;
+        }
+
+        if (in_array($lang, $this->_beiderMorseLanguages)) {
+            $indexSettings['analysis']['filter']['beidermorse_' . $languageCode] = array(
+                'type' => 'phonetic', 'encoder' => 'beider_morse', 'languageset' => $lang
+            );
+            $indexSettings['analysis']['analyzer']['phonetic_' . $languageCode] = array(
+                'type' => 'custom', 'tokenizer' => 'standard', 'char_filter' => 'html_strip',
+                'filter' => array(
+                    "standard", "ascii_folding", "lowercase", "stemmer", "shingle_limiter", "beidermorse_" . $languageCode
+                )
+            );
         }
 
         return $indexSettings;
@@ -346,7 +380,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     /**
      * Indicates if the phonetic machine is enabled for the current locale
      *
-     * @param boolean
+     * @param string $languageCode Language code.
+     *
+     * @return boolean
      */
     public function isPhoneticSupported($languageCode)
     {

@@ -28,11 +28,15 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Suggest_Collection
     {
         if ($this->_searchEngineQuery === null) {
 
-            $this->_searchEngineQuery = $this->_engine->createQuery('product', 'smile_elasticsearch/engine_elasticsearch_query_autocomplete');
+            $this->_searchEngineQuery = $this->_engine->createQuery(
+                'product', 'smile_elasticsearch/engine_elasticsearch_query_autocomplete'
+            );
 
             if ($this->getStoreId()) {
                 $store = Mage::app()->getStore();
-                $this->_searchEngineQuery->setLanguageCode(Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store));
+                $this->_searchEngineQuery->setLanguageCode(
+                    Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store)
+                );
             }
         }
 

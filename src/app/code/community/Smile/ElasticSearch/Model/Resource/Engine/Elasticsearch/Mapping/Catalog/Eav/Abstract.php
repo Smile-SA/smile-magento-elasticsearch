@@ -20,22 +20,30 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract
 {
     /**
+     * Collection of all attributes.
+     *
      * @var Mage_Eav_Model_Resource_Attribute_Collection
      */
     protected $_attributeCollectionModel;
 
     /**
+     * Generated or loaded mapping.
+     *
      * @var array
      */
     protected $_mapping                  = null;
 
     /**
+     * List of backends authorized for indexing.
+     *
      * @var array
      */
     protected $_authorizedBackendModels  = array();
 
     /**
-     * @var Store all attributes by ids
+     * Store all attributes by ids
+     *
+     * @var
      */
     protected $_attributesById;
 
@@ -52,7 +60,6 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             'properties' => array()
         );
 
-        $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
         $attributes = $this->_getAttributesById();
         foreach ($attributes as $attribute) {
             $mapping['properties'] = array_merge($mapping['properties'], $this->_getAttributeMapping($attribute));
@@ -60,13 +67,15 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
 
         foreach ($this->_stores as $store) {
             $languageCode = $this->_helper->getLanguageCodeByStore($store);
-            $mapping['properties']['spelling_' . $languageCode] = array(
-                'type'       => 'multi_field',
-                'fields' => array(
-                    'spelling_' . $languageCode => array('type' => 'string', 'analyzer' => 'analyzer_' . $languageCode, 'store' => false),
-                    'shingle'                   => array('type' => 'string', 'analyzer' => 'shingle', 'store' => false),
-                    'phonetic_' . $languageCode => array('type' => 'string', 'analyzer' => 'phonetic_' . $languageCode, 'store' => false),
-                )
+            $mapping['properties']['spelling_' . $languageCode]['type'] = 'multi_field';
+            $mapping['properties']['spelling_' . $languageCode]['fields']['spelling_' . $languageCode] = array(
+                'type' => 'string', 'analyzer' => 'analyzer_' . $languageCode, 'store' => false
+            );
+            $mapping['properties']['spelling_' . $languageCode]['fields']['shingle'] = array(
+                'type' => 'string', 'analyzer' => 'shingle', 'store' => false
+            );
+            $mapping['properties']['spelling_' . $languageCode]['fields']['phonetic_' . $languageCode] = array(
+                'type' => 'string', 'analyzer' => 'phonetic_' . $languageCode, 'store' => false
             );
         }
 
@@ -119,7 +128,9 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     'format' => implode('||', array(Varien_Date::DATETIME_INTERNAL_FORMAT, Varien_Date::DATE_INTERNAL_FORMAT))
                 );
             } else {
-                $mapping[$attributeCode] = array('type' => $type, 'store' => false, 'fielddata' => array('format' => $type == 'string' ? 'fst' :'doc_values'));
+                $mapping[$attributeCode] = array(
+                    'type' => $type, 'store' => false, 'fielddata' => array('format' => $type == 'string' ? 'fst' :'doc_values')
+                );
             }
 
             if ($attribute->usesSource()) {
@@ -148,6 +159,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      * @param string $languageCode Language code we want the mapping for
      * @param string $type         ES core type (string default)
      * @param bool   $sortable     Can the attribute be used for sorting
+     * @param bool   $fuzzy        Can the attribute be used in fuzzy searches.
      *
      * @return array string
      */
@@ -158,12 +170,16 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         $analyzers = array('shingle');
 
         $mapping[$fieldName] = array('type' => 'multi_field', 'fields' => array());
-        $mapping[$fieldName]['fields'][$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode, 'store' => false);
+        $mapping[$fieldName]['fields'][$fieldName] = array(
+            'type' => $type, 'analyzer' => 'analyzer_' . $languageCode, 'store' => false
+        );
 
         if ($sortable == true) {
             $analyzers[] = 'sortable';
             $analyzers[] = 'edge_ngram_front';
-            $mapping[$fieldName]['fields']['untouched'] = array('type' => $type, 'index' => 'not_analyzed', 'store' => false, 'fielddata' => array('format' => 'doc_values'));
+            $mapping[$fieldName]['fields']['untouched'] = array(
+                'type' => $type, 'index' => 'not_analyzed', 'store' => false, 'fielddata' => array('format' => 'doc_values')
+            );
         }
 
         if ($this->getCurrentIndex()->isPhoneticSupported($languageCode)) {
@@ -174,7 +190,9 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $mapping[$fieldName]['fields'][$analyzer] = array('type' => $type, 'analyzer' => $analyzer, 'store' => false);
 
             if (isset($analyzersOptions[$analyzer])) {
-                $mapping[$fieldName]['fields'][$analyzer] = array_merge($mapping[$fieldName]['fields'][$analyzer], $analyzersOptions[$analyzer]);
+                $mapping[$fieldName]['fields'][$analyzer] = array_merge(
+                    $mapping[$fieldName]['fields'][$analyzer], $analyzersOptions[$analyzer]
+                );
             }
         }
 
@@ -624,9 +642,6 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     }
 
     /**
-
-
-    /**
      * Return the text value for an atribute using source model.
      *
      * @param Mage_Eav_Model_Attribute $attribute Attribute we want the value for.
@@ -677,12 +692,16 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     $field = $this->getFieldName($attribute->getAttributeCode(), $localeCode);
 
                     if ($field !== false) {
-                        $currentAttributeConfig = array(
-                            'weight'               => $attribute->getSearchWeight() ? $attribute->getSearchWeight() : 1,
-                            'fuzziness'            => $attribute->getIsFuzzinessEnabled() ? $attribute->getFuzzinessValue() : false,
-                            'prefix_length'        => $attribute->getIsFuzzinessEnabled() ? $attribute->getFuzzinessPrefixLength() : false,
-                            'used_in_autocomplete' => (bool) $attribute->getIsUsedInAutocomplete()
-                        );
+                        $currentAttributeConfig = array('weight' => 1, 'fuzziness' => false, 'prefix_length' => false);
+                        if ($attribute->getSearchWeight()) {
+                            $currentAttributeConfig['weight'] = $attribute->getSearchWeight();
+                        }
+                        if ($attribute->getIsFuzzinessEnabled()) {
+                            $currentAttributeConfig['fuzziness'] = $attribute->getFuzzinessValue();
+                            $currentAttributeConfig['prefix_length'] = $attribute->getFuzzinessPrefixLength();
+                        };
+
+                        $currentAttributeConfig['used_in_autocomplete'] = (bool) $attribute->getIsUsedInAutocomplete();
 
                         $this->_searchFields[$field] = $currentAttributeConfig;
                     }
@@ -699,7 +718,6 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      * @param int         $storeId Store id
      * @param string|null $ids     Ids filter
      * @param int         $lastId  First id
-     * @param int         $limit   Size of the bucket
      *
      * @return array
      */

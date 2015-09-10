@@ -227,22 +227,6 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
     }
 
     /**
-     * Add special attributes
-     *
-     * @param array $attributes List of existing attributes
-     *
-     * @return void
-     */
-    /*protected function _addSpecialAttributes(array &$attributes)
-    {
-        $attributes['category_ids'] = Mage::helper('catalogrule')->__('Category');
-        $attributes['in_stock'] = Mage::helper('smile_virtualcategories')->__('Only in stock products');
-        $attributes['has_image'] = Mage::helper('smile_virtualcategories')->__('Only products with images');
-        $attributes['has_discount'] = Mage::helper('smile_virtualcategories')->__('Only discounted products');
-        $attributes['is_new'] = Mage::helper('smile_virtualcategories')->__('Only new products');
-    }*/
-
-    /**
      * Return the ES field name to build filter.
      *
      * @return string

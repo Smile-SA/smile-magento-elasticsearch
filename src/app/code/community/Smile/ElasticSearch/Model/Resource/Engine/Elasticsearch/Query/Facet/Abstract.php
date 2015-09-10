@@ -19,6 +19,8 @@
 abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_Abstract
 {
     /**
+     * Default options.
+     *
      * @var array
      */
     protected $_options = array();

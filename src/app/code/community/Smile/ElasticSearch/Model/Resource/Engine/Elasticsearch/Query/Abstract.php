@@ -19,50 +19,71 @@
 abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Abstract
 {
+    /**
+     * @var string
+     */
     const DEFAULT_ROWS_LIMIT = 10000;
 
     /**
+     * Magento query type (eg: product_search_layer).
+     *
      * @var string
      */
     protected $_queryType = 'default';
 
 
     /**
+     * ES query type (eg. product, category, ...)
+     *
      * @var string
      */
     protected $_type;
 
     /**
+     * Filter applied to the query.
+     *
      * @var array
      */
     protected $_filters = array();
 
     /**
+     * Facets applied to the query.
+     *
      * @var array
      */
     protected $_facets = array();
 
     /**
+     * Pagination of the query.
+     *
      * @var array
      */
     protected $_page = array('from' => 0, 'size' => self::DEFAULT_ROWS_LIMIT);
 
     /**
+     * Fulltext search query part.
+     *
      * @var string
      */
     protected $_fulltextQuery = '';
 
     /**
+     * Sort order of the query
+     *
      * @var array
      */
     protected $_sort = array();
 
     /**
+     * Query language code
+     *
      * @var string
      */
     protected $_languageCode;
 
     /**
+     * Available facets models
+     *
      * @var array
      */
     protected $_facetModelNames = array(
@@ -73,6 +94,8 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
     );
 
     /**
+     * Available filter models
+     *
      * @var array
      */
     protected $_filterModelNames = array(
@@ -82,6 +105,8 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
     );
 
     /**
+     * Indicates if the result have been spellchecked
+     *
      * @var bool
      */
     protected $_isSpellChecked = false;

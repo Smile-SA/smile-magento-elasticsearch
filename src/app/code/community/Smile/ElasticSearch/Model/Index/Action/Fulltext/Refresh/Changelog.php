@@ -21,8 +21,7 @@ class Smile_ElasticSearch_Model_Index_Action_Fulltext_Refresh_Changelog
 {
 
     /**
-     * Refresh rows by ids from changelog
-     *
+     * Refresh rows by ids from changelog.
      *
      * @return Enterprise_CatalogSearch_Model_Index_Action_Fulltext_Refresh_Changelog
      *

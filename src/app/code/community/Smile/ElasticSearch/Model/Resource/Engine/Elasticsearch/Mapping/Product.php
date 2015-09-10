@@ -21,11 +21,15 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
 {
 
     /**
+     * Model used to read attributes configuration.
+     *
      * @var string
      */
     protected $_attributeCollectionModel = 'catalog/product_attribute_collection';
 
     /**
+     * List of backends authorized for indexing.
+     *
      * @var array
      */
     protected $_authorizedBackendModels = array(
@@ -42,6 +46,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
     );
 
     /**
+     * Product entity type code.
+     *
      * @var string
      */
     protected $_entityType = 'catalog_product';
@@ -91,7 +97,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
      * @param int         $storeId Store id
      * @param string|null $ids     Ids filter
      * @param int         $lastId  First id
-     * @param int         $limit   Size of the bucket
      *
      * @return array
      */
@@ -245,12 +250,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         $advancedSettingsPathPrefix = 'elasticsearch_advanced_search_settings/fulltext_relevancy/';
         $searchInCategoryName = (bool) Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name');
         if ($searchInCategoryName) {
-            $enableFuzzySearch = (bool) Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_enable_fuzzy');
-            $fuzziness = $enableFuzzySearch ? Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_fuzziness') : false;
-            $prefixLength = Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_prefix_length');
-            $usedInAutocomplete = (bool) Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_use_in_autocomplete');
+            $searchInCategorySettingsPathPrefix = $advancedSettingsPathPrefix . 'search_in_category_name_';
+            $enableFuzzySearch = (bool) Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'fuzzy');
+            $fuzziness = $enableFuzzySearch ? Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'fuzziness') : false;
+            $prefixLength = Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'prefix_length');
+            $usedInAutocomplete = (bool) Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'use_in_autocomplete');
             $searchFields['category_name_' . $localeCode] = array(
-                'weight'               => Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name_weight'),
+                'weight'               => Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'weight'),
                 'fuzziness'            => $fuzziness,
                 'prefix_length'        => $prefixLength,
                 'used_in_autocomplete' => $usedInAutocomplete

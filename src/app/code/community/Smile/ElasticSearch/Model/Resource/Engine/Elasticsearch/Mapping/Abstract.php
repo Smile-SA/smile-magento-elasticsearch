@@ -19,31 +19,49 @@
 abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract
 {
     /**
-     * Field type constant
-     *
      * @var string
      */
     const FIELD_TYPE_SEARCH = 'search';
+
+    /**
+     * @var string
+     */
     const FIELD_TYPE_FILTER = 'filter';
+
+    /**
+     * @var string
+     */
     const FIELD_TYPE_SORT   = 'sort';
+
+    /**
+     * @var string
+     */
     const FIELD_TYPE_FACET  = 'facet';
 
     /**
+     * ES Type.
+     *
      * @var string
      */
     protected $_type;
 
     /**
+     * Search fields.
+     *
      * @var array
      */
     protected $_searchFields = null;
 
     /**
+     * All front stores.
+     *
      * @var array
      */
     protected $_stores = array();
 
     /**
+     * Search helper.
+     *
      * @var Smile_ElasticSearch_Helper_Data
      */
     protected $_helper;

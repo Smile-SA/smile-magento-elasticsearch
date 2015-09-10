@@ -19,30 +19,44 @@
 class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage_Catalog_Model_Resource_Product_Collection
 {
     /**
-     * @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch Search engine.
+     * Search engine.
+     *
+     * @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
      */
     protected $_engine;
 
-
+    /**
+     * Current search query.
+     *
+     * @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
+     */
     protected $_searchEngineQuery = null;
 
     /**
-     * @var array Faceted data.
+     * Faceted data.
+     *
+     * @var array
      */
     protected $_facetedData = array();
 
 
     /**
-     * @var array Search entity ids.
+     * Search entity ids.
+     *
+     * @var array
      */
     protected $_searchedEntityIds = array();
 
     /**
-     * @var array Sort by definition.
+     * Sort by definition.
+     *
+     * @var array
      */
     protected $_sortBy = array();
 
     /**
+     * Count of products by attrubute set.
+     *
      * @var array
      */
     protected $_productCountBySetId = null;
@@ -263,7 +277,7 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
             $options = array('field' => 'attribute_set_id', 'size' => $facetMaxSize);
             $searchQuery->addFacet('attribute_set_id', 'terms', $options);
 
-            $searchQuery->setPageParams(0,0);
+            $searchQuery->setPageParams(0, 0);
             $response = $searchQuery->search();
 
             $this->_productCountBySetId = $response['faceted_data']['attribute_set_id'];

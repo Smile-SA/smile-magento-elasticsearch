@@ -19,6 +19,8 @@
 class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Terms extends Mage_Core_Block_Template
 {
     /**
+     * Loaded suggest data.
+     *
      * @var null|array
      */
     protected $_suggestData = null;

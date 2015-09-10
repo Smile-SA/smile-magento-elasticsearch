@@ -19,6 +19,11 @@
 class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Filter_Terms
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Filter_Abstract
 {
+    /**
+     * Store preprocessed filter options.
+     *
+     * @var boolean|array
+     */
     protected $_parsedFilter = false;
 
     /**

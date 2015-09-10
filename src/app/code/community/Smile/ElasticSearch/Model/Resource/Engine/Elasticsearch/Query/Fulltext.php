@@ -20,6 +20,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
 {
 
+    /**
+     * Already analyzed queries cache.
+     *
+     * @var array
+     */
     protected static $_analyzedQueries = array();
 
     /**
@@ -155,7 +160,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
      *
      * @return string
      */
-    protected function _getPhraseQueryMatch($textQuery, $spellingType) {
+    protected function _getPhraseQueryMatch($textQuery, $spellingType)
+    {
         $languageCode = $this->getLanguageCode();
         $phraseSearchFields = array();
         $phraseSearchFields[] = 'spelling_' . $languageCode . '.shingle';
@@ -235,7 +241,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     /**
      * Try to detect if user mispelled some words.
      *
-     * @param string $textQuery
+     * @param string $textQuery Query issued by the customer.
      *
      * @return int
      */
@@ -265,7 +271,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     /**
      * Build the query which detect if some words have been mispelled by the user.
      *
-     * @param string $textQuery
+     * @param string $textQuery Query issued by the customer.
      *
      * @return array
      */

@@ -19,11 +19,15 @@
 abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Filter_Abstract
 {
     /**
+     * Filter options.
+     *
      * @var array
      */
     protected $_options = array();
 
     /**
+     * Reference to the query the filter is attached to.
+     *
      * @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abstract
      */
     protected $_query = null;
