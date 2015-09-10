@@ -30,7 +30,7 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Terms extends
      */
     public function getCacheKey()
     {
-        return __CLASS__ . md5($this->getQueryText()) . '_' . Mage::app()->getStore()->getId();
+        return __CLASS__ . md5($this->_getQuery()) . '_' . Mage::app()->getStore()->getId();
     }
 
     /**
