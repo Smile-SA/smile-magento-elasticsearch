@@ -251,7 +251,11 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
         $fieldName = $this->getMapping()->getFieldName($this->getAttribute(), $this->getLocaleCode(), 'filter');
 
         if ($this->getAttribute() == 'price' || $this->getAttribute() == 'has_discount') {
-            $websiteId = Mage::app()->getStore()->getWebsiteId();
+            $store = $this->getRule()->getStore();
+            if ($store == null) {
+                $store = Mage::app()->getStore();
+            }
+            $websiteId = $store->getWebsiteId();
             $customerGroupId = Mage::getSingleton('customer/session')->getCustomerGroupId();
             $fieldName = $this->getAttribute() . '_' . $customerGroupId . '_' . $websiteId;
         }
