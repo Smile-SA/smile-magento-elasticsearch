@@ -204,6 +204,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
 
         } else {
             $template = $this->_queryTemplates[$operator];
+            $attribute = $this->getFilterField($attribute);
             $query    = str_replace(array('#{field}', '#{value}'), array($attribute, $value), $template);
         }
 
