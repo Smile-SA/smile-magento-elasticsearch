@@ -53,6 +53,13 @@
                 </setup>
             </smile_searchoptimizer_setup>
         </resources>
+        <index>
+            <indexer>
+                <smile_searchoptimizer_percolator>
+                    <model>smile_searchoptimizer/indexer_percolator</model>
+                </smile_searchoptimizer_percolator>
+            </indexer>
+        </index>
         <events>
             <smile_elasticsearch_index_create_before>
                 <observers>
@@ -76,6 +83,10 @@
                         <class>smile_searchoptimizer/observer</class>
                         <method>createSessionMappingTemplate</method>
                     </create_session_mapping_template>
+                    <create_searchoptimizers_percolators>
+                        <class>smile_searchoptimizer/observer</class>
+                        <method>reindexPercolators</method>
+                    </create_searchoptimizers_percolators>
                     <copy_old_data>
                         <class>smile_searchoptimizer/observer</class>
                         <method>copyOldData</method>

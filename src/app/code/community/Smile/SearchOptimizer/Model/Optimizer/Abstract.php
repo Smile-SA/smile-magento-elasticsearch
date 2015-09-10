@@ -19,16 +19,22 @@
 abstract class Smile_SearchOptimizer_Model_Optimizer_Abstract
 {
     /**
+     * Name of the optimizer model.
+     *
      * @var string
      */
     protected $_name            = 'Optimizer name';
 
     /**
+     * Set to false if you don't want filter available for your model.
+     *
      * @var bool
      */
     protected $_isFilterEnabled = true;
 
     /**
+     * Default configuration values.
+     *
      * @var array
      */
     protected $_defaultValues = array();
@@ -54,7 +60,7 @@ abstract class Smile_SearchOptimizer_Model_Optimizer_Abstract
     public function prepareForm($form, $optimizer)
     {
 
-        $fieldset = $form->addFieldset(
+        $form->addFieldset(
             'model_config_fieldset',
             array(
                 'legend'=> Mage::helper('smile_searchoptimizer')->__('Configuration'),

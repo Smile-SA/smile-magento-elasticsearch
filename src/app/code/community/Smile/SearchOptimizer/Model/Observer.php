@@ -43,10 +43,10 @@ class Smile_SearchOptimizer_Model_Observer
             '_parent'    => array('type' => 'product'),
             'properties' => array(
                 "product_id" => array("type" => "string", "index" => "not_analyzed"),
-                "store_id"   => array("type" => "string", "index" => "not_analyzed"),
+                "store_id"   => array("type" => "integer", "index" => "not_analyzed"),
                 "event_type" => array("type" => "string", "index" => "not_analyzed"),
                 "count"      => array("type" => "integer"),
-                "date"       => array("type" => "date", "date_formats" => array(Varien_Date::DATE_INTERNAL_FORMAT))
+                "date"       => array("type" => "date", "format" => array(Varien_Date::DATE_INTERNAL_FORMAT))
             )
         );
 
@@ -145,6 +145,20 @@ class Smile_SearchOptimizer_Model_Observer
      *
      * @return Smile_SearchOptimizer_Model_Observer Self reference.
      */
+    public function reindexPercolators(Varien_Event_Observer $observer)
+    {
+        $indexer = Mage::getModel('smile_searchoptimizer/indexer_percolator');
+        $indexer->reindexAll();
+        return $this;
+    }
+
+    /**
+     * Append optimize to queries.
+     *
+     * @param Varien_Event_Observer $observer Event to observe.
+     *
+     * @return Smile_SearchOptimizer_Model_Observer Self reference.
+     */
     public function addOptimizers(Varien_Event_Observer $observer)
     {
         $data = $observer->getQueryData();
@@ -163,7 +177,6 @@ class Smile_SearchOptimizer_Model_Observer
 
             $data->setQuery($query);
         }
-
         return $this;
     }
 

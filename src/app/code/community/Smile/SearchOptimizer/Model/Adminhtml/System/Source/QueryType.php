@@ -19,6 +19,8 @@
 class Smile_SearchOptimizer_Model_Adminhtml_System_Source_QueryType
 {
     /**
+     * List of the query types availables.
+     *
      * @var array
      */
     protected $_baseOptions = array(
@@ -26,12 +28,17 @@ class Smile_SearchOptimizer_Model_Adminhtml_System_Source_QueryType
         array('value' => 'category_products_layer', 'label' => 'Catalog product category listing'),
     );
 
+    /**
+     * Loaded Options.
+     *
+     * @var array
+     */
     protected $_options;
 
     /**
      * List available query types
      *
-     * @param boolean $isMultiselect
+     * @param boolean $isMultiselect Includes an empty options if set to false.
      *
      * @return array
      */
@@ -44,7 +51,7 @@ class Smile_SearchOptimizer_Model_Adminhtml_System_Source_QueryType
             }
         }
         $options = $this->_options;
-        if(!$isMultiselect){
+        if ($isMultiselect == false) {
             array_unshift($options, array('value'=>'', 'label'=> Mage::helper('adminhtml')->__('--Please Select--')));
         }
 

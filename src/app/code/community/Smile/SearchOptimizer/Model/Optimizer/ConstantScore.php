@@ -19,6 +19,8 @@
 class Smile_SearchOptimizer_Model_Optimizer_ConstantScore extends Smile_SearchOptimizer_Model_Optimizer_Abstract
 {
     /**
+     * Name of the optimizer model.
+     *
      * @var string
      */
     protected $_name = 'Constant score';
@@ -44,7 +46,9 @@ class Smile_SearchOptimizer_Model_Optimizer_ConstantScore extends Smile_SearchOp
               'name'      => 'config[boost_value]',
               'label'     => Mage::helper('smile_searchoptimizer')->__('Boost value (%)'),
               'title'     => Mage::helper('smile_searchoptimizer')->__('Boost value (%)'),
-              'required'  => true
+              'required'  => true,
+              'note'      => Mage::helper('smile_searchoptimizer')->__('Between -99 and 10000'),
+              'class'     => 'validate-number-range number-range--99-10000'
             )
         );
     }

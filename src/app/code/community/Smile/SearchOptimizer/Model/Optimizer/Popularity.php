@@ -19,11 +19,15 @@
 class Smile_SearchOptimizer_Model_Optimizer_Popularity extends Smile_SearchOptimizer_Model_Optimizer_Abstract
 {
     /**
+     * Name of the optimizer model.
+     *
      * @var string
      */
     protected $_name = 'Popularity';
 
     /**
+     * Default configuration values.
+     *
      * @var array
      */
     protected $_defaultValues = array(

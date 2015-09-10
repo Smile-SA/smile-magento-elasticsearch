@@ -50,8 +50,6 @@ class Smile_SearchOptimizer_Block_Adminhtml_Optimizer_Grid extends Mage_Adminhtm
      */
     protected function _prepareColumns()
     {
-        $baseUrl = $this->getUrl();
-
         $this->addColumn(
             'name',
             array(
@@ -117,7 +115,7 @@ class Smile_SearchOptimizer_Block_Adminhtml_Optimizer_Grid extends Mage_Adminhtm
             return;
         }
 
-        $this->getCollection()->addStoreFilter($value);
+        $collection->addStoreFilter($value);
 
         return $this;
     }

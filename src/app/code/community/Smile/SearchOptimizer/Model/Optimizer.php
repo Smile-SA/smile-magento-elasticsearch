@@ -25,6 +25,11 @@ class Smile_SearchOptimizer_Model_Optimizer extends Mage_Core_Model_Abstract
     const CACHE_TAG      = 'smile_searchoptimizer_optimizer';
 
     /**
+     * var string
+     */
+    const ENTITY         = 'smile_searchoptimizer_optimizer';
+
+    /**
      * @var string
      */
     protected $_cacheTag = 'smile_searchoptimizer_optimizer';
@@ -65,6 +70,34 @@ class Smile_SearchOptimizer_Model_Optimizer extends Mage_Core_Model_Abstract
     {
         $this->_init('smile_searchoptimizer/optimizer');
     }
+
+    /**
+     * Saving related data and init index.
+     *
+     * @return Smile_SearchOptimizer_Model_Optimizer
+     */
+    protected function _afterSave()
+    {
+        Mage::getSingleton('index/indexer')->processEntityAction(
+            $this, self::ENTITY, Mage_Index_Model_Event::TYPE_SAVE
+        );
+
+        return parent::_afterSave();
+    }
+
+    /**
+     * Deleting related data and init index.
+     *
+     * @return Smile_SearchOptimizer_Model_Optimizer
+     */
+    protected function _afterDeleteCommit()
+    {
+        Mage::getSingleton('index/indexer')->processEntityAction(
+            $this, self::ENTITY, Mage_Index_Model_Event::TYPE_DELETE
+        );
+        return parent::_afterDeleteCommit();
+    }
+
 
     /**
      * Serialize config before save.
@@ -114,7 +147,7 @@ class Smile_SearchOptimizer_Model_Optimizer extends Mage_Core_Model_Abstract
     {
         $availableModels = array();
         $config = Mage::app()->getConfig()->getNode('global/smile_searchoptimizer/optimizer_models')->asArray();
-        foreach ($config as $identifier => $modelName) {
+        foreach ($config as $modelName) {
             $model = Mage::getModel($modelName);
             if ($model) {
                 $availableModels[$modelName] = $model->getName();

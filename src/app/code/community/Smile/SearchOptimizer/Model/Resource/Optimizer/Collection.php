@@ -97,7 +97,7 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer_Collection extends Mage_Cor
     {
         if ($this->getFilter('store')) {
             $this->getSelect()->join(
-                array('store_table' => $this->getTable('smile_searchoptimizer/optimizer_store')),
+                array('store_table' => $this->getTable('smile_searchoptimizer/optimizer_store'), 'store_id'),
                 'main_table.optimizer_id = store_table.optimizer_id',
                 array()
             )->group('main_table.optimizer_id');
@@ -109,8 +109,8 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer_Collection extends Mage_Cor
         }
         if ($this->getFilter('query_type')) {
             $this->getSelect()
-                 ->join(
-                    array('querytype_table' => $this->getTable('smile_searchoptimizer/optimizer_querytype')),
+                ->join(
+                    array('querytype_table' => $this->getTable('smile_searchoptimizer/optimizer_querytype'), array('query_type')),
                     'main_table.optimizer_id = querytype_table.optimizer_id',
                     array()
                 )
@@ -140,7 +140,8 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer_Collection extends Mage_Cor
      *
      * @return Smile_SearchOptimizer_Model_Resource_Optimizer_Collection Self reference
      */
-    public function addIsActiveFilter($date = null) {
+    public function addIsActiveFilter($date = null)
+    {
 
         $this->addFieldToFilter('is_active', true);
 
@@ -149,8 +150,8 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer_Collection extends Mage_Cor
         }
 
         $this->getSelect()
-          ->where('from_date is null or from_date <= ?', $date)
-          ->where('to_date is null or to_date >= ?', $date);
+            ->where('from_date is null or from_date <= ?', $date)
+            ->where('to_date is null or to_date >= ?', $date);
 
         return $this;
     }

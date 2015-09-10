@@ -47,7 +47,7 @@ class Smile_SearchOptimizer_Block_Adminhtml_Optimizer_New_Form extends Mage_Admi
             array('legend'=>Mage::helper('smile_searchoptimizer')->__('Type'), 'class' => 'fieldset-wide')
         );
 
-        $field = $fieldset->addField(
+        $fieldset->addField(
             'model',
             'select',
             array(

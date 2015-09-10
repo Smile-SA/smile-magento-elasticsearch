@@ -1,0 +1,103 @@
+<?php
+/**
+ * Product boost score analysis tab template.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_SearchOptimizer
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */?>
+
+<?php $optimizers = $this->getOptimizers();?>
+
+<?php if ($optimizers->getSize() > 0) : ?>
+    <div class="box" id="dashboard_diagram_totals">
+        <div class="entry-edit">
+            <table cellspacing="0" width="100%">
+                <tbody>
+                    <tr>
+                    <?php foreach ($this->getSummaryByQueryType() as $summary) : ?>
+                        <td class="a-center bold">
+                            <h3><?php echo $summary['label']; ?></h3>
+                            <span class="nowrap" style="font-size:18px; color:#EA7601;">
+                                <span class="price"><?php echo $this->getBoostInPercent($summary['score']); ?> %</span>
+                            </span>
+                        </td>
+                    <?php endforeach?>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="box" id="dashboard_diagram_totals">
+        <div class="entry-edit">
+            <h4><?php echo $this->__('Optimizer boost detail :') ?></h4>
+            <div class="grid">
+                <table cellspacing="0" class="data">
+                    <col />
+                    <col />
+                    <col width="1" />
+                    <col width="1" />
+                    <col width="1" />
+                    <thead>
+                        <tr class="headings">
+                            <th><?php echo $this->__('Optimizer name') ?></th>
+                            <th><?php echo $this->__('Apply to') ?></th>
+                            <th><?php echo $this->__('Is applied') ?></th>
+                            <th><?php echo $this->__('Boost value') ?></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($optimizers as $optimizer) : ?>
+                        <tr>
+                            <td>
+                                <p><strong><?php echo $optimizer->getName(); ?></strong></p>
+                                <p><em><?php echo $optimizer->getFilterRuleSearchQuery(); ?></em></p>
+                            </td>
+                            <td>
+                                <?php foreach ($optimizer->getQueryType() as $queryType) :?>
+                                <p><?php echo $this->getQueryTypeLabel($queryType); ?></p>
+                                <?php endforeach; ?>
+                            </td>
+                            <td>
+                                <span <?php if ($optimizer->getOptimizedScore()) : ?>class="grid-severity-notice"<?php endif; ?>>
+                                    <span><?php echo $this->getIsAppliedLabel($optimizer); ?></span>
+                                </span>
+                            </td>
+                            <td>
+                                <?php if ($optimizer->getOptimizedScore()) : ?>
+                                    <span class="<?php if ($optimizer->getOptimizedScore() > 1) : ?>grid-severity-notice<?php else: ?>grid-severity-critical<?php endif; ?>">
+                                        <span><?php echo $this->getBoostInPercent($optimizer->getOptimizedScore()); ?> %</span>
+                                    </span>
+                                <?php else :?>
+                                    <?php echo $this->__('N/A'); ?>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <a href="<?php echo $this->getOptimizerEditUrl($optimizer); ?>" target="_blank"><?php echo $this->__('Edit')?></a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+<?php else : ?>
+    <div class="box" id="dashboard_diagram_totals">
+        <div class="entry-edit">
+            <h4>
+                <?php echo $this->__("There is any optimizer set up for this store yet."); ?>
+                <?php echo $this->__("Create one <a target='_blank' href='%s'>here<a>.", $this->getOptimizerListUrl()); ?>
+            </h4>
+        </div>
+    </div>
+<?php endif; ?>

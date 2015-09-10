@@ -16,6 +16,7 @@
  */
  -->
 <layout version="0.1.0">
+
     <adminhtml_search_optimizer_index>
         <reference name="content">
             <block type="smile_searchoptimizer/adminhtml_optimizer" name="optimizer"></block>
@@ -38,4 +39,13 @@
             <block type="smile_searchoptimizer/adminhtml_optimizer_edit" name="optimizer_edit"></block>
         </reference>
     </adminhtml_search_optimizer_edit>
+    
+    <adminhtml_catalog_product_edit>
+        <reference name="product_tabs">
+            <action method="addTab">
+                <name>searchoptimizer_analysis</name>
+                <block>smile_searchoptimizer/adminhtml_catalog_product_edit_tab_score</block>
+            </action>
+        </reference>
+    </adminhtml_catalog_product_edit>
 </layout>
