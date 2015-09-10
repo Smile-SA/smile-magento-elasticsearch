@@ -443,6 +443,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             Mage::dispatchEvent('smile_elasticsearch_index_install_before', array('index_name' => $this->getCurrentName()));
 
             $indices = $this->getClient()->indices();
+            $indices->close(array('index' => $this->getCurrentName()));
             $alias = $this->getConfig('alias');
             $indices->putSettings(
                 array(
@@ -453,13 +454,24 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                     )
                 )
             );
+            $indices->open(array('index' => $this->getCurrentName()));
 
-            $indices->putAlias(array('index' => $this->getCurrentName(), 'name' => $alias));
+            $deletedIndices = array();
+            $aliasActions = array();
+            $aliasActions[] = array('add' => array('index' => $this->getCurrentName(), 'alias' => $alias));
+
             $allIndices = $indices->getMapping(array('index'=> $alias));
             foreach (array_keys($allIndices) as $index) {
                 if ($index != $this->getCurrentName()) {
-                    $indices->delete(array('index' => $index));
+                    $deletedIndices[] = $index;
+                    $aliasActions[] = array('add' => array('index' => $index, 'alias' => $alias));
                 }
+            }
+
+            $indices->updateAliases(array('body' => array('actions' => $aliasActions)));
+
+            foreach ($deletedIndices as $index) {
+                $indices->delete(array('index' => $index));
             }
         }
     }
