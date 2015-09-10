@@ -63,16 +63,16 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $mapping['properties']['spelling_' . $languageCode] = array(
                 'type'       => 'multi_field',
                 'fields' => array(
-                    'spelling_' . $languageCode => array('type' => 'string', 'analyzer' => 'analyzer_' . $languageCode, 'stored' => false),
-                    'shingle'                   => array('type' => 'string', 'analyzer' => 'shingle', 'stored' => false),
-                    'phonetic_' . $languageCode => array('type' => 'string', 'analyzer' => 'phonetic_' . $languageCode, 'stored' => false),
+                    'spelling_' . $languageCode => array('type' => 'string', 'analyzer' => 'analyzer_' . $languageCode, 'store' => false),
+                    'shingle'                   => array('type' => 'string', 'analyzer' => 'shingle', 'store' => false),
+                    'phonetic_' . $languageCode => array('type' => 'string', 'analyzer' => 'phonetic_' . $languageCode, 'store' => false),
                 )
             );
         }
 
-        $mapping['properties']['unique']   = array('type' => 'string', 'stored' => false, 'index' => 'not_analyzed');
-        $mapping['properties']['id']       = array('type' => 'long', 'stored' => false, 'index' => 'not_analyzed');
-        $mapping['properties']['store_id'] = array('type' => 'integer', 'stored' => false, 'index' => 'not_analyzed');
+        $mapping['properties']['unique']   = array('type' => 'string', 'store' => false, 'index' => 'not_analyzed');
+        $mapping['properties']['id']       = array('type' => 'long', 'store' => false, 'index' => 'not_analyzed');
+        $mapping['properties']['store_id'] = array('type' => 'integer', 'store' => false, 'index' => 'not_analyzed');
 
         return $mapping;
     }
@@ -96,7 +96,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 foreach ($this->_stores as $store) {
                     $languageCode = $this->_helper->getLanguageCodeByStore($store);
                     $fieldName = $attributeCode . '_' . $languageCode;
-                    $mapping[$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode, 'stored' => false);
+                    $mapping[$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode, 'store' => false);
 
                     $multiTypeField = $attribute->getBackendType() == 'varchar' || $attribute->getBackendType() == 'text';
                     $multiTypeField = $multiTypeField && !($attribute->usesSource());
@@ -114,12 +114,12 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 }
             } else if ($type === 'date') {
                 $mapping[$attributeCode] = array(
-                    'stored' => false,
+                    'store' => false,
                     'type' => $type,
                     'format' => implode('||', array(Varien_Date::DATETIME_INTERNAL_FORMAT, Varien_Date::DATE_INTERNAL_FORMAT))
                 );
             } else {
-                $mapping[$attributeCode] = array('type' => $type, 'stored' => false);
+                $mapping[$attributeCode] = array('type' => $type, 'store' => false, 'fielddata' => array('format' => $type == 'string' ? 'fst' :'doc_values'));
             }
 
             if ($attribute->usesSource()) {
@@ -158,12 +158,12 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         $analyzers = array('shingle');
 
         $mapping[$fieldName] = array('type' => 'multi_field', 'fields' => array());
-        $mapping[$fieldName]['fields'][$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode, 'stored' => false);
+        $mapping[$fieldName]['fields'][$fieldName] = array('type' => $type, 'analyzer' => 'analyzer_' . $languageCode, 'store' => false);
 
         if ($sortable == true) {
             $analyzers[] = 'sortable';
             $analyzers[] = 'edge_ngram_front';
-            $mapping[$fieldName]['fields']['untouched'] = array('type' => $type, 'index' => 'not_analyzed', 'stored' => false, 'doc_values' => true);
+            $mapping[$fieldName]['fields']['untouched'] = array('type' => $type, 'index' => 'not_analyzed', 'store' => false, 'fielddata' => array('format' => 'doc_values'));
         }
 
         if ($this->getCurrentIndex()->isPhoneticSupported($languageCode)) {
@@ -171,7 +171,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         }
 
         foreach ($analyzers as $analyzer) {
-            $mapping[$fieldName]['fields'][$analyzer] = array('type' => $type, 'analyzer' => $analyzer, 'stored' => false);
+            $mapping[$fieldName]['fields'][$analyzer] = array('type' => $type, 'analyzer' => $analyzer, 'store' => false);
 
             if (isset($analyzersOptions[$analyzer])) {
                 $mapping[$fieldName]['fields'][$analyzer] = array_merge($mapping[$fieldName]['fields'][$analyzer], $analyzersOptions[$analyzer]);
