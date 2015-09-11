@@ -21,6 +21,8 @@ class Smile_SearchOptimizer_Block_Adminhtml_Optimizer_Edit_Form extends Mage_Adm
 
     /**
      * Init form
+     *
+     * @return void.
      */
     public function __construct()
     {
@@ -36,135 +38,9 @@ class Smile_SearchOptimizer_Block_Adminhtml_Optimizer_Edit_Form extends Mage_Adm
      */
     protected function _prepareForm()
     {
-        $model = Mage::registry('search_optimizer');
-
-        $form = new Varien_Data_Form(
-            array('id' => 'edit_form', 'action' => $this->getData('action'), 'method' => 'post')
-        );
-
-        $form->setHtmlIdPrefix('optimizer_');
-
-        $fieldset = $form->addFieldset(
-            'base_fieldset',
-            array(
-                'legend' => Mage::helper('smile_searchoptimizer')->__('General Information'),
-                'class'  => 'fieldset-wide'
-            )
-        );
-
-        if ($model->getOptimizerId()) {
-            $fieldset->addField('optimizer_id', 'hidden', array('name' => 'optimizer_id'));
-        }
-
-        $fieldset->addField(
-            'name',
-            'text',
-            array(
-                'name'      => 'name',
-                'label'     => Mage::helper('smile_searchoptimizer')->__('Optimizer Name'),
-                'title'     => Mage::helper('smile_searchoptimizer')->__('Optimizer Name'),
-                'required'  => true,
-            )
-        );
-
-        $fieldset->addField('model', 'hidden', array('name' => 'model'));
-
-        /**
-         * Check is single store mode
-         */
-        if (!Mage::app()->isSingleStoreMode()) {
-            $field = $fieldset->addField(
-                'store_id',
-                'multiselect',
-                array(
-                    'name'      => 'stores[]',
-                    'label'     => Mage::helper('smile_searchoptimizer')->__('Store View'),
-                    'title'     => Mage::helper('smile_searchoptimizer')->__('Store View'),
-                    'required'  => true,
-                    'values'    => Mage::getSingleton('adminhtml/system_store')->getStoreValuesForForm(false, true),
-                )
-            );
-            $renderer = $this->getLayout()->createBlock('adminhtml/store_switcher_form_renderer_fieldset_element');
-            $field->setRenderer($renderer);
-
-        } else {
-            $fieldset->addField(
-                'store_id',
-                'hidden',
-                array(
-                'name'      => 'stores[]',
-                'value'     => Mage::app()->getStore(true)->getId()
-                )
-            );
-            $model->setStoreId(Mage::app()->getStore(true)->getId());
-
-        }
-
-
-        $fieldset->addField(
-            'query_type',
-            'multiselect',
-            array(
-                'name' => 'query_type[]',
-                'label' => $this->__('Query type'),
-                'title' => $this->__('Query type'),
-                'required' => true,
-                'values' => Mage::getSingleton('smile_searchoptimizer/adminhtml_system_source_queryType')->toOptionArray(true)
-            )
-        );
-
-        $fieldset->addField(
-            'is_active',
-            'select',
-            array(
-                'label'     => Mage::helper('smile_searchoptimizer')->__('Status'),
-                'title'     => Mage::helper('smile_searchoptimizer')->__('Status'),
-                'name'      => 'is_active',
-                'required'  => true,
-                'options'   => array(
-                    '1' => Mage::helper('smile_searchoptimizer')->__('Enabled'),
-                    '0' => Mage::helper('smile_searchoptimizer')->__('Disabled'),
-                ),
-            )
-        );
-
-        $dateFormatIso = Mage::app()->getLocale()->getDateFormat(Mage_Core_Model_Locale::FORMAT_TYPE_SHORT);
-        $fieldset->addField(
-            'from_date',
-            'date',
-            array(
-                'name'         => 'from_date',
-                'label'        => Mage::helper('smile_searchoptimizer')->__('From Date'),
-                'title'        => Mage::helper('smile_searchoptimizer')->__('From Date'),
-                'image'        => $this->getSkinUrl('images/grid-cal.gif'),
-                'input_format' => Varien_Date::DATE_INTERNAL_FORMAT,
-                'format'       => $dateFormatIso
-            )
-        );
-        $fieldset->addField(
-            'to_date',
-            'date',
-            array(
-                'name'         => 'to_date',
-                'label'        => Mage::helper('smile_searchoptimizer')->__('To Date'),
-                'title'        => Mage::helper('smile_searchoptimizer')->__('To Date'),
-                'image'        => $this->getSkinUrl('images/grid-cal.gif'),
-                'input_format' => Varien_Date::DATE_INTERNAL_FORMAT,
-                'format'       => $dateFormatIso
-            )
-        );
-
-
-        $model->prepareForm($form);
-
-        if (!$model->getId()) {
-            $model->setData('is_active', '1');
-        }
-
-        $form->setValues($model->getData());
+        $form = new Varien_Data_Form(array('id' => 'edit_form', 'action' => $this->getData('action'), 'method' => 'post'));
         $form->setUseContainer(true);
         $this->setForm($form);
-
         return parent::_prepareForm();
     }
 

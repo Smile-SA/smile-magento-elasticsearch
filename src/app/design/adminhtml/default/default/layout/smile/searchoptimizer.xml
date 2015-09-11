@@ -35,6 +35,18 @@
             <action method="setCanLoadRulesJs"><flag>1</flag></action>
         </reference>
         <update handle="editor"/>
+        <reference name="left">
+            <block type="smile_searchoptimizer/adminhtml_optimizer_edit_tabs" name="product_tabs">
+                <action method="addTab">
+                    <name>searchoptimizer_main_config</name>
+                    <block>smile_searchoptimizer/adminhtml_optimizer_edit_tab_main</block>
+                </action>
+                <action method="addTab">
+                    <name>searchoptimizer_boost_config</name>
+                    <block>smile_searchoptimizer/adminhtml_optimizer_edit_tab_boost</block>
+                </action>
+            </block>
+        </reference>
         <reference name="content">
             <block type="smile_searchoptimizer/adminhtml_optimizer_edit" name="optimizer_edit"></block>
         </reference>
