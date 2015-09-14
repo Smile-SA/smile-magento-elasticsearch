@@ -156,7 +156,6 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
         } else {
             list($query, $this->_usedCategories) = $cacheData;
         }
-
         return $query;
     }
 
