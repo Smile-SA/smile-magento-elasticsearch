@@ -1,0 +1,105 @@
+<?php
+/**
+ * Optimizer boost specific configuration and preview
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_SearchOptimizer
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */?>
+
+<div class="entry-edit">
+    <?php echo $this->getFormHtml();?>
+</div>
+<?php echo $this->getChildHtml('form_after');?>
+
+<div class="box" id="dashboard_diagram_totals">
+    <div class="entry-edit">
+        <table cellpadding="3px" cellspacing="10px" style="width:100%">
+
+            <col />
+            <col width="230"/>
+            <?php if (!Mage::app()->isSingleStoreMode()) :?>
+            <col width="240"/>
+            <?php endif; ?>
+            <col width="50"/>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong><?php echo $this->__('Preview :'); ?></strong>
+                    </td>
+                    <td>
+                        <label>
+                            <span><?php echo $this->__('Fulltext query :'); ?></span>
+                            <input type="text"class="input-text" id="preview-optimizer-query" onchange="return false;"/>
+                        </label>
+                    </td>
+                    <?php if (!Mage::app()->isSingleStoreMode()) :?>
+                    <td>
+                        <label>
+                            <span><?php echo $this->__('Store view :'); ?></span>
+                            <select id="preview-optimizer-store-id">
+                            <?php foreach ($this->getStorePreviewStoresOptions() as $website) : ?>
+                                <optgroup label="<?php echo $website['name']; ?>">
+                                    <?php foreach ($website['groups'] as $storeGroup) : ?>
+                                        <optgroup label="&nbsp;&nbsp;<?php echo $storeGroup['name']; ?>">
+                                            <?php foreach ($storeGroup['stores'] as $storeId => $storeName) : ?>
+                                                <option value="<?php echo $storeId; ?>">&nbsp;&nbsp;&nbsp;&nbsp;<?php echo $storeName; ?></option>
+                                            <?php endforeach; ?>
+                                        </optgroup>
+                                    <?php endforeach; ?>
+                                </optgroup>
+                            <?php endforeach; ?>
+                            </select>
+                        </label>
+                    </td>
+                    <?php endif; ?>
+                    <td>
+                        <button class="button" onclick="return SmileSearchOptimizerPreview.refresh();"><?php echo $this->__('Refresh');?></button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div id="preview-result"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    SmileSearchOptimizerPreview = {
+        urlTemplate : new Template("<?php echo Mage::helper('core')->jsQuoteEscape($this->getPreviewUrlTemplate()); ?>"),
+        params : {
+            storeId: <?php echo Mage::app()->getDefaultStoreView()->getId();?>,
+            query: ""
+        },
+        refreshParams: function() {
+            SmileSearchOptimizerPreview.params.query = $('preview-optimizer-query').value;
+            if ($('preview-optimizer-store-id')) {
+                SmileSearchOptimizerPreview.params.storeId = $('preview-optimizer-store-id').value;
+            }
+        },
+        checkParams: function() {
+            var result = true;
+            if (SmileSearchOptimizerPreview.params.query == null || SmileSearchOptimizerPreview.params.query.length == 0) {
+                alert('<?php echo $this->__('Please type a search query before launching preview.')?>');
+                result = false;
+            }
+            return result;
+        },
+        refresh: function() {
+            SmileSearchOptimizerPreview.refreshParams();
+            if (SmileSearchOptimizerPreview.checkParams()) {
+                var urlTemplate = SmileSearchOptimizerPreview.urlTemplate;
+                var updateParams = {method: "POST", parameters: $('edit_form').serialize()};
+                new Ajax.Updater('preview-result', urlTemplate.evaluate(SmileSearchOptimizerPreview.params), updateParams);
+            }
+            return false;
+        }
+    }
+</script>

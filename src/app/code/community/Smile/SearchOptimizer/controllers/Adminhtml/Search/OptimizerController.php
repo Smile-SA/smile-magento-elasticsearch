@@ -222,6 +222,39 @@ class Smile_SearchOptimizer_Adminhtml_Search_OptimizerController extends Mage_Ad
     }
 
     /**
+     * Preview optmizer action
+     *
+     * @return Smile_SearchOptimizer_Adminhtml_Search_OptimizerController Self reference.
+     */
+    public function previewAction()
+    {
+        $data = $this->getRequest()->getPost();
+
+        if ($data) {
+            $id = $this->getRequest()->getParam('optimizer_id');
+            $model = Mage::getModel('smile_searchoptimizer/optimizer')->load($id);
+
+            // Check if a virtual rule is present in post and load it into the model
+            if ($rule = $this->getRequest()->getParam('rule', false)) {
+                if ($rule !== false) {
+                    $ruleInstance = Mage::getModel('smile_virtualcategories/rule')->loadPost($rule);
+                    $ruleInstance->setStoreId($this->getRequest()->getParam('store_id'));
+                    $model->setFilterRule($ruleInstance);
+                }
+            }
+
+            // init model and set data
+            $data = $this->_filterDates($data, array('from_date', 'to_date'));
+            $model->setData($data);
+
+            Mage::register('current_optimizer', $model);
+        }
+
+        $this->loadLayout();
+        $this->renderLayout();
+    }
+
+    /**
      * Check the permission to run it
      *
      * @return boolean

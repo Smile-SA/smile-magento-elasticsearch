@@ -21,6 +21,17 @@ class Smile_SearchOptimizer_Block_Adminhtml_Optimizer_Edit_Tab_Boost
     implements Mage_Adminhtml_Block_Widget_Tab_Interface
 {
     /**
+     * Tab specifics init.
+     *
+     * @return void
+     */
+    public function _construct()
+    {
+        parent::_construct();
+        $this->setTemplate('smile/searchoptimizer/optimizer/edit/tab/boost.phtml');
+    }
+
+    /**
      * Prepare content for tab
      *
      * @return string
@@ -67,12 +78,64 @@ class Smile_SearchOptimizer_Block_Adminhtml_Optimizer_Edit_Tab_Boost
      */
     protected function _prepareForm()
     {
-        $model = Mage::registry('search_optimizer');
+        $model = $this->getModel();
         $form = new Varien_Data_Form();
         $form->setHtmlIdPrefix('optimizer_');
         $model->prepareForm($form);
         $form->setValues($model->getData());
         $this->setForm($form);
         return parent::_prepareForm();
+    }
+
+    /**
+     * Get currently edited optimizer.
+     *
+     * @return Smile_SearchOptimizer_Model_Optimizer
+     */
+    public function getModel()
+    {
+        return Mage::registry('search_optimizer');
+    }
+
+    /**
+     * Return the JS prototype template of the preview URL.
+     *
+     * @return string
+     */
+    public function getPreviewUrlTemplate()
+    {
+        $urlParams = array('store_id' => '#{storeId}', 'query' => '#{query}', 'is_ajax' => true);
+
+        if ($this->getModel() && $this->getModel()->getId()) {
+            $urlParams['optimizer_id'] = $this->getModel()->getId();
+        }
+
+        return Mage::helper('adminhtml')->getUrl('*/search_optimizer/preview', $urlParams);
+    }
+
+    /**
+     * Load store available for preview grouped by website and store group.
+     *
+     * @return array
+     */
+    public function getStorePreviewStoresOptions()
+    {
+        $result = array();
+        $websites = Mage::app()->getWebsites();
+        foreach ($websites as $website) {
+            $result[$website->getId()] = array('name' => $website->getName());
+            foreach ($website->getGroups() as $storeGroup) {
+                $stores = array();
+                foreach ($storeGroup->getStores() as $store) {
+                    $stores[$store->getId()] = $store->getName();
+                }
+                if (!empty($store)) {
+                    $group = array('name' => $storeGroup->getName(), 'stores' => $stores);
+                    $result[$website->getId()]['groups'][$storeGroup->getId()] = $group;
+                }
+            }
+        }
+
+        return $result;
     }
 }

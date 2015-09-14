@@ -107,10 +107,11 @@ class Smile_SearchOptimizer_Model_Resource_Optimizer_Collection extends Mage_Cor
             */
             $this->_useAnalyticFunction = true;
         }
+
         if ($this->getFilter('query_type')) {
             $this->getSelect()
                 ->join(
-                    array('querytype_table' => $this->getTable('smile_searchoptimizer/optimizer_querytype'), array('query_type')),
+                    array('querytype_table' => $this->getTable('smile_searchoptimizer/optimizer_querytype'), 'query_type'),
                     'main_table.optimizer_id = querytype_table.optimizer_id',
                     array()
                 )

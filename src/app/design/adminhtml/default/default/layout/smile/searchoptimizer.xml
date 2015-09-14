@@ -52,6 +52,12 @@
         </reference>
     </adminhtml_search_optimizer_edit>
     
+    <adminhtml_search_optimizer_preview>
+        <block type="core/text_list" name="root" output="toHtml">
+            <block type="smile_searchoptimizer/adminhtml_optimizer_edit_tab_boost_preview" template="smile/searchoptimizer/optimizer/edit/tab/boost/preview.phtml" />
+        </block>
+    </adminhtml_search_optimizer_preview>
+    
     <adminhtml_catalog_product_edit>
         <reference name="product_tabs">
             <action method="addTab">

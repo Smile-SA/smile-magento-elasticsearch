@@ -1,0 +1,84 @@
+<?php
+/**
+ * Optimizer boost preview template.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_SearchOptimizer
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */?>
+<?php
+    $baseProductIds      = $this->getBaseProductIds();
+    $optimizedProductIds = $this->getOptimizedProductIds();
+    $helper = $this->helper('catalog/output');
+?>
+<div class="grid">
+    <table cellspacing="0" class="data">
+        <thead>
+            <th><?php echo $this->__('Not optimized results'); ?></th>
+            <th><?php echo $this->__('Optimized results'); ?></th>
+        </thead>
+        <tbody>
+            <?php if (!empty($baseProductIds)) : ?>
+                <?php for ($i = 0; $i < $this->getMaxSize(); $i++) : ?>
+                    <?php if (isset($baseProductIds[$i]) && isset($optimizedProductIds[$i])) : ?>
+                    <tr>
+                        <td>
+                            <?php $product = $this->getProductById($baseProductIds[$i]); ?>
+                            <div class="left" style="padding: 5px; margin: 0 10px; witdh: 50px; height: 50px">
+                                <img src="<?php echo $this->helper('catalog/image')->init($product, 'small_image')->keepFrame(false)->resize(50, 50); ?>"/>
+                            </div>
+                            <div>
+                                <p><strong><?php echo $helper->productAttribute($product, $product->getName(), 'name'); ?></strong></p>
+                                <p>
+                                    <em>
+                                    <?php echo $helper->productAttribute($product, Mage::helper('core/string')->truncate($product->getShortDescription()), 'short_description'); ?>
+                                    </em>
+                                </p>
+                            </div>
+                        </td>
+                        <td>
+                            <?php $product = $this->getProductById($optimizedProductIds[$i]); ?>
+                            <div class="left" style="padding: 5px; margin: 0 10px; witdh: 50px; height: 50px">
+                                <img src="<?php echo $this->helper('catalog/image')->init($product, 'small_image')->keepFrame(false)->resize(50, 50); ?>"/>
+                            </div>
+                            <div class="right">
+                                <div style="font-size:2em; margin: 10px;">
+                                    <?php $move = $this->getEffectOnProduct($product->getId()); ?>
+                                    <?php if ($move == -1) :?>
+                                        <span style="color: rgb(255,0,0);">&#8600;</span>
+                                    <?php elseif ($move == 1) :?>
+                                        <span style="color: rgb(63,190,57);"> &#8599;</span>
+                                    <?php else : ?>
+                                        <span>&rarr;</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div>
+                                <p><strong><?php echo $helper->productAttribute($product, $product->getName(), 'name'); ?></strong></p>
+                                <p>
+                                    <em>
+                                    <?php echo $helper->productAttribute($product, Mage::helper('core/string')->truncate($product->getShortDescription()), 'short_description'); ?>
+                                    </em>
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+                <?php endfor; ?>
+            <?php else : ?>
+                <tr>
+                    <td colspan="2" style="padding: 10px; text-align: center">
+                        <strong><?php echo $this->__('No search result for "%s"', $this->getFulltextQuery()); ?></strong>
+                    </td>
+                </tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>
