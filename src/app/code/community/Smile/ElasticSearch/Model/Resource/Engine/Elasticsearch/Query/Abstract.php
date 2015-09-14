@@ -364,6 +364,17 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
     }
 
     /**
+     * Get the ES Query
+     *
+     * @return array
+     */
+    public function getRawQuery()
+    {
+        return $this->_assembleQuery();
+    }
+
+
+    /**
      * Transform the query into an ES syntax compliant array.
      *
      * @return array
