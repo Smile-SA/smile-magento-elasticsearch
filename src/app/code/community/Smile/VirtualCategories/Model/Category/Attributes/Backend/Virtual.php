@@ -61,11 +61,14 @@ class Smile_VirtualCategories_Model_Category_Attributes_Backend_Virtual extends 
         }
 
         $virtualCategoryRule = Mage::getModel('smile_virtualcategories/rule');
-
         if (isset($data['rule_serialized'])) {
             $virtualCategoryRule->getConditions()
                 ->setConditions(array())
                 ->loadArray($data['rule_serialized']);
+
+                if ($object->getStoreId()) {
+                    $virtualCategoryRule->setStoreId($object->getStoreId());
+                }
         }
 
         $virtualCategoryRule->setCategory($object);

@@ -114,9 +114,11 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
                 $query = $not == true ? '-' . $query : $query;
             }
         } else {
-            $category = Mage::getModel('catalog/category')->load($value);
+            $category = Mage::getModel('catalog/category')
+                ->load($value);
             if ($category->getId() && !in_array($value, $excludedCategories)) {
                 $virtualRule = $category->getVirtualRule();
+                $virtualRule->setStore($this->getStore());
                 $query = '(' . $virtualRule->getSearchQuery($excludedCategories) . ')';
                 $this->getRule()->addUsedCategoryIds($virtualRule->getUsedCategoryIds());
             }
@@ -236,10 +238,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
         $fieldName = $this->getMapping()->getFieldName($this->getAttribute(), $this->getLocaleCode(), 'filter');
 
         if ($this->getAttribute() == 'price' || $this->getAttribute() == 'has_discount') {
-            $store = $this->getRule()->getStore();
-            if ($store == null) {
-                $store = Mage::app()->getStore();
-            }
+            $store = $this->getStore();
             $websiteId = $store->getWebsiteId();
             $customerGroupId = Mage::getSingleton('customer/session')->getCustomerGroupId();
             $fieldName = $this->getAttribute() . '_' . $customerGroupId . '_' . $websiteId;
@@ -321,8 +320,22 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
      */
     public function getLocaleCode()
     {
-        $store = Mage::app()->getStore();
+        $store = $this->getStore();
         $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
         return $languageCode;
+    }
+
+    /**
+     * Get the current store.
+     *
+     * @return Mage_Core_Model_Store
+     */
+    public function getStore()
+    {
+        $store = Mage::app()->getStore();
+        if ($this->getRule()->getStore()) {
+            $store = $this->getRule()->getStore();
+        }
+        return $store;
     }
 }
