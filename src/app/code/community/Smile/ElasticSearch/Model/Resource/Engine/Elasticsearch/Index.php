@@ -434,29 +434,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
      */
     public function prepareNewIndex()
     {
-        // Current date use to compute the index name
-        $currentDate = new Zend_Date();
+        $helper = $config = $this->_getHelper();
+        $config = $helper->getEngineConfigData();
 
-        // Default pattern if nothing set into the config
-        $pattern = '{{YYYYMMdd}}-{{HHmmss}}';
-
-        // Try to get the pattern from config
-        $config = $this->_getHelper()->getEngineConfigData();
+        // Compute index name
+        $indexName = $helper->getHorodatedName($config['alias']);
         if (isset($config['indices_pattern'])) {
-            $pattern = $config['indices_pattern'];
+            $indexName = $helper->getHorodatedName($config['alias'], $config['indices_pattern']);
         }
-
-        // Parse pattern to extract datetime tokens
-        $matches = array();
-        preg_match_all('/{{([\w]*)}}/', $pattern, $matches);
-
-        foreach (array_combine($matches[0], $matches[1]) as $k => $v) {
-            // Replace tokens (UTC date used)
-            $pattern = str_replace($k, $currentDate->toString($v), $pattern);
-        }
-
-        $indexName = $config['alias'] . '-' . $pattern;
-
         // Set the new index name
         $this->setCurrentName($indexName);
 
