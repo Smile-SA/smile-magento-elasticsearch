@@ -48,4 +48,29 @@ class Smile_ElasticSearch_Helper_Elasticsearch extends Smile_ElasticSearch_Helpe
         return Mage::getStoreConfigFlag('catalog/search/elasticsearch_enable_options_search');
     }
 
+    /**
+     * Produce an horodated name for a given string (eg. magento => magento-20150902-122312).
+     *
+     * @param string $name    Name to be horodated.
+     * @param string $pattern Date format (default to {{YYYYMMdd}}-{{HHmmss}}).
+     *
+     * @return string
+     */
+    public function getHorodatedName($name, $pattern = '{{YYYYMMdd}}-{{HHmmss}}')
+    {
+        // Current date use to compute the index name
+        $currentDate = new Zend_Date();
+
+        // Parse pattern to extract datetime tokens
+        $matches = array();
+        preg_match_all('/{{([\w]*)}}/', $pattern, $matches);
+
+        foreach (array_combine($matches[0], $matches[1]) as $k => $v) {
+            // Replace tokens (UTC date used)
+            $pattern = str_replace($k, $currentDate->toString($v), $pattern);
+        }
+
+        return $name . '-' . $pattern;
+    }
+
 }
