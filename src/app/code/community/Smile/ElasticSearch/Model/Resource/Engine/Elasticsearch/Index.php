@@ -455,10 +455,17 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     /**
      * Install the new index after full reindex
      *
+     * @param string $indexName Index to be installed current index if not set.
+     *
      * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter
      */
-    public function installNewIndex()
+    public function installNewIndex($indexName = null)
     {
+        if ($indexName !== null && $indexName != $this->getCurrentName()) {
+            $this->setCurrentName($indexName);
+            $this->_indexNeedInstall = true;
+        }
+
         if ($this->_indexNeedInstall) {
             $this->optimize();
             Mage::dispatchEvent('smile_elasticsearch_index_install_before', array('index_name' => $this->getCurrentName()));
@@ -492,6 +499,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             $indices->updateAliases(array('body' => array('actions' => $aliasActions)));
 
             foreach ($deletedIndices as $index) {
+                Mage::dispatchEvent('smile_elasticsearch_index_delete_before', array('index_name' => $index));
                 $indices->delete(array('index' => $index));
             }
         }
