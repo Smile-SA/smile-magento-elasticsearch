@@ -35,7 +35,6 @@ class Smile_SearchOptimizer_Adminhtml_Search_OptimizerController extends Mage_Ad
         return $this;
     }
 
-
     /**
      * Index action
      *
@@ -261,6 +260,6 @@ class Smile_SearchOptimizer_Adminhtml_Search_OptimizerController extends Mage_Ad
      */
     protected function _isAllowed()
     {
-        return Mage::getSingleton('admin/session')->isAllowed('catalog/search/optimizer');
+        return Mage::getSingleton('admin/session')->isAllowed('catalog/search/optimizers');
     }
 }
