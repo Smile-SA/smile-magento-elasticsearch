@@ -66,9 +66,9 @@ class Smile_VirtualCategories_Model_Category_Attributes_Backend_Virtual extends 
                 ->setConditions(array())
                 ->loadArray($data['rule_serialized']);
 
-                if ($object->getStoreId()) {
-                    $virtualCategoryRule->setStoreId($object->getStoreId());
-                }
+            if ($object->getStoreId()) {
+                $virtualCategoryRule->setStoreId($object->getStoreId());
+            }
         }
 
         $virtualCategoryRule->setCategory($object);
