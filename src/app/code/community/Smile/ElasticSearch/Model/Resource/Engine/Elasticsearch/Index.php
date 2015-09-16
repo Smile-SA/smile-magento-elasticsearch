@@ -487,8 +487,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             $deletedIndices = array();
             $aliasActions = array();
             $aliasActions[] = array('add' => array('index' => $this->getCurrentName(), 'alias' => $alias));
-
-            $allIndices = $indices->getMapping(array('index'=> $alias));
+            try {
+                $allIndices = $indices->getMapping(array('index'=> $alias));
+            } catch (\Elasticsearch\Common\Exceptions\Missing404Exception $e) {
+                $allIndices = array();
+            }
             foreach (array_keys($allIndices) as $index) {
                 if ($index != $this->getCurrentName()) {
                     $deletedIndices[] = $index;
