@@ -27,6 +27,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Decimal extends Smile_Elast
     {
         parent::__construct();
         $this->_filterModelName = 'smile_elasticsearch/catalog_layer_filter_decimal';
+        $this->setTemplate('smile/elasticsearch/catalog/layer/filter/range.phtml');
     }
 
     /**
@@ -52,5 +53,91 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Decimal extends Smile_Elast
         $this->_filter->addFacetCondition();
 
         return $this;
+    }
+
+    /**
+     * Return the lowest avaiblable for filtering.
+     *
+     * @param bool $rounding Enable rounding feature according range
+     *
+     * @return int
+     */
+    public function getMinValueInt($rounding = false)
+    {
+        $minValue = $this->_filter->getMinValue();
+        if ($rounding === true) {
+            $range = $this->getRange();
+            $minValue = max(0, floor($minValue / $range) * $range);
+        }
+        return $minValue;
+    }
+
+    /**
+     * Return the highest avaiblable for filtering.
+     *
+     * @param bool $rounding Enable rounding feature according range
+     *
+     * @return int
+     */
+    public function getMaxValueInt($rounding = false)
+    {
+        $maxValue = $this->_filter->getMaxValue();
+        if ($rounding === true) {
+            $pow = pow(10, strlen(ceil($maxValue)) - 1);
+            $maxValue = ceil($maxValue / $pow) * $pow;
+        }
+        return $maxValue;
+    }
+
+    /**
+     * Return the size of the filtering interval
+     *
+     * @return int
+     */
+    public function getRange()
+    {
+        return max(1, $this->_filter->getMaxValue() - $this->_filter->getMinValue());
+    }
+
+    /**
+     * JS template of the get var filter
+     *
+     * @return string
+     */
+    public function getFilterJsTemplate()
+    {
+        $requestVar = $this->getRequestVar();
+        return "$requestVar=#{min}-#{max}";
+    }
+
+    /**
+    * Return the currently selected interval.
+     *
+     * @return array
+     */
+    public function getInterval()
+    {
+        $interval = $this->_filter->getInterval();
+        if (is_null($interval)) {
+            $interval = array($this->getMinValueInt(true), $this->getMaxValueInt(true));
+        }
+        return $interval;
+    }
+
+     /**
+     * Array of the interval containing products (used to build sliders)
+     *
+     * @return array
+     */
+    public function getAllowedIntervals()
+    {
+        $minValueInt = $this->getMinValueInt(true);
+        $maxValueInt = $this->getMaxValueInt(true);
+        $allowedIntervals = array();
+
+        foreach ($this->getItems() as $currentItem) {
+            $allowedIntervals[] = array('value' => $currentItem->getValue(), 'count' => $currentItem->getCount());
+        }
+        return $allowedIntervals;
     }
 }
