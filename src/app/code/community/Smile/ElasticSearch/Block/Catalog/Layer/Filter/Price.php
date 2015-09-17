@@ -16,7 +16,7 @@
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
  */
-class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_ElasticSearch_Block_Catalog_Layer_Filter_Abstract
+class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_ElasticSearch_Block_Catalog_Layer_Filter_Decimal
 {
     /**
      * Defines specific filter model name.
@@ -27,6 +27,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
     {
         parent::__construct();
         $this->_filterModelName = 'smile_elasticsearch/catalog_layer_filter_price';
+        $this->setTemplate('smile/elasticsearch/catalog/layer/filter/price.phtml');
     }
 
     /**
@@ -62,12 +63,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
      */
     public function getMinPriceInt($rounding = false)
     {
-        $minPrice = $this->_filter->getMinPriceInt();
-        if ($rounding === true) {
-            $range = $this->getPriceRange();
-            $minPrice = max(0, floor($minPrice / $range) * $range);
-        }
-        return $minPrice;
+        return parent::getMinValueInt($rounding);
     }
 
     /**
@@ -79,48 +75,9 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
      */
     public function getMaxPriceInt($rounding = false)
     {
-        $maxPrice = $this->_filter->getMaxPriceInt();
-        if ($rounding === true) {
-            $range = $this->getPriceRange();
-            $maxPrice = ceil($maxPrice / $range) * $range;
-        }
-        return $maxPrice;
+        return parent::getMaxValueInt($rounding);
     }
 
-    /**
-     * Return the size of the filtering interval
-     *
-     * @return int
-     */
-    public function getPriceRange()
-    {
-        return $this->_filter->getPriceRange();
-    }
-
-    /**
-     * JS template of the get var filter
-     *
-     * @return string
-     */
-    public function getFilterJsTemplate()
-    {
-        $requestVar = $this->getRequestVar();
-        return "$requestVar=#{min}-#{max}";
-    }
-
-    /**
-     * Return the currently selected interval.
-     *
-     * @return array
-     */
-    public function getInterval()
-    {
-        $interval = $this->_filter->getInterval();
-        if (is_null($interval)) {
-            $interval = array($this->getMinPriceInt(true), $this->getMaxPriceInt(true));
-        }
-        return $interval;
-    }
 
     /**
      * Return the price format used by JS to display prices.
@@ -130,23 +87,5 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Price extends Smile_Elastic
     public function getJsPriceFormat()
     {
         return Mage::helper('core/data')->jsonEncode(Mage::app()->getLocale()->getJsPriceFormat());
-    }
-
-    /**
-     * Array of the interval containing products (used to build sliders)
-     *
-     * @return array
-     */
-    public function getAllowedIntervals()
-    {
-        $minPriceInt = $this->getMinPriceInt(true);
-        $maxPriceInt = $this->getMaxPriceInt(true);
-        $allowedIntervals = array();
-
-        foreach ($this->getItems() as $currentItem) {
-            $allowedIntervals[] = array('value' => $currentItem->getValue(), 'count' => $currentItem->getCount());
-        }
-
-        return $allowedIntervals;
     }
 }

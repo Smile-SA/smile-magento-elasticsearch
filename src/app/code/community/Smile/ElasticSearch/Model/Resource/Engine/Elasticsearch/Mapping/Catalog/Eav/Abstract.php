@@ -215,7 +215,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         $type = 'string';
         if ($attribute->getBackendType() == 'int' || $attribute->getFrontendClass() == 'validate-digits') {
             $type = 'integer';
-        } elseif ($attribute->getBackendType() == 'decimal') {
+        } elseif ($attribute->getBackendType() == 'decimal' || $attribute->getFrontendClass() == 'validate-number') {
             $type = 'double';
         } elseif ($attribute->getSourceModel() == 'eav/entity_attribute_source_boolean') {
             $type = 'boolean';

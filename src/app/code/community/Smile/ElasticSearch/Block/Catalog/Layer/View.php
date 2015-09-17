@@ -90,13 +90,15 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
      */
     protected function _addFilter($attribute)
     {
+        $decimalValidationClasses = array('validate-number', 'validate-digits');
+
         if ($attribute->getAttributeCode() == 'price') {
             $filterBlockName = $this->_priceFilterBlockName;
         } elseif ($attribute->getAttributeCode() == 'rating_filter') {
             $filterBlockName = $this->_ratingFilterBlockName;
         } elseif ($attribute->getSourceModel() == 'eav/entity_attribute_source_boolean') {
             $filterBlockName = $this->_booleanFilterBlockName;
-        } elseif ($attribute->getBackendType() == 'decimal') {
+        } elseif ($attribute->getBackendType() == 'decimal' || in_array($attribute->getFrontendClass(), $decimalValidationClasses)) {
             $filterBlockName = $this->_decimalFilterBlockName;
         } else {
             $filterBlockName = $this->_attributeFilterBlockName;

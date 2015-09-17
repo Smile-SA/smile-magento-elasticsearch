@@ -16,9 +16,15 @@
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
  */
-class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Decimal extends Mage_Catalog_Model_Layer_Filter_Decimal
+class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Decimal extends Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute
 {
-    const CACHE_TAG = 'MAXVALUE';
+    /**
+     * Fields stats available when the filter is loaded.
+     * Used to compute max & min values.
+     *
+     * @var array|null
+     */
+    protected $_stats = null;
 
     /**
      * Adds facet condition to product collection.
@@ -46,95 +52,141 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Decimal extends Mage_Catalo
      */
     public function apply(Zend_Controller_Request_Abstract $request, $filterBlock)
     {
+        /**
+         * Filter must be string: $from-$to
+         */
         $filter = $request->getParam($this->getRequestVar());
         if (!$filter) {
             return $this;
         }
 
-        $filter = explode(',', $filter);
-        if (count($filter) != 2) {
+        //validate filter
+        $filterParams = explode(',', $filter);
+        $filter = $this->_validateFilter($filterParams[0]);
+        if (!$filter) {
             return $this;
         }
 
-        list($index, $range) = $filter;
+        list($from, $to) = $filter;
 
-        if ((int) $index && (int) $range) {
-            $this->setRange((int) $range);
+        $this->setInterval(array($from, $to));
 
-            $this->applyFilterToCollection($this, $range, $index);
-            $this->getLayer()->getState()->addFilter(
-                $this->_createItem($this->_renderItemLabel($range, $index), $filter)
-            );
-
-            $this->_items = array();
+        $priorFilters = array();
+        for ($i = 1; $i < count($filterParams); ++$i) {
+            $priorFilter = $this->_validateFilter($filterParams[$i]);
+            if ($priorFilter) {
+                $priorFilters[] = $priorFilter;
+            } else {
+                //not valid data
+                $priorFilters = array();
+                break;
+            }
+        }
+        if ($priorFilters) {
+            $this->setPriorIntervals($priorFilters);
         }
 
-        return $this;
-    }
-
-    /**
-     * Apply decimal filter range to product collection.
-     *
-     * @param Smile_ElasticSearch_Model_Catalog_Layer_Filter_Decimal $filter Filter to be applied
-     * @param int                                                    $range  Size of the range to be applied
-     * @param int                                                    $index  Offset position
-     *
-     * @return Smile_ElasticSearch_Model_Catalog_Layer_Filter_Decimal
-     */
-    public function applyFilterToCollection($filter, $range, $index)
-    {
-        $value = array(
-            $this->_getFilterField() => array(
-                'from' => ($range * ($index - 1)),
-                'to'   => $range * $index,
-            )
+        $this->_applyRange();
+        $this->getLayer()->getState()->addFilter(
+            $this->_createItem($this->_renderRangeLabel(empty($from) ? 0 : $from, $to), $filter)
         );
-        $filter->getLayer()->getProductCollection()->addFqFilter($value);
 
         return $this;
     }
 
+
     /**
-     * Return the max value of the attribute
+     * Return stats (min, max, avg, ...) for the field
      *
-     * @see Mage_Catalog_Model_Layer_Filter_Decimal::getMaxValue()
+     * @return array
+     */
+    protected function _getFieldStats()
+    {
+        if (is_null($this->_stats)) {
+            $facets = $this->getLayer()->getProductCollection()->getFacetedData($this->_getFilterField());
+            $this->_stats['min'] = key($facets);
+            $this->_stats['max'] = key(array_reverse($facets, true));
+        }
+        return $this->_stats;
+    }
+
+    /**
+     * Is the facet using decimals or not
+     *
+     * @return boolean
+     */
+    public function isDecimal()
+    {
+        $isDecimal = true;
+        $attribute = $this->getAttributeModel();
+        if ($attribute->getBackendModel() == 'int' || $attribute->getFrontendClass() == 'validate-number') {
+            $isDecimal = false;
+        }
+        return $isDecimal;
+    }
+
+    /**
+     * Retrieves max value for ranges definition.
      *
      * @return float
      */
     public function getMaxValue()
     {
-        $searchParams = $this->getLayer()->getProductCollection()->getExtendedSearchParams();
-        $uniquePart = strtoupper(md5(serialize($searchParams)));
-        $cacheKey = 'MAXVALUE_' . $this->getLayer()->getStateKey() . '_' . $uniquePart;
-
-        $cachedData = Mage::app()->loadCache($cacheKey);
-        if (!$cachedData) {
-            $stats = $this->getLayer()->getProductCollection()->getStats($this->_getFilterField());
-
-            $max = $stats[$this->_getFilterField()]['max'];
-            if (!is_numeric($max)) {
-                $max = parent::getMaxValue();
-            }
-
-            $cachedData = (float) $max;
-            $tags = $this->getLayer()->getStateTags();
-            $tags[] = self::CACHE_TAG;
-            Mage::app()->saveCache($cachedData, $cacheKey, $tags);
+        $stats = $this->_getFieldStats();
+        $max = $stats['max'];
+        if ($this->isDecimal()) {
+            $max++;
         }
-
-        return $cachedData;
+        return $max;
     }
 
     /**
-     * Returns decimal field name.
+     * Retrieves max value for ranges definition.
      *
-     * @return string
+     * @return float
      */
-    protected function _getFilterField()
+    public function getMinValue()
     {
-        $fieldName = Mage::helper('smile_elasticsearch')->getAttributeFieldName($this->getAttributeModel());
+        $stats = $this->_getFieldStats();
+        $min = $stats['min'];
+        if (!is_numeric($min)) {
+            $min = 0;
+        }
+        return $min;
+    }
 
-        return $fieldName;
+
+    /**
+     * Apply range filter to product collection.
+     *
+     * @return Smile_ElasticSearch_Model_Catalog_Layer_Filter_Decimal
+     */
+    protected function _applyRange()
+    {
+        $interval = $this->getInterval();
+
+        if (!$interval) {
+            return $this;
+        }
+
+        list($from, $to) = $interval;
+        if ($from === '' && $to === '') {
+            return $this;
+        }
+
+        $field  = $this->_getFilterField();
+        $limits = array();
+        if (!empty($from)) {
+            $limits['gte'] = $from;
+        }
+        if (!empty($to)) {
+            $limits['lte'] = $to;
+        }
+
+        $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
+        $query->addFilter('range', array($this->_getFilterField() => $limits), $this->_getFilterField());
+
+        return $this;
     }
 
     /**
@@ -144,22 +196,17 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Decimal extends Mage_Catalo
      */
     protected function _getItemsData()
     {
-        $range = $this->getRange();
-        $fieldName = $this->_getFilterField();
-        $facets = $this->getLayer()->getProductCollection()->getFacetedData($fieldName);
-
         $data = array();
-        if (!empty($facets)) {
+
+        $facets = $this->getLayer()->getProductCollection()->getFacetedData($this->_getFilterField());
+
+        if (!empty($facets) && count($facets) > 1) {
             foreach ($facets as $key => $count) {
-                if ($count > 0) {
-                    preg_match('/TO ([\d\.]+)\]$/', $key, $rangeKey);
-                    $rangeKey = round($rangeKey[1] / $range);
-                    $data[] = array(
-                        'label' => $this->_renderItemLabel($range, $rangeKey),
-                        'value' => $rangeKey . ',' . $range,
-                        'count' => $count,
-                    );
-                }
+                $data[] = array(
+                    'label'  => $key,
+                    'value' => $key,
+                    'count'  => $count
+                );
             }
         }
 
@@ -167,31 +214,43 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Decimal extends Mage_Catalo
     }
 
     /**
-     * Renders decimal ranges.
+     * Validate and parse filter request param
      *
-     * @param int   $range Range size
-     * @param float $value Current value
+     * @param string $filter Filter applied
+     *
+     * @return array|bool
+     */
+    protected function _validateFilter($filter)
+    {
+        $filter = explode('-', $filter);
+        if (count($filter) != 2) {
+            return false;
+        }
+        foreach ($filter as $v) {
+            if (($v !== '' && $v !== '0' && (float) $v <= 0) || is_infinite((float) $v)) {
+                return false;
+            }
+        }
+
+        return $filter;
+    }
+
+    /**
+     * Prepare text of range label
+     *
+     * @param float|string $from From clause
+     * @param float|string $to   To clause
      *
      * @return string
      */
-    protected function _renderItemLabel($range, $value)
+    protected function _renderRangeLabel($from, $to)
     {
-        /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
-        $attribute = $this->getAttributeModel();
-
-        if ($attribute->getFrontendInput() == 'price') {
-            return parent::_renderItemLabel($range, $value);
+        if ($to === '') {
+            return Mage::helper('catalog')->__('%s and above', $from);
+        } elseif ($from == $to) {
+            return $from;
+        } else {
+            return Mage::helper('catalog')->__('%s - %s', $from, $to);
         }
-
-        $from = ($value - 1) * $range;
-        $to = $value * $range;
-
-        if ($from != $to) {
-            $to -= 0.01;
-        }
-
-        $to = Zend_Locale_Format::toFloat($to, array('locale' => Mage::helper('smile_elasticsearch')->getLocaleCode()));
-
-        return Mage::helper('catalog')->__('%s - %s', $from, $to);
     }
 }

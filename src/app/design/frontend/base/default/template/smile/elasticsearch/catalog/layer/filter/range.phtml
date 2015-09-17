@@ -1,6 +1,6 @@
 <?php
 /**
- * Price slider filter rendering.
+ * Range slider filter rendering.
  *
  * DISCLAIMER
  *
@@ -31,23 +31,17 @@
 <script type="text/javascript">
 <!--
     var sliderConfig = {
-        range                 : $R(<?php echo $this->getMinPriceInt(true); ?>, <?php echo $this->getMaxPriceInt(true); ?>),
+        range                 : $R(<?php echo $this->getMinValueInt(true); ?>, <?php echo $this->getMaxValueInt(true); ?>),
         values                : <?php echo Mage::helper('core/data')->jsonEncode($this->getInterval()); ?>,
         allowedIntervals      : <?php echo Mage::helper('core/data')->jsonEncode($this->getAllowedIntervals()); ?>,
         rootNode              : $("<?php echo $this->getNameInLayout(); ?>-slider"),
         countProductTemplates : {
             'multiple' : new Template("<?php echo $this->__('#{count} products');?>"),
             'one'      : new Template("<?php echo $this->__('#{count} product');?>"),
-            'empty'    : new Template("<?php echo $this->__('No product found in this price range');?>"),
-        },
-        valueFormat : function(value) {
-            var priceFormat    = <?php echo $this->getJsPriceFormat(); ?>;
-            priceFormat.precision = priceFormat.requiredPrecision = 0;
-            return formatCurrency(value.toFixed(0), priceFormat);
+            'empty'    : new Template("<?php echo $this->__('No product found for this range.');?>"),
         },
         requestVar : "<?php echo $this->getRequestVar(); ?>",
         filterTemplate : new Template("<?php echo $this->getFilterJsTemplate(); ?>")
-
     };
 
     Es.rangeSlider(sliderConfig);

@@ -99,3 +99,94 @@ MultipleAutoCompleter = Class.create(Ajax.Autocompleter, {
         this.hide();
     }
 });
+
+
+Es.rangeSlider = function(config) {
+    var sliderRootNode = config.rootNode.select('.slider-bkg')[0];
+    var inputNodes     = config.rootNode.select('span.limits');
+    var validButton    = config.rootNode.select('button.valid')[0];
+    var counterNode    = config.rootNode.select('em.count')[0];
+    var countProducts  = 0;
+    config.valueFormat = config.valueFormat != null ? config.valueFormat : function(value) {return Math.trunc(value)};
+
+    function initSlider() {
+        var slider = new Control.Slider(sliderRootNode.select('.handle'), sliderRootNode, {
+            range       : config.range,
+            sliderValue : config.values,
+            restricted  : true,
+            onSlide     : onSliderChangeValues,
+            onChange    : onSliderChangeValues
+        });
+        return slider;
+    }
+
+    var slider = initSlider();
+
+    function onSliderChangeValues(values) {
+        for (var i=0; i < values.length; i++) {
+            inputNodes[i].innerHTML = config.valueFormat(values[i]);
+        }
+        config.values = values;
+        updateCounter(values);
+    }
+
+    validButton.observe('click', function() {
+        var values     = {min : parseInt(slider.values[0]), max: parseInt(slider.values[1])};
+        var template   = config.filterTemplate;
+    
+        var urlToken   = template.evaluate(values);
+        var addedParams = false;
+    
+        var search = window.location.search.substring(1).split('&').map(function(part) {
+            part = part.split('=');
+            if (part[0] == config.requestVar) {
+                addedParams = true;
+                return template.evaluate(values);
+            } else {
+                return part.join('=');
+            }
+        }).join('&');
+    
+        if (addedParams == false) {
+            search = search.length == 0 ? template.evaluate(values) : search + "&" + template.evaluate(values);
+        }
+    
+        window.location.search = '?' + search;
+    })
+
+    function updateCounter(values) {
+
+        countProducts = 0;
+
+        for (var i=0; i < config.allowedIntervals.length; i++) {
+            var currentValue = config.allowedIntervals[i].value;
+
+            if (values[0] <= currentValue && values[1] >= currentValue) {
+                countProducts += config.allowedIntervals[i].count;
+            }
+        }
+
+        counterNode.innerHTML = countProducts;
+
+        countTemplate = 'empty';
+
+        if (countProducts > 1) {
+            countTemplate = 'multiple';
+            validButton.show();
+        } else if (countProducts > 0) {
+            countTemplate = 'one';
+            validButton.show();
+        } else {
+            validButton.hide();
+        }
+
+        counterNode.innerHTML = config.countProductTemplates[countTemplate].evaluate({count: countProducts})
+        counterNode.removeClassName('one'); counterNode.removeClassName('multiple'); counterNode.removeClassName('empty');
+        counterNode.addClassName(countTemplate);
+    }
+    $$('.block-subtitle.block-subtitle--filter, .block.block-layered-nav dl > dt').each(function(node) {
+        node.addEventListener('click', function() {setTimeout(initSlider, 30);});
+    });
+    window.addEventListener('resize', initSlider);
+    onSliderChangeValues(slider.values);
+};
