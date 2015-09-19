@@ -57,18 +57,18 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Rating extends Smile_Elasti
         if ($data === null) {
 
             $data      = array();
-            $facets    = array_reverse($this->_getFacets(), true);
+            $items    = array_reverse($this->_getFacet()->getItems(), true);
             $sumCount  = 0;
 
-            $maxValue = current(array_keys($facets));
+            $maxValue = current(array_keys($items));
 
             while (($maxValue = $maxValue - self::RATING_AGG_INTERVAL) && $maxValue >0) {
-                if (!isset($facets[$maxValue])) {
-                    $facets[$maxValue] = 0;
+                if (!isset($items[$maxValue])) {
+                    $items[$maxValue] = 0;
                 }
             }
 
-            foreach ($facets as $key => $count) {
+            foreach ($items as $key => $count) {
                 $sumCount  += $count ;
                 $data[] = array(
                     'label' => $key,
@@ -128,5 +128,4 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Rating extends Smile_Elasti
 
         return $this;
     }
-
 }

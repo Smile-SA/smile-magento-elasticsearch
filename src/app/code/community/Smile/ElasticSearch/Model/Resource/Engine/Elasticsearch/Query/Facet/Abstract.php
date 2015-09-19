@@ -19,6 +19,14 @@
 abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_Abstract
 {
     /**
+     * Loaded response;
+     *
+     * @var array
+     */
+    protected $_response = null;
+
+
+    /**
      * Default options.
      *
      * @var array
@@ -96,6 +104,19 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fac
     }
 
     /**
+     * Set the response for this facet after the search phase.
+     *
+     * @param array $response Search query facets response.
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_Abstract
+     */
+    public function setResponse($response)
+    {
+        $this->_response = $response;
+        return $this;
+    }
+
+    /**
      * Transform the facet into an ES syntax compliant array.
      * Real implemntation needed.
      *
@@ -110,5 +131,15 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fac
      *
      * @return array
      */
-    abstract public function getItems($response);
+    abstract public function getItems($response = null);
+
+    /**
+     * Indicates if the facet has more result than the loaded items list.
+     *
+     * @return boolean
+     */
+    public function hasOthers()
+    {
+        return false;
+    }
 }

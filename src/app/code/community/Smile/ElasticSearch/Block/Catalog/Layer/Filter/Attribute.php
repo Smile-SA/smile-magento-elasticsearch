@@ -40,6 +40,11 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Attribute extends Smile_Ela
     {
         $this->_filter->setAttributeModel($this->getAttributeModel());
         $this->_filter->setIsMultipleSelect(true);
+
+        if ($this->isSuggestResponse()) {
+            $this->_filter->setSuggestConfig($this->getRequest()->getParam('suggest'));
+        }
+
         return $this;
     }
 
@@ -54,5 +59,88 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Attribute extends Smile_Ela
         $this->_filter->addFacetCondition();
 
         return $this;
+    }
+
+    /**
+     * Render the text used into facets suggestion field.
+     *
+     * @return string
+     */
+    public function getPlaceholderSearchText()
+    {
+        $text = $this->__('Search into values');
+        $examples = array();
+        $items = array_slice($this->getItems(), 0, 2);
+        foreach ($items as $item) {
+            $examples[] = $item->getLabel();
+        }
+
+        if (!empty($examples)) {
+            $examples[] = '...';
+            $text = $this->__('Search into values (e.g. %s)', implode(', ', $examples));
+        }
+
+        return $text;
+    }
+
+    /**
+     * Retrieve the URL used to fetch suggestions for the facet.
+     *
+     * @return string
+     */
+    public function getFacetSuggestUrl()
+    {
+        $params = array(
+            'cat'    => $this->_filter->getLayer()->getCurrentCategory()->getId(),
+            'ajax'   => true,
+            '_current' => true,
+            '_query' => array('p' => null, 'suggest' => null)
+        );
+        return Mage::getUrl('catalogsearch/ajax/facetSuggest', $params);
+    }
+
+    /**
+     * Read the suggest config from the URL.
+     *
+     * @return array|false
+     */
+    public function getSuggestConfig()
+    {
+        return $this->getRequest()->getParam('suggest', false);
+    }
+
+    /**
+     * Indicates if the current rendering is a suggestion one.
+     *
+     * @return boolean
+     */
+    public function isSuggestResponse()
+    {
+        return $this->getSuggestConfig() !== false && $this->getRequest()->isAjax();
+    }
+
+    /**
+     * Get the suggest text query.
+     *
+     * @return string
+     */
+    public function getSuggestQueryText()
+    {
+        $queryText = '';
+        $suggestConfig = $this->getSuggestConfig();
+        if ($suggestConfig && isset($suggestConfig['q'])) {
+            $queryText = $suggestConfig['q'];
+        }
+        return $queryText;
+    }
+
+    /**
+     * Indicates if the facet internal search engine should be enabled or not.
+     *
+     * @return boolean
+     */
+    public function isSearchEnabled()
+    {
+        return $this->hasOthers() || count($this->getItems()) > $this->_filter->getAttributeModel()->getFacetsMaxSize();
     }
 }

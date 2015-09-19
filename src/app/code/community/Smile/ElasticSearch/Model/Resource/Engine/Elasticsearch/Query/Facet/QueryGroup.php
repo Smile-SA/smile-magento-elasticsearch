@@ -75,9 +75,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_QueryG
      *
      * @return array
      */
-    public function getItems($response)
+    public function getItems($response = null)
     {
         $result = array();
+
+        if ($response == null && $this->_response) {
+            $response = $this->_response;
+        }
+
         $prefix = $this->getPrefix();
         foreach ($response as $facetName => $facet) {
             if (strpos($facetName, $prefix) === 0) {

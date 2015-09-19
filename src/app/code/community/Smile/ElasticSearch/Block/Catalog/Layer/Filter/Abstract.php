@@ -20,11 +20,21 @@ class Smile_ElasticSearch_Block_Catalog_Layer_Filter_Abstract extends Mage_Catal
 {
     /**
      * Return the filter request var (used to build URL)
-     * 
+     *
      * @return string
      */
     public function getRequestVar()
     {
         return $this->_filter->getRequestVar();
+    }
+
+    /**
+     * Indicates if the filters has more value than what have been currently fetch.
+     *
+     * @return boolean
+     */
+    public function hasOthers()
+    {
+        return $this->_filter->hasOthers();
     }
 }

@@ -56,9 +56,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_Terms
      *
      * @return array
      */
-    public function getItems($response)
+    public function getItems($response = null)
     {
         $result = array();
+
+        if ($response == null && $this->_response) {
+            $response = $this->_response;
+        }
 
         if (isset($response['terms'])) {
             foreach ($response['terms'] as $value) {
@@ -66,5 +70,19 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_Terms
             }
         }
         return $result;
+    }
+
+    /**
+     * Indicates if the facet has more result than the loaded items list.
+     *
+     * @return boolean
+     */
+    public function hasOthers()
+    {
+        $hasOthers = false;
+        if ($this->_response && isset($this->_response['other']) && $this->_response['other'] > 0) {
+            $hasOthers = true;
+        }
+        return $hasOthers;
     }
 }
