@@ -18,5 +18,13 @@
  */
 class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Boolean extends Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute
 {
-
+    /**
+     * Indicates if the filters has more value than what have been currently fetch.
+     *
+     * @return boolean
+     */
+    public function hasOthers()
+    {
+        return false;
+    }
 }

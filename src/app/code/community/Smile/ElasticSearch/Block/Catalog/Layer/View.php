@@ -44,6 +44,13 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
     protected $_ratingFilterBlockName;
 
     /**
+     * Indicates URL rewrites should be used for categories.
+     *
+     * @var boolean
+     */
+    protected $_usesUrlRewrite = true;
+
+    /**
      * Modifies default block names to specific ones if engine is active.
      *
      * @return void
@@ -72,8 +79,9 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
         $entityType = Mage_Catalog_Model_Product::ENTITY;
         $filters = array();
         foreach ($this->getRequest()->getParams() as $paramName => $value) {
-            $attribute = Mage::getSingleton('eav/config')->getAttribute($entityType, $paramName);
-            if ($attribute && $attribute->getId() && $attribute->getIsFilterableInSearch()) {
+            $attribute = Mage::getSingleton('eav/config')
+                ->getAttribute($entityType, $paramName);
+            if ($attribute && $attribute->getId()) {
                 $filters[$attribute->getAttributeCode() . '_filter'] = $this->_addFilter($attribute);
             }
         }
@@ -104,7 +112,7 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
             $filterBlockName = $this->_attributeFilterBlockName;
         }
 
-        $filter = $this->getLayout()->createBlock($filterBlockName)
+        $filter = $this->getLayout()->createBlock($filterBlockName, $attribute->getAttributeCode() . '_filter')
             ->setLayer($this->getLayer())
             ->setAttributeModel($attribute)
             ->init();
@@ -119,11 +127,19 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
      */
     protected function _getFilterableAttributes()
     {
-        $filterablesAttributes = parent::_getFilterableAttributes();
-        if (!is_array($filterablesAttributes)) {
-            $filterablesAttributes = $filterablesAttributes->getItems();
+        $attributes = $this->getData('_filterable_attributes');
+        if (is_null($attributes)) {
+            $suggestConfig = $this->getRequest()->getParam('suggest');
+            if ($this->getRequest()->isAjax() && $suggestConfig && isset($suggestConfig['field'])) {
+                $entityType = Mage_Catalog_Model_Product::ENTITY;
+                $attribute = Mage::getSingleton('eav/config')->getAttribute($entityType, $suggestConfig['field']);
+                $attributes = array($attribute);
+            } else {
+                $attributes = $this->getLayer()->getFilterableAttributes();
+            }
+            $this->setData('_filterable_attributes', $attributes);
         }
-        return $filterablesAttributes;
+        return $attributes;
     }
 
     /**
@@ -142,8 +158,8 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
             $stateBlock = $this->getLayout()->createBlock($this->_stateBlockName)
                 ->setLayer($this->getLayer());
 
-            $categoryBlock = $this->getLayout()->createBlock($this->_categoryBlockName)
-                ->setUseUrlRewrites(true)
+            $categoryBlock = $this->getLayout()->createBlock($this->_categoryBlockName, 'category_filter')
+                ->setUseUrlRewrites($this->_usesUrlRewrite)
                 ->setLayer($this->getLayer())
                 ->init();
 
@@ -191,7 +207,6 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
      */
     public function canShowOptions()
     {
-
         foreach ($this->getFilters() as $filter) {
             if ($filter->getItemsCount() > 1) {
                 return true;
@@ -243,6 +258,8 @@ class Smile_ElasticSearch_Block_Catalog_Layer_View extends Mage_Catalog_Block_La
                     $block->setTemplate($template);
                 }
             }
+
+            $this->getLayer()->getProductCollection()->getSize();
         }
         return parent::_beforeToHtml();
     }

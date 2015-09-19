@@ -38,7 +38,7 @@ require 'Mage/CatalogSearch/controllers/AjaxController.php';
 class Smile_ElasticSearch_AjaxController extends Mage_CatalogSearch_AjaxController
 {
     /**
-     * Execute autocomplete
+     * Execute fulltext search autocomplete.
      *
      * @return Mage_Core_Controller_Front_Action Self reference
      */
@@ -51,5 +51,16 @@ class Smile_ElasticSearch_AjaxController extends Mage_CatalogSearch_AjaxControll
             parent::suggestAction();
         }
         return $this;
+    }
+
+    /**
+     * Execute facet suggestion search autocomplete.
+     *
+     * @return Mage_Core_Controller_Front_Action Self reference
+     */
+    public function facetSuggestAction()
+    {
+        $suggestBlock = $this->getLayout()->createBlock('smile_elasticsearch/catalog_layer_filter_attribute_suggest');
+        $this->getResponse()->setBody($suggestBlock->toHtml());
     }
 }

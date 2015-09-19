@@ -231,11 +231,15 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
 
             if (isset($response['facets'])) {
                 foreach ($this->_facets as $facetName => $facetModel) {
+                    $currentFacet = clone $facetModel;
                     if ($facetModel->isGroup()) {
+                        $currentFacet->setResponse($response['facets']);
                         $result['faceted_data'][$facetName] = $facetModel->getItems($response['facets']);
                     } else if (isset($response['facets'][$facetName])) {
+                        $currentFacet->setResponse($response['facets'][$facetName]);
                         $result['faceted_data'][$facetName] = $facetModel->getItems($response['facets'][$facetName]);
                     }
+                    $result['facets'][$facetName] = $currentFacet;
                 }
             }
         } else {

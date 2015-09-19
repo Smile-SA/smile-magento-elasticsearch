@@ -45,3 +45,43 @@
 #narrow-by-list .ratings .rating-box { margin: 0; }
 
 .block-layered-nav dl dd ol > li > span, .block-layered-nav dl dd ol > li > a { display: inline-block; }
+
+/* Search facets autocomplete */
+.autocomplete-facet-form input[type=text] {font-size: 80%; height: 24px;}
+.autocomplete-facet-form form {margin: 0 0 10px 0;}
+.autocomplete-facet-form .count.empty { line-height: 10px; color: #AA0000; margin: 0; text-align: center; }
+
+.empty-query-field-link {    float: right;
+    float: right;
+    margin: 0px 0px -28px 0;
+    padding: 3px;
+    transform: scale(0.75) rotate(45deg);
+    cursor: pointer;
+    height: 30px;
+    width: 30px;
+}
+
+.empty-query-field-link div {
+    background: rgb(229,132,115);
+    height: 20px;
+    position: relative;
+    width: 2px;
+    margin: 0 0 0 12px;
+}
+.empty-query-field-link div:after {
+  background: rgb(229,132,115);
+  content: "";
+  height: 2px;
+  left: -9px;
+  top: 9px;
+  position: absolute;
+  width: 20px;
+}
+
+.block-layered-nav dl dd .ajax-load-link {
+    font-size: 90%;
+    text-align: right;
+    cursor: pointer;
+    padding: 0px;
+    text-decoration: underline;
+}

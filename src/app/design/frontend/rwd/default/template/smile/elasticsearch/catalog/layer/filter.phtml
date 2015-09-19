@@ -13,19 +13,64 @@
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
  */?>
+<?php
+    $isSuggetResponse    = $this->isSuggestResponse();
+    $suggestQueryText    = $this->getSuggestQueryText();
+    $hasSuggestQueryText = $isSuggetResponse && ($suggestQueryText != '');
+    $hasOthers           = $this->hasOthers();
+    $resultListId        = ($isSuggetResponse && $hasSuggestQueryText) ? 'suggest-data' : ($isSuggetResponse ? 'complete-data' : 'orig-data');
+?>
 
- <ol>
-<?php foreach ($this->getItems() as $_item): ?>
+<?php if (!$isSuggetResponse && $this->isSearchEnabled()) : ?>
+<div id="<?php echo $this->getNameInLayout()?>" class="autocomplete-facet-form">
+    <form method="get" action="<?php echo $this->getFacetSuggestUrl(); ?>">
+        <div class="empty-query-field-link no-display"><div></div></div>
+        <div class="block-content">
+            <div class="input-box">
+                <input type="text" name="suggest[q]" class="input-text" placeholder="<?php echo $this->getPlaceholderSearchText(); ?>" />
+                <input type="hidden" name="suggest[field]" value="<?php echo $this->getRequestVar(); ?>" />
+            </div>
+        </div>
+    </form>
+<?php endif; ?>
+
+<ol id="<?php echo $this->getNameInLayout(); ?>-<?php echo $resultListId; ?>">
+    <?php foreach ($this->getItems() as $_item): ?>
+        <li>
+            <a href="<?php echo $this->urlEscape($_item->getUrl()) ?>" class="filter-link">
+                <?php if ($this->getIsMultipleSelect()) : ?>
+                    <input type="checkbox" <?php if ($_item->getSelected()) : ?>checked<?php endif; ?> onclick="this.parentNode.click();"/>
+                <?php endif; ?>
+                <label><?php echo $_item->getLabel() ?></label>
+                <?php if ($this->shouldDisplayProductCount()): ?>
+                <span class="count">(<?php echo $_item->getCount() ?>)</span>
+                <?php endif; ?>
+            </a>
+        </li>
+    <?php endforeach ?>
+    <?php if (count($this->getItems()) == 0 && $isSuggetResponse && $hasSuggestQueryText) : ?>
     <li>
-        <a href="<?php echo $this->urlEscape($_item->getUrl()) ?>">
-            <?php if ($this->getIsMultipleSelect()) : ?>
-                <input type="checkbox" <?php if ($_item->getSelected()) : ?>checked<?php endif; ?> onclick="this.parentNode.click();"/>
-            <?php endif; ?>
-            <label><?php echo $_item->getLabel() ?></label>
-            <?php if ($this->shouldDisplayProductCount()): ?>
-            <span class="count">(<?php echo $_item->getCount() ?>)</span>
-            <?php endif; ?>
+        <p class="count empty"><em><?php echo $this->__('No result found for "%s".', $suggestQueryText); ?></em></p>
+    </li>
+    <?php endif; ?>
+    <?php if ($hasOthers && !$isSuggetResponse) : ?>
+    <li>
+        <a id="<?php echo $this->getNameInLayout();?>-show-more-link" class="ajax-load-link">
+            <?php echo $this->__('Show more'); ?>
         </a>
     </li>
-<?php endforeach ?>
+    <?php elseif ($isSuggetResponse && !$hasSuggestQueryText) : ?>
+    <li>
+        <a id="<?php echo $this->getNameInLayout();?>-show-less-link" class="ajax-load-link">
+            <?php echo $this->__('Show less'); ?>
+        </a>
+    </li>
+    <?php endif; ?>
 </ol>
+
+<?php if (!$isSuggetResponse && $this->isSearchEnabled()) : ?>
+</div>
+<script type="text/javascript">
+    Es.facetAutocomplete('<?php echo $this->getNameInLayout()?>');
+</script>
+<?php endif; ?>

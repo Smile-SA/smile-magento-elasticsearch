@@ -146,7 +146,7 @@ Es.rangeSlider = function(config) {
                 return part.join('=');
             }
         }).join('&');
-    
+        
         if (addedParams == false) {
             search = search.length == 0 ? template.evaluate(values) : search + "&" + template.evaluate(values);
         }
@@ -190,3 +190,144 @@ Es.rangeSlider = function(config) {
     window.addEventListener('resize', initSlider);
     onSliderChangeValues(slider.values);
 };
+
+
+Es.facetAutocomplete = function(rootNodeId) {
+    var rootNode = $(rootNodeId);
+    var origDataNode = $(rootNodeId + '-orig-data');
+    origDataNode.addClassName('current');
+    var deleteLink = rootNode.select('.empty-query-field-link')[0];
+    var autocompleteForm = rootNode.select('form')[0];
+    var requestVar = autocompleteForm.elements["suggest[field]"].value;
+    var textInput = autocompleteForm.elements['suggest[q]'];
+    var timeout = false;
+    var currentText = '';
+    var hasResult = true;
+    var onSuggestResponse = function (response) {
+        if (textInput.value.length) {
+            if ($(rootNodeId + '-suggest-data')) {
+                $(rootNodeId + '-suggest-data').remove();
+            }
+            $(rootNodeId).insert(response.responseText); 
+            if ($(rootNodeId + '-complete-data')) {
+                $(rootNodeId + '-complete-data').addClassName('no-display')
+            }
+            $(rootNodeId + '-orig-data').addClassName('no-display');
+            rewriteLinks($(rootNodeId + '-suggest-data'));
+        } else {
+            if ($(rootNodeId + '-suggest-data')) {
+                $(rootNodeId + '-suggest-data').remove();
+            }
+            
+            if ($(rootNodeId + '-complete-data') && $(rootNodeId + '-complete-data').hasClassName('current')) {
+                showMoreValues();
+            } else {
+                showLessValues();
+            }
+        }
+    }
+    var onTextInputLeave = function ()
+    {
+        if (textInput.value.trim().length == 0) {
+            textInput.value = '';
+            
+            if ($(rootNodeId + '-suggest-data')) {
+                $(rootNodeId + '-suggest-data').remove();
+            }
+            if ($(rootNodeId + '-orig-data').hasClassName('current')) {
+                showLessValues();
+            }
+            if ($(rootNodeId + '-complete-data') && $(rootNodeId + '-complete-data').hasClassName('current')) {
+                showMoreValues();
+            }
+            hasResult = true;
+            deleteLink.addClassName('no-display');
+        }
+    }
+    var rewriteLinks = function(rootNode) {
+        var pathname = window.location.pathname;
+        rootNode.select('.filter-link').each(function(link) {
+            link.pathname = pathname;
+        });
+    }
+    var onTextChange = function() {
+        
+        if (timeout) {
+            clearTimeout(timeout);
+        }
+        
+        if (textInput && textInput.value.length) {
+            deleteLink.removeClassName('no-display');
+        }
+        console.log(textInput.value);
+        if (textInput.value && textInput.value.trim().length > 0) {
+            var newValue = textInput.value.trim();
+            var shouldQuery = newValue.length >= currentText.length;
+            var shouldQuery = currentText.length < 1 || newValue.substring(0, currentText.length) != currentText;
+            shouldQuery = shouldQuery || (rootNode.select('.count.empty').length == 0)
+            if (shouldQuery) {
+                currentText = newValue;
+                var params = autocompleteForm.serialize();
+                timeout = setTimeout(function() {
+                    new Ajax.Request(autocompleteForm.action, {method: 'get', parameters: params, onSuccess: onSuggestResponse});
+                }, 250);
+            }
+        } else {
+            if ($(rootNodeId + '-suggest-data')) {
+                $(rootNodeId + '-suggest-data').remove();
+            }
+            if ($(rootNodeId + '-complete-data') != null && $(rootNodeId + '-complete-data').hasClassName('current')) {
+                showMoreValues();
+            } else {
+                showLessValues();
+            }
+        }
+    };
+    var loadMoreValues = function() {
+        var loadUrl = autocompleteForm.action;
+        var loadParams = {"suggest[field]" : autocompleteForm.elements["suggest[field]"].value};
+        new Ajax.Request(loadUrl, {method: 'get', parameters: loadParams, onSuccess: function(response) {
+            $(rootNodeId).insert(response.responseText);
+            rewriteLinks($(rootNodeId + '-complete-data'));
+            $(rootNodeId + '-show-less-link').addEventListener('click', showLessValues);
+            showMoreValues();
+        }});
+        
+    };
+    var showMoreValues = function() {
+        if ($(rootNodeId + '-complete-data')) {
+            $(rootNodeId + '-orig-data').addClassName('no-display');
+            $(rootNodeId + '-orig-data').removeClassName('current');
+            $(rootNodeId + '-complete-data').removeClassName('no-display');
+            $(rootNodeId + '-complete-data').addClassName('current');
+        } else {
+            loadMoreValues();
+        }
+    };
+    var showLessValues = function() {
+        if ($(rootNodeId + '-complete-data')) {
+            $(rootNodeId + '-complete-data').addClassName('no-display current');
+            $(rootNodeId + '-complete-data').removeClassName('current');
+        }
+        $(rootNodeId + '-orig-data').removeClassName('no-display');
+        $(rootNodeId + '-orig-data').addClassName('current');
+    }
+    textInput.addEventListener('keydown', function(ev) {
+        if (ev.keyCode == 13) {
+            ev.preventDefault();
+            this.blur();
+        }
+        
+    });
+    textInput.addEventListener('keyup', function(ev) {
+        onTextChange();
+    });
+    deleteLink.addEventListener('click', function() {
+        textInput.value = '';
+        onTextInputLeave();
+    });
+    textInput.addEventListener('blur', onTextInputLeave);
+    if ($(rootNodeId + '-show-more-link')) {
+        $(rootNodeId + '-show-more-link').addEventListener('click', showMoreValues);
+    }
+}
