@@ -144,7 +144,9 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
 
             $result = $query->search();
             $this->_totalRecords = isset($result['total_count']) ? $result['total_count'] : null;
-            $this->_facets = isset($result['facets']) ? $result['facets'] : array();
+            if (isset($result['facets'])) {
+                $this->_facets = array_merge($this->_facets, $result['facets']);
+            }
         }
 
         return $this->_totalRecords;
@@ -216,8 +218,8 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
         $result = $this->getSearchEngineQuery()->search();
 
         $ids = isset($result['ids']) ? $result['ids'] : array();
-        if (!empty($this->_facets)) {
-            $this->_facets = isset($result['facets']) ? $result['facets'] : array();
+        if (isset($result['facets'])) {
+            $this->_facets = array_merge($this->_facets, $result['facets']);
         }
         $this->_totalRecords = isset($result['total_count']) ? $result['total_count'] : null;
         $this->_isSpellChecked = isset($result['is_spellchecked']) ? $result['is_spellchecked'] : false;

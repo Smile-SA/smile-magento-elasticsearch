@@ -10,4 +10,5 @@ src/app/locale/en_US/*                                     app/locale/en_US/
 src/app/locale/fr_FR/*                                     app/locale/fr_FR/
 src/js/smile/*                                             js/smile/
 src/lib/*                                                  lib/
-src/skin/frontend/base/default/css/smile/*                 skin/frontend/base/default/css/smile/                  
+src/skin/frontend/base/default/css/smile/*                 skin/frontend/base/default/css/smile/
+src/skin/frontend/rwd/default/css/smile/*                  skin/frontend/rwd/default/css/smile/
