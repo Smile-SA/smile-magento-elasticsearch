@@ -23,7 +23,7 @@ class Smile_ElasticSearch_Block_Catalogsearch_Layer extends Smile_ElasticSearch_
      *
      * @var boolean
      */
-    protected $_usesUrlRewrite = true;
+    protected $_usesUrlRewrite = false;
 
     /**
      * Returns current catalog layer.
