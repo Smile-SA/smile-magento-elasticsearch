@@ -69,13 +69,13 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $languageCode = $this->_helper->getLanguageCodeByStore($store);
             $mapping['properties']['spelling_' . $languageCode]['type'] = 'multi_field';
             $mapping['properties']['spelling_' . $languageCode]['fields']['spelling_' . $languageCode] = array(
-                'type' => 'string', 'analyzer' => 'analyzer_' . $languageCode, 'store' => false
+                'type' => 'string', 'analyzer' => 'analyzer_' . $languageCode, 'store' => false, 'fielddata' => array('format' => 'disabled')
             );
             $mapping['properties']['spelling_' . $languageCode]['fields']['shingle'] = array(
-                'type' => 'string', 'analyzer' => 'shingle', 'store' => false
+                'type' => 'string', 'analyzer' => 'shingle', 'store' => false, 'fielddata' => array('format' => 'disabled')
             );
             $mapping['properties']['spelling_' . $languageCode]['fields']['phonetic_' . $languageCode] = array(
-                'type' => 'string', 'analyzer' => 'phonetic_' . $languageCode, 'store' => false
+                'type' => 'string', 'analyzer' => 'phonetic_' . $languageCode, 'store' => false, 'fielddata' => array('format' => 'disabled')
             );
         }
 
@@ -171,7 +171,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
 
         $mapping[$fieldName] = array('type' => 'multi_field', 'fields' => array());
         $mapping[$fieldName]['fields'][$fieldName] = array(
-            'type' => $type, 'analyzer' => 'analyzer_' . $languageCode, 'store' => false
+            'type' => $type, 'analyzer' => 'analyzer_' . $languageCode, 'store' => false, 'fielddata' => array('format' => 'disabled')
         );
 
         if ($sortable == true) {
