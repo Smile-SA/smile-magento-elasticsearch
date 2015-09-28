@@ -16,10 +16,10 @@
  ?>
 
 <?php if ($this->isActive()) : ?>
-    <?php $productCollection = $this->getProductCollection(); ?>
-    <?php if ($productCollection->getSize() > 0) : ?>
+    <?php $products = $this->getProductCollection()->getItems(); ?>
+    <?php if (count($products) > 0) : ?>
         <dt><?php echo $this->__('Products'); ?></dt>
-        <?php foreach ($this->getProductCollection() as $product) : ?>
+        <?php foreach ($products as $product) : ?>
             <dd href="<?php echo $product->getProductUrl();?>" class="products-list">
                 <div class="product-image-box">
                     <img src="<?php echo $this->helper('catalog/image')->init($product, 'small_image')->resize(45); ?>" width="45px" height="45px" />
