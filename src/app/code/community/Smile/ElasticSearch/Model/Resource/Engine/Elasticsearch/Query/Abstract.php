@@ -206,7 +206,6 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
         Mage::dispatchEvent('smile_elasticsearch_query_assembled', array('query_data' => $eventData));
         Varien_Profiler::stop('ES:ASSEMBLE:QUERY:OBSERVERS');
         $query = $eventData->getQuery();
-
         if ($this->getConfig('enable_debug_mode')) {
             Mage::log(json_encode($query), Zend_Log::DEBUG, 'es-queries.log');
         }
@@ -385,7 +384,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
      */
     protected function _assembleQuery()
     {
-        $query = array('index' => $this->getAdapter()->getCurrentIndex()->getCurrentName(), 'type'  => $this->getType());
+        $query = array('index' => $this->getAdapter()->getCurrentIndex()->getCurrentName(), 'type' => $this->getType());
         $query['body']['query']['filtered']['query']['bool']['must'][] = $this->_prepareFulltextCondition();
 
         foreach ($this->_facets as $facetName => $facet) {

@@ -39,7 +39,6 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
      */
     protected $_facets = array();
 
-
     /**
      * Search entity ids.
      *
@@ -60,6 +59,14 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
      * @var array
      */
     protected $_productCountBySetId = null;
+
+
+    /**
+     * Indicates if the collection is spellchecked or not
+     *
+     * @var boolean
+     */
+    protected $_isSpellChecked = false;
 
     /**
      * Stores query text filter.
@@ -147,6 +154,8 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
             if (isset($result['facets'])) {
                 $this->_facets = array_merge($this->_facets, $result['facets']);
             }
+
+            $this->_isSpellChecked = $query->isSpellchecked();
         }
 
         return $this->_totalRecords;
@@ -222,7 +231,7 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
             $this->_facets = array_merge($this->_facets, $result['facets']);
         }
         $this->_totalRecords = isset($result['total_count']) ? $result['total_count'] : null;
-        $this->_isSpellChecked = isset($result['is_spellchecked']) ? $result['is_spellchecked'] : false;
+        $this->_isSpellChecked = $this->getSearchEngineQuery()->isSpellchecked();
 
         if (empty($ids)) {
             $ids = array(0); // Fix for no result
@@ -283,7 +292,7 @@ class Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection extends Mage
      */
     public function isSpellchecked()
     {
-        return $this->getSearchEngineQuery()->isSpellchecked();
+        return $this->_isSpellChecked;
     }
 
     /**

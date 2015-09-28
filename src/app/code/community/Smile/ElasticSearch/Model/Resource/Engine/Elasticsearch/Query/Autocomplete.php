@@ -79,11 +79,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
                 $query = $this->_buildFulltextQuery($textQuery, $spellingType);
             }
             $query['bool']['must'][] = $this->_getAutoCompleteQueryPart(end($queryArray));
-            $this->_fulltextQuery = $query;
-        }
-
-        if (is_array($this->_fulltextQuery)) {
-            $query = $this->_fulltextQuery;
         }
 
         return $query;
@@ -98,23 +93,32 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
      */
     protected function _getAutoCompleteQueryPart($textQuery)
     {
+        $languageCode = $this->getLanguageCode();
+
         $fields = array();
         foreach ($this->getSearchFields() as $fieldName => $fieldParams) {
-            $fields[] = sprintf('%s^%s', $fieldName, $fieldParams['weight']);
-            $fields[] = sprintf('%s.shingle^%s', $fieldName, $fieldParams['weight']);
             $fields[] = sprintf('%s.edge_ngram_front^%s', $fieldName, $fieldParams['weight']);
         }
 
-        $fuzzyAutocompleteQuery = array(
+        $autocompleteQuery = array(
             'multi_match' => array(
-                'analyzer'  => strlen($textQuery) < 3 ? 'whitespace': 'analyzer_' . $this->getLanguageCode(),
+                'analyzer'  => 'whitespace',
                 'query'     => $textQuery,
                 'fields'    => $fields,
                 'type'      => 'best_fields',
-                'fuzziness' => 0.75
             )
         );
-        return $fuzzyAutocompleteQuery;
+
+        $fuzzinessConfig = $this->_getFuzzinessConfig($languageCode);
+
+        if ($fuzzinessConfig) {
+            $autocompleteFuzzyQuery = $autocompleteQuery;
+            $autocompleteFuzzyQuery['multi_match'] = array_merge($fuzzinessConfig, $autocompleteQuery['multi_match']);
+            $autocompleteFuzzyQuery['multi_match']['boost'] = 0.001;
+            $autocompleteQuery = array('bool' => array('should' => array($autocompleteQuery, $autocompleteFuzzyQuery)));
+        }
+
+        return $autocompleteQuery;
     }
 
 }

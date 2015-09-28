@@ -25,6 +25,11 @@ class Smile_Tracker_Block_Variables_Page_Search extends Smile_Tracker_Block_Vari
         $variables = array(
             'search.query' => Mage::helper('catalogsearch')->getEscapedQueryText()
         );
+
+        if ($layer = Mage::registry('current_layer')) {
+            $productCollection = $layer->getProductCollection();
+            $variables['search.is_spellchecked'] = (bool) $productCollection->isSpellchecked();
+        }
         return $variables;
     }
 }

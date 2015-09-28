@@ -250,15 +250,15 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         $advancedSettingsPathPrefix = 'elasticsearch_advanced_search_settings/fulltext_relevancy/';
         $searchInCategoryName = (bool) Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name');
         if ($searchInCategoryName) {
+
             $searchInCategorySettingsPathPrefix = $advancedSettingsPathPrefix . 'search_in_category_name_';
+            $weight = (int) Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'weight');
             $enableFuzzySearch = (bool) Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'fuzzy');
-            $fuzziness = $enableFuzzySearch ? Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'fuzziness') : false;
-            $prefixLength = Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'prefix_length');
             $usedInAutocomplete = (bool) Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'use_in_autocomplete');
+
             $searchFields['category_name_' . $localeCode] = array(
-                'weight'               => Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'weight'),
-                'fuzziness'            => $fuzziness,
-                'prefix_length'        => $prefixLength,
+                'weight'               => (int) Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'weight'),
+                'fuzziness'            => $enableFuzzySearch,
                 'used_in_autocomplete' => $usedInAutocomplete
             );
         }

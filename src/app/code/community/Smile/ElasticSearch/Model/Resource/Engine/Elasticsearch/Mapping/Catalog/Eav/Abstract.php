@@ -68,15 +68,18 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         foreach ($this->_stores as $store) {
             $languageCode = $this->_helper->getLanguageCodeByStore($store);
             $mapping['properties']['spelling_' . $languageCode]['type'] = 'multi_field';
-            $mapping['properties']['spelling_' . $languageCode]['fields']['spelling_' . $languageCode] = array(
-                'type' => 'string', 'analyzer' => 'analyzer_' . $languageCode, 'store' => false, 'fielddata' => array('format' => 'disabled')
+            $spellcheckBaseFieldProperties = array('type' => 'string', 'store' => false, 'fielddata' => array('format' => 'disabled'));
+            $mapping['properties']['spelling_' . $languageCode]['fields'] = array(
+                'spelling_' . $languageCode => array_merge(array('analyzer' => 'analyzer_' . $languageCode), $spellcheckBaseFieldProperties),
+                'shingle'                   => array_merge(array('analyzer' => 'shingle'), $spellcheckBaseFieldProperties),
+                'whitespace'                => array_merge(array('analyzer' => 'whitespace'), $spellcheckBaseFieldProperties),
             );
-            $mapping['properties']['spelling_' . $languageCode]['fields']['shingle'] = array(
-                'type' => 'string', 'analyzer' => 'shingle', 'store' => false, 'fielddata' => array('format' => 'disabled')
-            );
-            $mapping['properties']['spelling_' . $languageCode]['fields']['phonetic_' . $languageCode] = array(
-                'type' => 'string', 'analyzer' => 'phonetic_' . $languageCode, 'store' => false, 'fielddata' => array('format' => 'disabled')
-            );
+
+            if ($this->getCurrentIndex()->isPhoneticSupported($languageCode)) {
+                $mapping['properties']['spelling_' . $languageCode]['fields']['phonetic_' . $languageCode] = array_merge(
+                    array('analyzer' => 'phonetic_' . $languageCode), $spellcheckBaseFieldProperties
+                );
+            }
         }
 
         $mapping['properties']['unique']   = array('type' => 'string', 'store' => false, 'index' => 'not_analyzed');
@@ -176,6 +179,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
 
         if ($sortable == true) {
             $analyzers[] = 'sortable';
+            $analyzers[] = 'whitespace';
             $analyzers[] = 'edge_ngram_front';
             $mapping[$fieldName]['fields']['untouched'] = array(
                 'type' => $type, 'index' => 'not_analyzed', 'store' => false, 'fielddata' => array('format' => 'doc_values')
@@ -690,19 +694,13 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 if ($attribute->getIsSearchable() || $attribute->getAttributeCode() == 'name') {
 
                     $field = $this->getFieldName($attribute->getAttributeCode(), $localeCode);
-
-                    if ($field !== false) {
-                        $currentAttributeConfig = array('weight' => 1, 'fuzziness' => false, 'prefix_length' => false);
-                        if ($attribute->getSearchWeight()) {
-                            $currentAttributeConfig['weight'] = $attribute->getSearchWeight();
-                        }
-                        if ($attribute->getIsFuzzinessEnabled()) {
-                            $currentAttributeConfig['fuzziness'] = $attribute->getFuzzinessValue();
-                            $currentAttributeConfig['prefix_length'] = $attribute->getFuzzinessPrefixLength();
-                        };
-
-                        $currentAttributeConfig['used_in_autocomplete'] = (bool) $attribute->getIsUsedInAutocomplete();
-
+                    $weight = (int) $attribute->getSearchWeight();
+                    if ($field !== false && $weight > 0) {
+                        $currentAttributeConfig = array(
+                            'weight'               => $weight,
+                            'fuzziness'            => (bool) $attribute->getIsFuzzinessEnabled(),
+                            'used_in_autocomplete' => (bool) $attribute->getIsUsedInAutocomplete(),
+                        );
                         $this->_searchFields[$field] = $currentAttributeConfig;
                     }
                 }

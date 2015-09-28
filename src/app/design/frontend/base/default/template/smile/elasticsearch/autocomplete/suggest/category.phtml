@@ -16,10 +16,10 @@
  ?>
 
 <?php if ($this->isActive()) : ?>
-    <?php $categoryCollection = $this->getCategoryCollection(); ?>
-    <?php if ($categoryCollection->getSize() > 0) : ?>
+    <?php $categories = $this->getCategoryCollection()->getItems(); ?>
+    <?php if (count($categories) > 0) : ?>
         <dt><?php echo $this->__('Category'); ?></dt>
-        <?php foreach ($categoryCollection as $category) : ?>
+        <?php foreach ($categories as $category) : ?>
             <dd href="<?php echo $category->getUrl()?>"><?php echo $category->getName(); ?></dd>
         <?php endforeach; ?>
     <?php endif; ?>

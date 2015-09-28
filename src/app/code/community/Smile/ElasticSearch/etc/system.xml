@@ -161,44 +161,6 @@
                             <show_in_store>1</show_in_store>
                             <depends><search_in_category_name>1</search_in_category_name></depends>
                         </search_in_category_name_weight>
-                        <search_in_category_name_enable_fuzzy translate="label comment" module="smile_elasticsearch">
-                            <label>Enable fuzzy search for category name</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>31</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <depends><search_in_category_name>1</search_in_category_name></depends>
-                        </search_in_category_name_enable_fuzzy>
-                        <search_in_category_name_fuzziness translate="label comment" module="smile_elasticsearch">
-                            <label>Category name fuzziness value</label>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>32</sort_order>
-                            <validate>required-entry</validate>
-                            <frontend_class>validate-number validate-number-range number-range-0-1</frontend_class>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <depends><search_in_category_name>1</search_in_category_name></depends>
-                            <comment>
-                                <![CDATA[A number between 0 and 1. See doc <a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/common-options.html#_string_fields" target="_blank">here</a> for more information']]>
-                            </comment>
-                        </search_in_category_name_fuzziness>
-                        <search_in_category_name_prefix_length translate="label comment" module="smile_elasticsearch">
-                            <label>Category name fuzziness prefix length</label>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>33</sort_order>
-                            <validate>required-entry</validate>
-                            <frontend_class>validate-digits validate-digits-range digits-range-0-9</frontend_class>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <depends><search_in_category_name>1</search_in_category_name></depends>
-                            <comment>
-                                <![CDATA[A integer between 0 and 9. See doc <a href="http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/common-options.html#_string_fields" target="_blank">here</a> for more information']]>
-                            </comment>
-                        </search_in_category_name_prefix_length>
                         <search_in_category_name_use_in_autocomplete>
                             <label>Use in autocomplete</label>
                             <frontend_type>select</frontend_type>
@@ -209,6 +171,121 @@
                             <show_in_store>1</show_in_store>
                             <depends><search_in_category_name>1</search_in_category_name></depends>
                         </search_in_category_name_use_in_autocomplete>
+                        <enable_fuzziness>
+                            <label>Enable fuzziness</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>41</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </enable_fuzziness>
+                        <fuzziness_value translate="label comment">
+                            <label>Fuzziness value</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>42</sort_order>
+                            <validate>required-entry</validate>
+                            <frontend_class>validate-number validate-number-range number-range-0-1</frontend_class>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enable_fuzziness>1</enable_fuzziness></depends>
+                            <comment>
+                                <![CDATA[A number between 0 and 1. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                            </comment>
+                        </fuzziness_value>
+                        <fuzziness_prefix_length>
+                            <label>Fuzziness prefix length</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>43</sort_order>
+                            <validate>required-entry</validate>
+                            <frontend_class>validate-digits validate-digits-range validate-zero-or-greater</frontend_class>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enable_fuzziness>1</enable_fuzziness></depends>
+                            <comment>
+                                <![CDATA[A integer between greater or equal than 0. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                            </comment>
+                        </fuzziness_prefix_length>
+                        <fuzziness_max_expansions>
+                            <label>Fuzziness max. expansions</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>44</sort_order>
+                            <validate>required-entry</validate>
+                            <frontend_class>validate-digits validate-digits-range validate-zero-or-greater</frontend_class>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enable_fuzziness>1</enable_fuzziness></depends>
+                            <comment>
+                                <![CDATA[A integer between greater or equal than 0. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                            </comment>
+                        </fuzziness_max_expansions>
+                        <enable_phonetic_search>
+                            <label>Enable phonetic search</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>51</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>
+                                <![CDATA[<comment>Require Phonetic analysis plugin installation: https://github.com/elastic/elasticsearch-analysis-phonetic</comment>]]>
+                            </comment>
+                        </enable_phonetic_search>
+                        <enable_phonetic_search_fuzziness>
+                            <label>Enable phonetic fuzziness</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>52</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enable_phonetic_search>1</enable_phonetic_search></depends>
+                        </enable_phonetic_search_fuzziness>
+                        <phonetic_search_fuzziness_value>
+                            <label>Phonetic fuzziness value</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>53</sort_order>
+                            <validate>required-entry</validate>
+                            <frontend_class>validate-number validate-number-range number-range-0-1</frontend_class>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enable_phonetic_search_fuzziness>1</enable_phonetic_search_fuzziness></depends>
+                            <comment>
+                                <![CDATA[A number between 0 and 1. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                            </comment>
+                        </phonetic_search_fuzziness_value>
+                        <phonetic_search_fuzziness_prefix_length>
+                            <label>Phonetic fuzziness prefix length</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>54</sort_order>
+                            <validate>required-entry</validate>
+                            <frontend_class>validate-digits validate-digits-range validate-zero-or-greater</frontend_class>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enable_phonetic_search_fuzziness>1</enable_phonetic_search_fuzziness></depends>
+                            <comment>
+                                <![CDATA[A integer between greater or equal than 0. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                            </comment>
+                        </phonetic_search_fuzziness_prefix_length>
+                        <phonetic_search_fuzziness_max_expansions>
+                            <label>Phonetic fuzziness max. expansions</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>55</sort_order>
+                            <validate>required-entry</validate>
+                            <frontend_class>validate-digits validate-digits-range validate-zero-or-greater</frontend_class>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends><enable_phonetic_search_fuzziness>1</enable_phonetic_search_fuzziness></depends>
+                            <comment>
+                                <![CDATA[A integer between greater or equal than 0. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                            </comment>
+                        </phonetic_search_fuzziness_max_expansions>
                     </fields>
                 </fulltext_relevancy>
                 <popular_terms_autocomplete translate="label">
