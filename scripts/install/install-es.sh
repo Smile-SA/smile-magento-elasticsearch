@@ -39,5 +39,4 @@ $ES_PLUGIN_CMD -r analysis-icu
 $ES_PLUGIN_CMD -install elasticsearch/elasticsearch-analysis-icu/2.5.0
 $ES_PLUGIN_CMD -r analysis-phonetic
 $ES_PLUGIN_CMD -install elasticsearch/elasticsearch-analysis-phonetic/2.5.0
-$ES_PLUGIN_CMD -r tracking-indexer
-$ES_PLUGIN_CMD -install tracking-indexer -u file:$ES_LOCAL_PLUGIN_DIR/tracking-indexer/tracking-indexer-current.jar
+
