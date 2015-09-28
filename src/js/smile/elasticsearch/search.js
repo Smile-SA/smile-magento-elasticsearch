@@ -259,7 +259,7 @@ Es.facetAutocomplete = function(rootNodeId) {
         if (textInput && textInput.value.length) {
             deleteLink.removeClassName('no-display');
         }
-        console.log(textInput.value);
+
         if (textInput.value && textInput.value.trim().length > 0) {
             var newValue = textInput.value.trim();
             var shouldQuery = newValue.length >= currentText.length;
