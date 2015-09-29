@@ -21,7 +21,7 @@
 <config>
     <modules>
         <Smile_ElasticSearch>
-            <version>1.1.6</version>
+            <version>1.1.7</version>
         </Smile_ElasticSearch>
     </modules>
     <global>
@@ -362,6 +362,9 @@
             <product_autocomplete>
                 <max_size>3</max_size>
             </product_autocomplete>
+            <attribute_autocomplete>
+                <max_size>3</max_size>
+            </attribute_autocomplete>
             <category_autocomplete>
                 <max_size>3</max_size>
             </category_autocomplete>

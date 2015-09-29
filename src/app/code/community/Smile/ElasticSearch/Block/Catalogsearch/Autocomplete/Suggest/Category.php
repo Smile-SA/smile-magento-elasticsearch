@@ -56,7 +56,7 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Category exte
      */
     public function isActive()
     {
-        return Mage::helper('smile_elasticsearch')->isActiveEngine();
+        return Mage::helper('smile_elasticsearch')->isActiveEngine() && $this->getMaxSize() > 0;
     }
 
     /**

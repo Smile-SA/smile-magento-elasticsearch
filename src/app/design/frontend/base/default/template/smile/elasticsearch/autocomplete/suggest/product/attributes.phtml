@@ -1,0 +1,33 @@
+<?php
+/**
+ * Product suggest template
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */
+ ?>
+
+<?php if ($this->isActive()) : ?>
+    <?php $suggestions = $this->getSuggestions(); ?>
+    <?php if (count($suggestions) > 0) : ?>
+        <dt><?php echo $this->getTitle(); ?></dt>
+        <?php foreach ($suggestions as $suggestion) : ?>
+            <dd title="<?php echo $suggestion->getLabel(); ?>" class="autocomplete-attributes">
+                <a href="<?php echo $suggestion->getUrl(); ?>">
+                    <span class="label"><?php echo $suggestion->getLabel(); ?></span>
+                    <?php if ($this->displayTypes()) :?>
+                        <span class="attribute-name"><sup><?php echo $suggestion->getAttribute()->getFrontendLabel();?></sup></span>
+                    <?php endif; ?>
+                </a>
+            </dd>
+        <?php endforeach; ?>
+    <?php endif; ?>
+<?php endif; ?>

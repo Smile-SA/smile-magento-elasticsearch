@@ -68,6 +68,17 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
         );
 
         $fieldset->addField(
+            'is_displayed_in_autocomplete',
+            'select',
+            array(
+                'name'    => 'is_displayed_in_autocomplete',
+                'label'   => Mage::helper('smile_elasticsearch')->__('Display in autocomplete'),
+                'values'  => Mage::getModel('adminhtml/system_config_source_yesno')->toOptionArray()
+            ),
+            'is_used_in_autocomplete'
+        );
+
+        $fieldset->addField(
             'is_snowball_used',
             'select',
             array(
@@ -75,7 +86,7 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
                 'label'   => Mage::helper('smile_elasticsearch')->__('Use language analysis'),
                 'values'  => Mage::getModel('adminhtml/system_config_source_yesno')->toOptionArray()
             ),
-            'is_used_in_autocomplete'
+            'is_displayed_in_autocomplete'
         );
 
         $fieldset->addField(
