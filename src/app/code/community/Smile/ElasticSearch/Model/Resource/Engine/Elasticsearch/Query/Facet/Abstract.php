@@ -134,6 +134,16 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fac
     abstract public function getItems($response = null);
 
     /**
+     * Return facet raw response
+     *
+     * @return array
+     */
+    public function getResponse()
+    {
+        return $this->_response;
+    }
+
+    /**
      * Indicates if the facet has more result than the loaded items list.
      *
      * @return boolean

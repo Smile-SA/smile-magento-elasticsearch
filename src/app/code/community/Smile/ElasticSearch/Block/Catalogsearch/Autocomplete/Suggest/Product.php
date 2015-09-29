@@ -32,7 +32,7 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product exten
      */
     public function getCacheKey()
     {
-        return __CLASS__ . md5($this->_getQuery()) . '_' . Mage::app()->getStore()->getId();
+        return __CLASS__ . md5($this->_getQuery() . $this->getTemplate()) . '_' . Mage::app()->getStore()->getId();
     }
 
     /**
@@ -68,7 +68,7 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product exten
      */
     public function isActive()
     {
-        return Mage::helper('smile_elasticsearch')->isActiveEngine();
+        return Mage::helper('smile_elasticsearch')->isActiveEngine() && $this->getMaxSize() > 0;
     }
 
     /**

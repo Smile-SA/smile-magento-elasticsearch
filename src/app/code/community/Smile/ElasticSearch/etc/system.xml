@@ -328,10 +328,30 @@
                         </max_size>
                     </fields>
                 </product_autocomplete>
+                <attribute_autocomplete translate="label">
+                    <label>Attribute Autocomplete</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>120</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <max_size translate="label">
+                            <label>Max size</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>1</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <validate>required-entry</validate>
+                            <frontend_class>validate-digits</frontend_class>
+                        </max_size>
+                    </fields>
+                </attribute_autocomplete>
                 <category_autocomplete translate="label">
                     <label>Category Autocomplete</label>
                     <frontend_type>text</frontend_type>
-                    <sort_order>120</sort_order>
+                    <sort_order>130</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>

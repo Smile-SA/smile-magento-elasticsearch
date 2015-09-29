@@ -66,9 +66,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
      */
     protected function _prepareFulltextCondition()
     {
-        $query = array();
+        $query = array('match_all' => array());
 
         if ($this->_fulltextQuery && is_string($this->_fulltextQuery)) {
+            $query = array();
             $queryArray = explode(' ', $this->_fulltextQuery);
             if (count($queryArray) > 1) {
                 $textQuery = implode(' ', array_slice($queryArray, 0, -1));

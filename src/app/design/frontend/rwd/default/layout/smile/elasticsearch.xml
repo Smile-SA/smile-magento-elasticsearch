@@ -101,6 +101,10 @@
                        name="autocomplete.popular.product" 
                        template="smile/elasticsearch/autocomplete/suggest/product.phtml" />
 
+                <block type="smile_elasticsearch/catalogsearch_autocomplete_suggest_product_attributes" 
+                       name="autocomplete.popular.product.attributes" 
+                       template="smile/elasticsearch/autocomplete/suggest/product/attributes.phtml" />
+
                 <block type="smile_elasticsearch/catalogsearch_autocomplete_suggest_category" 
                       name="autocomplete.popular.category" 
                       template="smile/elasticsearch/autocomplete/suggest/category.phtml" />
