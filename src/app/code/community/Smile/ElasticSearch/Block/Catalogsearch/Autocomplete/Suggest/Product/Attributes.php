@@ -19,9 +19,9 @@
 class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product_Attributes
   extends Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product
 {
-
     /**
      * List of attributes used into completion sorted by code.
+     *
      * @var array
      */
     protected $_attributesByCode = array();
@@ -178,11 +178,11 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product_Attri
         $suggestions = $this->getSuggestions();
         foreach ($suggestions as $suggestion) {
             $attribute = $suggestion->getAttribute();
-            if ($useLabel) {
 
+            if ($useLabel) {
                 $attribute = $attribute->getFrontendLabel();
             } else {
-                $attribute = $attribute->getAttrobuteCode();
+                $attribute = $attribute->getAttributeCode();
             }
 
             if (!isset($attributes[$attribute])) {
@@ -209,7 +209,7 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product_Attri
      */
     public function displayTypes()
     {
-        if ($this->getData('display_types') == null) {
+        if ($this->getData('display_types') === null) {
             $suggestedTypes = $this->getSuggestedTypes();
             $this->setDisplayTypes(count($suggestedTypes) > 1);
         }
