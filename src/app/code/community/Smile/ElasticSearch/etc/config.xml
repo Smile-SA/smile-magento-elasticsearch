@@ -242,26 +242,11 @@
                             <filter>ascii_folding,lowercase,trim,edge_ngram_front</filter>
                             <char_filter>html_strip</char_filter>
                         </edge_ngram_front>
-                        <edge_ngram_back>
-                            <tokenizer>standard</tokenizer>
-                            <filter>ascii_folding,lowercase,trim,edge_ngram_back</filter>
-                            <char_filter>html_strip</char_filter>
-                        </edge_ngram_back>
-                        <edge_ngram_front_strip_apos_and_ws>
-                            <tokenizer>standard</tokenizer>
-                            <filter>shingle,length,edge_ngram_front,strip_apostrophes,strip_whitespaces,lowercase,ascii_folding,trim</filter>
-                            <char_filter>html_strip</char_filter>
-                        </edge_ngram_front_strip_apos_and_ws>
                         <shingle>
                             <tokenizer>standard</tokenizer>
                             <filter>word_delimiter,shingle,length,lowercase,ascii_folding,trim,synonym</filter>
                             <char_filter>html_strip</char_filter>
                         </shingle>
-                        <shingle_strip_apos_and_ws>
-                            <tokenizer>standard</tokenizer>
-                            <filter>shingle,strip_apostrophes,strip_whitespaces,length,lowercase,ascii_folding,trim,synonym</filter>
-                            <char_filter>html_strip</char_filter>
-                        </shingle_strip_apos_and_ws>
                         <sortable>
                             <tokenizer>keyword</tokenizer>
                             <filter>lowercase,ascii_folding,trim</filter>
@@ -278,31 +263,19 @@
                         <shingle>
                             <type>shingle</type>
                             <min_shingle_size>2</min_shingle_size>
-                            <max_shingle_size>10</max_shingle_size>
-                            <output_unigrams>1</output_unigrams>
+                            <max_shingle_size>5</max_shingle_size>
                         </shingle>
                         <strip_whitespaces>
                             <type>pattern_replace</type>
                             <pattern>\s</pattern>
                             <replacement></replacement>
                         </strip_whitespaces>
-                        <strip_apostrophes>
-                            <type>pattern_replace</type>
-                            <pattern>'</pattern>
-                            <replacement></replacement>
-                        </strip_apostrophes>
                         <edge_ngram_front>
                             <type>edgeNGram</type>
                             <min_gram>1</min_gram>
                             <max_gram>20</max_gram>
                             <side>front</side>
                         </edge_ngram_front>
-                        <edge_ngram_back>
-                            <type>edgeNGram</type>
-                            <min_gram>4</min_gram>
-                            <max_gram>20</max_gram>
-                            <side>back</side>
-                        </edge_ngram_back>
                         <length>
                             <type>length</type>
                             <min>2</min>
