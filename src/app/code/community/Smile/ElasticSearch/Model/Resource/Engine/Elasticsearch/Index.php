@@ -294,7 +294,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             $indexSettings['analysis']['analyzer']['phonetic_' . $languageCode] = array(
                 'type' => 'custom', 'tokenizer' => 'standard', 'char_filter' => 'html_strip',
                 'filter' => array(
-                    "standard", "ascii_folding", "lowercase", "stemmer", "shingle_limiter", "beidermorse_" . $languageCode
+                    "standard", "ascii_folding", "lowercase", "stemmer", "beidermorse_" . $languageCode
                 )
             );
         }
