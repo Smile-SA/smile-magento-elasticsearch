@@ -233,17 +233,17 @@
                 <elasticsearch_analysis_index_settings>
                     <analyzer>
                         <whitespace>
-                            <tokenizer>standard</tokenizer>
-                            <filter>lowercase,ascii_folding,trim,synonym</filter>
+                            <tokenizer>whitespace</tokenizer>
+                            <filter>word_delimiter,lowercase,ascii_folding,trim,synonym</filter>
                             <char_filter>html_strip</char_filter>
                         </whitespace>
                         <edge_ngram_front>
-                            <tokenizer>standard</tokenizer>
-                            <filter>ascii_folding,lowercase,trim,edge_ngram_front</filter>
+                            <tokenizer>whitespace</tokenizer>
+                            <filter>word_delimiter,ascii_folding,lowercase,trim,edge_ngram_front</filter>
                             <char_filter>html_strip</char_filter>
                         </edge_ngram_front>
                         <shingle>
-                            <tokenizer>standard</tokenizer>
+                            <tokenizer>whitespace</tokenizer>
                             <filter>word_delimiter,shingle,length,lowercase,ascii_folding,trim,synonym</filter>
                             <char_filter>html_strip</char_filter>
                         </shingle>
@@ -263,7 +263,7 @@
                         <shingle>
                             <type>shingle</type>
                             <min_shingle_size>2</min_shingle_size>
-                            <max_shingle_size>5</max_shingle_size>
+                            <max_shingle_size>4</max_shingle_size>
                         </shingle>
                         <strip_whitespaces>
                             <type>pattern_replace</type>
@@ -273,12 +273,12 @@
                         <edge_ngram_front>
                             <type>edgeNGram</type>
                             <min_gram>1</min_gram>
-                            <max_gram>20</max_gram>
+                            <max_gram>32</max_gram>
                             <side>front</side>
                         </edge_ngram_front>
                         <length>
                             <type>length</type>
-                            <min>2</min>
+                            <min>1</min>
                         </length>
                         <ascii_folding>
                             <type>asciifolding</type>
@@ -294,9 +294,9 @@
                         </shingle_limiter>
                         <word_delimiter>
                             <type>word_delimiter</type>
-                            <generate_word_parts>1</generate_word_parts>
+                            <generate_word_parts>0</generate_word_parts>
                             <generate_number_parts>1</generate_number_parts>
-                            <catenate_words></catenate_words>
+                            <catenate_words>1</catenate_words>
                             <catenate_numbers>1</catenate_numbers>
                             <catenate_all>1</catenate_all>
                             <split_on_case_change>1</split_on_case_change>
