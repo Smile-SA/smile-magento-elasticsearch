@@ -136,7 +136,7 @@
                 <fulltext_relevancy translate="label">
                     <label>Fulltext relevancy</label>
                     <frontend_type>text</frontend_type>
-                    <sort_order>100</sort_order>
+                    <sort_order>50</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
@@ -291,7 +291,7 @@
                 <popular_terms_autocomplete translate="label">
                     <label>Popular Searches Autocomplete</label>
                     <frontend_type>text</frontend_type>
-                    <sort_order>100</sort_order>
+                    <sort_order>150</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
@@ -311,7 +311,7 @@
                 <product_autocomplete translate="label">
                     <label>Product Autocomplete</label>
                     <frontend_type>text</frontend_type>
-                    <sort_order>110</sort_order>
+                    <sort_order>200</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
@@ -331,7 +331,7 @@
                 <attribute_autocomplete translate="label">
                     <label>Attribute Autocomplete</label>
                     <frontend_type>text</frontend_type>
-                    <sort_order>120</sort_order>
+                    <sort_order>250</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
@@ -351,7 +351,7 @@
                 <category_autocomplete translate="label">
                     <label>Category Autocomplete</label>
                     <frontend_type>text</frontend_type>
-                    <sort_order>130</sort_order>
+                    <sort_order>300</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
