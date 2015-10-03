@@ -86,7 +86,6 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product_Attri
     public function getSuggestions()
     {
         if ($this->getData('suggestions') == null) {
-            $facetData = $this->getProductCollection()->getFacet('test');
             $suggestions = array();
 
             foreach ($this->getAttributes() as $attributeCode) {
