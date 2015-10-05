@@ -18,7 +18,7 @@
 <?php if ($this->isActive()) : ?>
     <?php $categories = $this->getCategoryCollection()->getItems(); ?>
     <?php if (count($categories) > 0) : ?>
-        <dt><?php echo $this->__('Category'); ?></dt>
+        <dt><?php echo $this->__('Categories'); ?></dt>
         <?php foreach ($categories as $category) : ?>
             <dd href="<?php echo $category->getUrl()?>"><?php echo $category->getName(); ?></dd>
         <?php endforeach; ?>

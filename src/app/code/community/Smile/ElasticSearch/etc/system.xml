@@ -149,7 +149,7 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </search_in_category_name_heading>
-                        <search_in_category_name translate="label comment" module="smile_elasticsearch">
+                        <search_in_category_name translate="label" module="smile_elasticsearch">
                             <label>Enable Search in categories name</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
@@ -158,7 +158,7 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </search_in_category_name>
-                        <search_in_category_name_weight translate="label comment" module="smile_elasticsearch">
+                        <search_in_category_name_weight translate="label" module="smile_elasticsearch">
                             <label>Category name weight</label>
                             <frontend_type>text</frontend_type>
                             <validate>required-entry</validate>
@@ -207,7 +207,7 @@
                             <show_in_store>1</show_in_store>
                             <depends><enable_fuzziness>1</enable_fuzziness></depends>
                             <comment>
-                                <![CDATA[A number between 0 and 1. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                                <![CDATA[A number between 0 and 1. See doc <a href='https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7' target='_blank'>here</a> for more information]]>
                             </comment>
                         </fuzziness_value>
                         <fuzziness_prefix_length>
@@ -221,7 +221,7 @@
                             <show_in_store>1</show_in_store>
                             <depends><enable_fuzziness>1</enable_fuzziness></depends>
                             <comment>
-                                <![CDATA[A integer between greater or equal than 0. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                                <![CDATA[A integer between greater or equal than 0. See doc <a href='https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7' target='_blank'>here</a> for more information]]>
                             </comment>
                         </fuzziness_prefix_length>
                         <fuzziness_max_expansions>
@@ -235,7 +235,7 @@
                             <show_in_store>1</show_in_store>
                             <depends><enable_fuzziness>1</enable_fuzziness></depends>
                             <comment>
-                                <![CDATA[A integer between greater or equal than 0. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                                <![CDATA[A integer between greater or equal than 0. See doc <a href='https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7' target='_blank'>here</a> for more information]]>
                             </comment>
                         </fuzziness_max_expansions>
                         <phonetic_search_heading translate="label">
@@ -279,7 +279,7 @@
                             <show_in_store>1</show_in_store>
                             <depends><enable_phonetic_search_fuzziness>1</enable_phonetic_search_fuzziness></depends>
                             <comment>
-                                <![CDATA[A number between 0 and 1. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                                <![CDATA[A number between 0 and 1. See doc <a href='https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7' target='_blank'>here</a> for more information']]>
                             </comment>
                         </phonetic_search_fuzziness_value>
                         <phonetic_search_fuzziness_prefix_length>
@@ -293,7 +293,7 @@
                             <show_in_store>1</show_in_store>
                             <depends><enable_phonetic_search_fuzziness>1</enable_phonetic_search_fuzziness></depends>
                             <comment>
-                                <![CDATA[A integer between greater or equal than 0. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                                <![CDATA[A integer between greater or equal than 0. See doc <a href='https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7' target='_blank'>here</a> for more information']]>
                             </comment>
                         </phonetic_search_fuzziness_prefix_length>
                         <phonetic_search_fuzziness_max_expansions>
@@ -307,7 +307,7 @@
                             <show_in_store>1</show_in_store>
                             <depends><enable_phonetic_search_fuzziness>1</enable_phonetic_search_fuzziness></depends>
                             <comment>
-                                <![CDATA[A integer between greater or equal than 0. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                                <![CDATA[A integer between greater or equal than 0. See doc <a href='https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7' target='_blank'>here</a> for more information']]>
                             </comment>
                         </phonetic_search_fuzziness_max_expansions>
                         <autocomplete_fuzziness_heading translate="label">
@@ -338,7 +338,7 @@
                             <show_in_store>1</show_in_store>
                             <depends><autocomplete_enable_fuzziness>1</autocomplete_enable_fuzziness></depends>
                             <comment>
-                                <![CDATA[A number between 0 and 1. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                                <![CDATA[A number between 0 and 1. See doc <a href='https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7' target='_blank'>here</a> for more information']]>
                             </comment>
                         </autocomplete_fuzziness_value>
                         <autocomplete_fuzziness_prefix_length>
@@ -352,7 +352,7 @@
                             <show_in_store>1</show_in_store>
                             <depends><autocomplete_enable_fuzziness>1</autocomplete_enable_fuzziness></depends>
                             <comment>
-                                <![CDATA[A integer between greater or equal than 0. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                                <![CDATA[A integer between greater or equal than 0. See doc <a href='https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7' target='_blank'>here</a> for more information']]>
                             </comment>
                         </autocomplete_fuzziness_prefix_length>
                         <autocomplete_fuzziness_max_expansions>
@@ -366,7 +366,7 @@
                             <show_in_store>1</show_in_store>
                             <depends><autocomplete_enable_fuzziness>1</autocomplete_enable_fuzziness></depends>
                             <comment>
-                                <![CDATA[A integer between greater or equal than 0. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
+                                <![CDATA[A integer between greater or equal than 0. See doc <a href='https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7' target='_blank'>here</a> for more information']]>
                             </comment>
                         </autocomplete_fuzziness_max_expansions>
                     </fields>
@@ -380,7 +380,7 @@
                     <show_in_store>1</show_in_store>
                     <fields>
                         <max_size translate="label">
-                            <label>Popular search terms max size</label>
+                            <label>Max size</label>
                             <frontend_type>text</frontend_type>
                             <sort_order>1</sort_order>
                             <show_in_default>1</show_in_default>
