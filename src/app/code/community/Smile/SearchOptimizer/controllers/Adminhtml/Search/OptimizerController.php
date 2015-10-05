@@ -153,7 +153,7 @@ class Smile_SearchOptimizer_Adminhtml_Search_OptimizerController extends Mage_Ad
                 $model->save();
                 // display success message
                 Mage::getSingleton('adminhtml/session')->addSuccess(
-                    Mage::helper('smile_searchoptimizer')->__('The block has been saved.')
+                    Mage::helper('smile_searchoptimizer')->__('The optimizer has been saved.')
                 );
                 // clear previously saved data from session
                 Mage::getSingleton('adminhtml/session')->setFormData(false);
@@ -212,7 +212,7 @@ class Smile_SearchOptimizer_Adminhtml_Search_OptimizerController extends Mage_Ad
         }
         // display error message
         Mage::getSingleton('adminhtml/session')->addError(
-            Mage::helper('smile_searchoptimizer')->__('Unable to find a block to delete.')
+            Mage::helper('smile_searchoptimizer')->__('Unable to find an optimizer to delete.')
         );
         // go to grid
         $this->_redirect('*/*/');

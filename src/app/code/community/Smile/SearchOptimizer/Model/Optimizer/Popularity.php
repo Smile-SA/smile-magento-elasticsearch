@@ -59,7 +59,7 @@ class Smile_SearchOptimizer_Model_Optimizer_Popularity extends Smile_SearchOptim
                 'title'     => Mage::helper('smile_searchoptimizer')->__('Popularity type'),
                 'required'  => true,
                 'options'   => array(
-                    'product_order' => Mage::helper('smile_searchoptimizer')->__('Product buyed'),
+                    'product_order' => Mage::helper('smile_searchoptimizer')->__('Product bought'),
                     'product_view'  => Mage::helper('smile_searchoptimizer')->__('Product viewed'),
                 )
             )
@@ -89,7 +89,7 @@ class Smile_SearchOptimizer_Model_Optimizer_Popularity extends Smile_SearchOptim
                 'label'     => Mage::helper('smile_searchoptimizer')->__('Scale factor'),
                 'title'     => Mage::helper('smile_searchoptimizer')->__('Scale factor'),
                 'note'      => Mage::helper('smile_searchoptimizer')->__(
-                    'Value the field will be multiplid by the value before applying the scale function'
+                    'Value the field will be multiplied by the value before applying the scale function'
                 ),
                 'default'   => 1,
                 'required'  => true,

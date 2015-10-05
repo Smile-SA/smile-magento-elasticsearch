@@ -19,17 +19,17 @@
     <menu>
         <catalog>
             <children>
-                <search translate="title" module="catalogsearch">
-                    <title>Search</title>
+                <search translate="title" module="smile_searchoptimizer">
+                    <title>Search engine</title>
                     <action />
                     <sort_order>40</sort_order>
                     <children>
-                        <terms>
+                        <terms translate="title" module="catalogsearch">
                             <title>Search Terms</title>
                             <action>adminhtml/catalog_search/</action>
                             <sort_order>40</sort_order>
                         </terms>
-                        <optimizers>
+                        <optimizers translate="title" module="smile_searchoptimizer">
                             <title>Optimizations</title>
                             <action>adminhtml/search_optimizer/</action>
                             <sort_order>60</sort_order>
@@ -45,13 +45,13 @@
                 <children>
                     <catalog>
                         <children>
-                            <search translate="title" module="catalogsearch">
-                                <title>Search</title>
+                            <search translate="title" module="smile_searchoptimizer">
+                                <title>Search engine</title>
                                 <children>
                                     <terms translate="title" module="catalogsearch">
                                         <title>Search Terms</title>
                                     </terms>
-                                    <optimizers>
+                                    <optimizers translate="title" module="smile_searchoptimizer">
                                         <title>Optimizations</title>
                                     </optimizers>
                                 </children>

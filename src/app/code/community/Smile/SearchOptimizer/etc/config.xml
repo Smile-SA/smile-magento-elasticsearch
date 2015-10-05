@@ -133,6 +133,15 @@
                 </smile_searchoptimizer>
             </updates>
         </layout>
+        <translate>
+            <modules>
+                <Smile_SearchOptimizer>
+                    <files>
+                        <default>Smile_SearchOptimizer.csv</default>
+                    </files>
+                </Smile_SearchOptimizer>
+            </modules>
+        </translate>
     </adminhtml>
     <admin>
         <routers>
