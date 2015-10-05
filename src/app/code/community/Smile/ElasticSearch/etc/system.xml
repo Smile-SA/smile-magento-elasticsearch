@@ -141,6 +141,14 @@
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
                     <fields>
+                        <search_in_category_name_heading translate="label">
+                            <label>Search in categories</label>
+                            <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </search_in_category_name_heading>
                         <search_in_category_name translate="label comment" module="smile_elasticsearch">
                             <label>Enable Search in categories name</label>
                             <frontend_type>select</frontend_type>
@@ -171,6 +179,14 @@
                             <show_in_store>1</show_in_store>
                             <depends><search_in_category_name>1</search_in_category_name></depends>
                         </search_in_category_name_use_in_autocomplete>
+                        <search_fuzziness_heading translate="label">
+                            <label>Search fuzziness configuration</label>
+                            <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </search_fuzziness_heading>
                         <enable_fuzziness>
                             <label>Enable fuzziness</label>
                             <frontend_type>select</frontend_type>
@@ -222,6 +238,14 @@
                                 <![CDATA[A integer between greater or equal than 0. See doc <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-fuzzy-query.html#_parameters_7" target="_blank">here</a> for more information']]>
                             </comment>
                         </fuzziness_max_expansions>
+                        <phonetic_search_heading translate="label">
+                            <label>Phonetic search configuration</label>
+                            <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
+                            <sort_order>50</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </phonetic_search_heading>
                         <enable_phonetic_search>
                             <label>Enable phonetic search</label>
                             <frontend_type>select</frontend_type>
