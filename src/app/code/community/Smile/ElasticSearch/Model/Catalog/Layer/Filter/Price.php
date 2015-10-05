@@ -67,7 +67,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Price extends Smile_Elastic
         $formattedFromPrice  = $store->formatPrice($from);
         if ($to === '') {
             return Mage::helper('catalog')->__('%s and above', $formattedFromPrice);
-        } elseif ($from == $to && Mage::app()->getStore()->getConfig(self::XML_PATH_ONE_PRICE_INTERVAL)) {
+        } elseif ($from == $to) {
             return $formattedFromPrice;
         } else {
             return Mage::helper('catalog')->__('%s - %s', $formattedFromPrice, $store->formatPrice($to));
