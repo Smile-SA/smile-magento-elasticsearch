@@ -38,7 +38,7 @@
         countProductTemplates : {
             'multiple' : new Template("<?php echo $this->__('#{count} products');?>"),
             'one'      : new Template("<?php echo $this->__('#{count} product');?>"),
-            'empty'    : new Template("<?php echo $this->__('No product found in this price range');?>"),
+            'empty'    : new Template("<?php echo $this->__('No product found in this price range.');?>"),
         },
         valueFormat : function(value) {
             var priceFormat    = <?php echo $this->getJsPriceFormat(); ?>;

@@ -27,7 +27,7 @@ class Smile_ElasticSearch_Block_Adminhtml_Synonym_UpdateButton extends Mage_Admi
         foreach ($blocks as $block) {
             if ($block->getType() == 'adminhtml/catalog_search') {
                 $buttonParams = array(
-                    'label'     => $this->__('Update Synomys'),
+                    'label'     => $this->__('Update synomys'),
                     'onclick'   => 'setLocation(\'' . $this->getCreateUrl() .'\')',
                     'class'     => 'reload',
                 );

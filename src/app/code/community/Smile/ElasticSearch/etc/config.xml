@@ -179,6 +179,15 @@
                 </smile_elasticsearch>
             </updates>
         </layout>
+        <translate>
+            <modules>
+                <Smile_ElasticSearch>
+                    <files>
+                        <default>Smile_ElasticSearch.csv</default>
+                    </files>
+                </Smile_ElasticSearch>
+            </modules>
+        </translate>
         <events>
             <controller_action_predispatch_catalog_category_view>
                 <observers>

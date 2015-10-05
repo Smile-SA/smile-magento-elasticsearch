@@ -25,7 +25,7 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
      */
     protected function _getFieldset(Varien_Data_Form $form)
     {
-        $config = array('legend'=>Mage::helper('smile_elasticsearch')->__('Search relevancy'));
+        $config = array('legend'=>Mage::helper('smile_elasticsearch')->__('Search configuration'));
         $fieldset = $form->addFieldset('search_params_fielset', $config, 'front_fieldset');
         return $fieldset;
     }
@@ -101,35 +101,13 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
         );
 
         $fieldset->addField(
-            'fuzziness_value',
-            'text',
-            array(
-                'name'  => 'fuzziness_value',
-                'label' => Mage::helper('smile_elasticsearch')->__('Fuzziness'),
-                'class' => 'validate-number validate-number-range number-range-0-1',
-                'value' => '0.75',
-                'note'  => implode(
-                    '</br>',
-                    array(
-                        Mage::helper('smile_elasticsearch')->__('A number between 0 and 1.'),
-                        Mage::helper('smile_elasticsearch')->__(
-                            'See doc at <a href="%s" target="_blank">here</a> for more information',
-                            'http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/common-options.html#_string_fields'
-                        )
-                    )
-                )
-            ),
-            'is_fuzziness_enabled'
-        );
-
-        $fieldset->addField(
             'facets_max_size',
             'text',
             array(
                 'name'  => 'facets_max_size',
-                'label' => Mage::helper('smile_elasticsearch')->__('Facets Max Size'),
+                'label' => Mage::helper('smile_elasticsearch')->__('Facet max. size'),
                 'class' => 'validate-digits validate-greater-than-zero',
-                'value' => '1000',
+                'value' => '10',
                 'note'  => implode(
                     '</br>',
                     array(
@@ -149,11 +127,11 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
                 'values'  => array(
                     array(
                         'value' => Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_Terms::SORT_ORDER_COUNT,
-                        'label' => Mage::helper('smile_elasticsearch')->__('By results number'),
+                        'label' => Mage::helper('smile_elasticsearch')->__('Result count'),
                     ),
                     array(
                         'value' => Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_Terms::SORT_ORDER_TERM,
-                        'label' => Mage::helper('smile_elasticsearch')->__('By name'),
+                        'label' => Mage::helper('smile_elasticsearch')->__('Name'),
                     ),
                 )
             ),
