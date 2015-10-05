@@ -332,7 +332,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     $attrs[$field] = $storedValue;
                 }
 
-                if ($attribute->usesSource() && $attribute->getSourceModel()) {
+                if ($attribute->usesSource()) {
                     $field = 'options_' . $attribute->getAttributeCode() . '_' . $languageCode;
                     $value = $this->_getOptionsText($attribute, $value, $storeId);
                     if ($value) {
