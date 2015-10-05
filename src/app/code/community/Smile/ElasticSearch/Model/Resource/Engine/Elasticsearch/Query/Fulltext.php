@@ -194,7 +194,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
      */
     protected function _getFuzzinessConfig($languageCode)
     {
-        $fuzzinessConfig = Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'enable_fuzziness');
+        $fuzzinessConfig = (bool) Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'enable_fuzziness');
         if ($fuzzinessConfig) {
             $fuzzySearchFields = $this->getSearchFields(
                 Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_FUZZY
@@ -324,7 +324,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         );
 
         $fuzzinessConfig = $this->_getFuzzinessConfig($languageCode);
-        unset($fuzzinessConfig['fields']);
+        if ($fuzzinessConfig != false) {
+            unset($fuzzinessConfig['fields']);
+        } else {
+            $fuzzinessConfig = array();
+        }
+
         $query['body']['query']['bool']['should'] = array(
             array(
                 'match' => array(

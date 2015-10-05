@@ -37,7 +37,13 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
         );
 
         $fuzzinessConfig = $this->_getFuzzinessConfig($languageCode);
-        unset($fuzzinessConfig['fields']);
+
+        if ($fuzzinessConfig != false) {
+            unset($fuzzinessConfig['fields']);
+        } else {
+            $fuzzinessConfig = array();
+        }
+
         $query['body']['query']['bool']['should'] = array(
             array(
                 'match' => array(
@@ -109,11 +115,36 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
                 'multi_match' => array_merge(
                     $fuzzinessConfig,
                     $baseMatchQuery,
-                    array('type' => 'most_fields', 'minimum_should_match' => '100%', 'fuzziness' => 0.25)
+                    array('type' => 'most_fields', 'minimum_should_match' => '100%')
                 )
             );
         }
         return $query;
+    }
+
+    /**
+     * Retrieve fuzziness configuration for fulltext queries. False if fuzziness is disabled.
+     *
+     * @param string $languageCode Current language code.
+     *
+     * @return array|boolean
+     */
+    protected function _getFuzzinessConfig($languageCode)
+    {
+        $fuzzinessConfig = Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'autocomplete_enable_fuzziness');
+        if ($fuzzinessConfig) {
+            $fuzzySearchFields = $searchFields = $this->getSearchFields(
+                Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_AUTOCOMPLETE
+            );
+
+            $fuzzinessConfig = array(
+                'fields'         => $fuzzySearchFields,
+                'fuzziness'      => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'autocomplete_fuzziness_value'),
+                'prefix_length'  => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'autocomplete_fuzziness_prefix_length'),
+                'max_expansions' => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'autocomplete_fuzziness_max_expansions'),
+            );
+        }
+        return $fuzzinessConfig;
     }
 
 }
