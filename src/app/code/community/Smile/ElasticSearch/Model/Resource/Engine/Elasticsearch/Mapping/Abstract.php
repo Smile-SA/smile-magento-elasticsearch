@@ -39,6 +39,31 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
     const FIELD_TYPE_FACET  = 'facet';
 
     /**
+     * @var string
+     */
+    const SEARCH_TYPE_NORMAL  = 'normal';
+
+    /**
+     * @var string
+     */
+    const SEARCH_TYPE_PHRASE  = 'phrase';
+
+    /**
+     * @var string
+     */
+    const SEARCH_TYPE_FUZZY = 'fuzzy';
+
+    /**
+     * @var string
+     */
+    const SEARCH_TYPE_PHONETIC = 'phonetic';
+
+    /**
+     * @var string
+     */
+    const SEARCH_TYPE_AUTOCOMPLETE = 'autocomplete';
+
+    /**
      * ES Type.
      *
      * @var string
@@ -50,7 +75,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
      *
      * @var array
      */
-    protected $_searchFields = null;
+    protected $_searchFields = array();
 
     /**
      * All front stores.
@@ -91,33 +116,36 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
     /**
      * Return a list of all searchable field for the current type (by locale code).
      *
-     * @param string $localeCode Locale code.
+     * @param string $languageCode Language code.
+     * @param string $searchType   Type of search currentlty used.
+     * @param string $analyzer     Allow to force the analyzer used for the field (shingle, ...).
      *
      * @return array.
      */
-    abstract public function getSearchFields($localeCode);
+    abstract public function getSearchFields($languageCode, $searchType = null, $analyzer = null);
 
     /**
      * Return the ES field name
      *
-     * @param string $field      Magento field.
-     * @param string $localeCode Locale code we want the field for.
-     * @param string $type       How the field will be used : search, filter, facet, sort
+     * @param string $field        Document base field (name, size, ...).
+     * @param string $languageCode Language code we want the field for.
+     * @param string $type         How the field will be used : search, filter, facet, sort
+     * @param string $analyzer     Allow to force the analyzer used for the field (shingle, ...).
      *
      * @return string
      */
-    public function getFieldName($field, $localeCode, $type = self::FIELD_TYPE_SEARCH)
+    public function getFieldName($field, $languageCode, $type = self::FIELD_TYPE_SEARCH, $analyzer = null)
     {
         $mapping = $this->getMappingProperties();
 
-        $useOptions        = isset($mapping['properties']['options_' . $field . '_' . $localeCode]);
+        $useOptions        = isset($mapping['properties']['options_' . $field . '_' . $languageCode]);
         $typesUsingOptions = array(self::FIELD_TYPE_SEARCH, self::FIELD_TYPE_SORT, self::FIELD_TYPE_FACET);
         $typesUsedInSearch = array('string', 'multi_field');
 
         if (in_array($type, $typesUsingOptions) && $useOptions) {
-            $field = 'options_' . $field . '_' . $localeCode;
-        } else if (isset($mapping['properties'][$field . '_' . $localeCode])) {
-            $field = $field . '_' . $localeCode;
+            $field = 'options_' . $field . '_' . $languageCode;
+        } else if (isset($mapping['properties'][$field . '_' . $languageCode])) {
+            $field = $field . '_' . $languageCode;
         }
 
         if (isset($mapping['properties'][$field]['type'])) {
@@ -128,15 +156,115 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
             }
 
             if ($field && $mappingType == 'multi_field') {
-                if (in_array($type, array(self::FIELD_TYPE_FILTER, self::FIELD_TYPE_FACET))) {
-                    $field .= '.untouched';
-                } else if ($type == self::FIELD_TYPE_SORT) {
-                    $field .= '.sortable';
+                if ($analyzer == null && in_array($type, array(self::FIELD_TYPE_FILTER, self::FIELD_TYPE_FACET))) {
+                    $analyzer = 'untouched';
+                } else if ($analyzer == null && $type == self::FIELD_TYPE_SORT) {
+                    $analyzer = 'sortable';
+                }
+
+                if ($analyzer != null) {
+                    $field = $field . '.' . $analyzer;
                 }
             }
         }
 
         return $field;
+    }
+
+    /**
+     * Prepare the spelling fied during mapping generation
+     *
+     * @return array
+     */
+    protected function _getSpellingFieldMapping()
+    {
+        $mapping = array();
+        foreach ($this->_stores as $store) {
+            $languageCode = $this->_helper->getLanguageCodeByStore($store);
+            $defaultAnalyzer = 'analyzer_' . $languageCode;
+            $mapping['spelling_' . $languageCode]['type'] = 'multi_field';
+            $spellcheckBaseFieldProperties = array('type' => 'string', 'store' => false, 'fielddata' => array('format' => 'disabled'));
+            $mapping['spelling_' . $languageCode]['fields'] = array(
+                'spelling_' . $languageCode => array_merge(array('analyzer' => $defaultAnalyzer), $spellcheckBaseFieldProperties),
+                'shingle'                   => array_merge(array('analyzer' => 'shingle'), $spellcheckBaseFieldProperties),
+                'whitespace'                => array_merge(array('analyzer' => 'whitespace'), $spellcheckBaseFieldProperties),
+            );
+
+            $mapping['autocomplete'] = array(
+                'type' => 'string', 'store' => false, 'analyzer' => 'edge_ngram_front', 'fielddata' => array('format' => 'disabled'),
+            );
+
+            if ($this->getCurrentIndex()->isPhoneticSupported($languageCode)) {
+                $mapping['spelling_' . $languageCode]['fields']['phonetic_' . $languageCode] = array_merge(
+                    array('analyzer' => 'phonetic_' . $languageCode), $spellcheckBaseFieldProperties
+                );
+            }
+        }
+        return $mapping;
+    }
+
+    /**
+     * Return mapping for an attribute of type varchar
+     *
+     * @param string $fieldName    Name of the field
+     * @param string $languageCode Language code we want the mapping for
+     * @param string $type         ES core type (string default)
+     * @param bool   $sortable     Can the attribute be used for sorting
+     * @param bool   $fuzzy        Can the attribute be used in fuzzy searches.
+     * @param bool   $facet        Can the attribute be used as a facet.
+     * @param bool   $autocomplete Can the attribute be used in autocomplete.
+     *
+     * @return array string
+     */
+    protected function _getStringMapping(
+        $fieldName, $languageCode, $type = 'string', $sortable = false, $fuzzy = true, $facet = true, $autocomplete = true
+    ) {
+        $mapping = array();
+
+        $analyzers = array('shingle', 'whitespace');
+
+        $mapping[$fieldName] = array('type' => 'multi_field', 'fields' => array());
+        $mapping[$fieldName]['fields'][$fieldName] = array(
+            'type' => $type, 'analyzer' => 'analyzer_' . $languageCode, 'store' => false, 'fielddata' => array('format' => 'disabled')
+        );
+
+        if ($autocomplete == true || $facet == true) {
+            $analyzers[] = 'edge_ngram_front';
+
+            if ($facet == true) {
+                $mapping[$fieldName]['fields']['untouched'] = array(
+                    'type' => $type, 'index' => 'not_analyzed', 'store' => false, 'fielddata' => array('format' => 'doc_values')
+                );
+            }
+
+            if ($autocomplete == true) {
+                $mapping[$fieldName]['fields'][$fieldName]['copy_to'][] = 'autocomplete';
+            }
+        }
+
+        if ($sortable == true) {
+            $analyzers[] = 'sortable';
+        }
+
+        if ($fuzzy == true) {
+            $mapping[$fieldName]['fields'][$fieldName]['copy_to'][] = 'spelling_' . $languageCode;
+        }
+
+        if ($this->getCurrentIndex()->isPhoneticSupported($languageCode)) {
+            $analyzers[] = 'phonetic_' . $languageCode;
+        }
+
+        foreach ($analyzers as $analyzer) {
+            $mapping[$fieldName]['fields'][$analyzer] = array('type' => $type, 'analyzer' => $analyzer, 'store' => false);
+
+            if (isset($analyzersOptions[$analyzer])) {
+                $mapping[$fieldName]['fields'][$analyzer] = array_merge(
+                    $mapping[$fieldName]['fields'][$analyzer], $analyzersOptions[$analyzer]
+                );
+            }
+        }
+
+        return $mapping;
     }
 
     /**
@@ -198,6 +326,53 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
         return $this->getCurrentIndex()->loadMappingPropertiesFromIndex($this->_type);
     }
 
+    /**
+     * Get analyzer for a search type.
+     *
+     * @param string $languageCode Language code.
+     * @param string $searchType   Search type.
+     *
+     * @return string
+     */
+    protected function _getDefaultAnalyzerBySearchType($languageCode, $searchType)
+    {
+        $analyzer = null;
+
+        if ($searchType == self::SEARCH_TYPE_PHRASE) {
+            $analyzer = 'shingle';
+        } else if ($searchType == self::SEARCH_TYPE_FUZZY) {
+            $analyzer = 'whitespace';
+        } else if ($searchType == self::SEARCH_TYPE_PHONETIC) {
+            $analyzer = 'phonetic_' . $languageCode;
+        } else if ($searchType == self::SEARCH_TYPE_AUTOCOMPLETE) {
+            $analyzer = 'edge_ngram_front';
+        }
+
+        return $analyzer;
+    }
+
+    /**
+     * As fields are copied into spelling or autocomplete, we can use a default field to reduce the number of fields
+     * into multi_match query.
+     * Kind of equivalent to _all fields but search type dependant.
+     *
+     * @param string $languageCode Language code.
+     * @param string $searchType   Search type.
+     *
+     * @return string
+     */
+    protected function _getDefaultSearchFieldBySearchType($languageCode, $searchType)
+    {
+        $defaultSearchFields = array();
+
+        if (in_array($searchType, array(self::SEARCH_TYPE_NORMAL, self::SEARCH_TYPE_FUZZY, self::SEARCH_TYPE_PHONETIC))) {
+            $defaultSearchFields[] = 'spelling_' . $languageCode;
+        } else if ($searchType == self::SEARCH_TYPE_AUTOCOMPLETE) {
+            $defaultSearchFields[] = 'autocomplete';
+        }
+        return $defaultSearchFields;
+    }
+
 
     /**
      * Return the current index.
@@ -226,4 +401,5 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
      * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract
      */
     abstract public function rebuildIndex($storeId = null, $ids = null);
+
 }

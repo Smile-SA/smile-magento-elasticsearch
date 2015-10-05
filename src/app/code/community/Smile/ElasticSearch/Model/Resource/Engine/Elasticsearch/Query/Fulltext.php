@@ -145,14 +145,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     protected function _getExactQueryMatch($textQuery, $spellingType)
     {
         $languageCode = $this->getLanguageCode();
-        $exactSearchFields = array('spelling_' . $languageCode);
-
-        foreach ($this->getSearchFields() as $fieldName => $fieldParam) {
-            if ($fieldParam['weight'] != 1) {
-                $exactSearchFields[] = $fieldName . '^' . $fieldParam['weight'];
-            }
-        }
-
+        $exactSearchFields = $this->getSearchFields(
+            Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL
+        );
         $exactMatchQuery = array('multi_match' => array('query' => $textQuery, 'type' => 'cross_fields', 'tie_breaker' => 0.5));
         $exactMatchQuery['multi_match']['fields'] = $exactSearchFields;
         $exactMatchQuery['multi_match']['analyzer']  = 'analyzer_' .$languageCode;
@@ -175,13 +170,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     {
         $languageCode = $this->getLanguageCode();
         $phraseSearchFields = array();
-        $phraseSearchFields[] = 'spelling_' . $languageCode . '.shingle';
-        foreach ($this->getSearchFields() as $fieldName => $fieldParam) {
-            if ($fieldParam['fuzziness'] !== false && $fieldParam['weight'] != 1) {
-                $phraseSearchFields[] = $fieldName . '.shingle^' . $fieldParam['weight'];
-            }
-        }
-
+        $phraseSearchFields = $this->getSearchFields(
+            Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_PHRASE
+        );
         $phraseMatchQuery = array(
             'multi_match' => array(
                 'fields'        => $phraseSearchFields,
@@ -205,13 +196,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     {
         $fuzzinessConfig = Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'enable_fuzziness');
         if ($fuzzinessConfig) {
-            $fuzzySearchFields = array('spelling_' . $languageCode . '.whitespace');
-            foreach ($this->getSearchFields() as $fieldName => $fieldParam) {
-                if ($fieldParam['fuzziness'] !== false && $fieldParam['weight'] != 1) {
-                    $fuzzySearchFields[] = $fieldName . '.whitespace' . '^' . $fieldParam['weight'];
-                }
-            }
-
+            $fuzzySearchFields = $this->getSearchFields(
+                Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_FUZZY
+            );
             $fuzzinessConfig = array(
                 'fields'         => $fuzzySearchFields,
                 'fuzziness'      => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'fuzziness_value'),
@@ -238,15 +225,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
 
         if ($isSupported && $isEnabled) {
             $phoneticAnalyzer = 'phonetic_' . $languageCode;
-            $phoneticSearchFields = array('spelling_' . $languageCode . '.' . $phoneticAnalyzer);
-            foreach ($this->getSearchFields() as $fieldName => $fieldParam) {
-                if ($fieldParam['fuzziness'] !== false && $fieldParam['weight'] != 1) {
-                    $phoneticSearchFields[] = $fieldName . '.' . $phoneticAnalyzer . '^' . $fieldParam['weight'];
-                }
-            }
-
+            $phoneticSearchFields = $this->getSearchFields(
+                Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_PHONETIC
+            );
             $phoneticConfig = array('analyzer' => $phoneticAnalyzer, 'fields' => $phoneticSearchFields);
-
             if ((bool) Mage::getStoreConfig($configPrexfix . 'enable_phonetic_search_fuzziness')) {
                 $fuzzinessConfig = array(
                     'fuzziness'      => Mage::getStoreConfig($configPrexfix . 'phonetic_search_fuzziness_value'),
@@ -305,16 +287,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     {
         if (!isset(self::$_analyzedQueries[$textQuery])) {
             $result = self::SPELLING_TYPE_FUZZY;
-            $spellingQuery = self::_buildSpellingQuery($textQuery);
+            $spellingQuery = $this->_buildSpellingQuery($textQuery);
             Varien_Profiler::start('ES:EXECUTE:SPELLING_QUERY');
             $response = $this->getClient()->search($spellingQuery);
             Varien_Profiler::stop('ES:EXECUTE:SPELLING_QUERY');
-
-            if ($response['aggregations']['exact_match']['doc_count'] > 0) {
+            $aggregations = $response['aggregations'];
+            if (isset($aggregations['exact_match']) && $aggregations['exact_match']['doc_count'] > 0) {
                 $result = self::SPELLING_TYPE_EXACT;
-            } else if ($response['aggregations']['most_exact_match']['doc_count'] > 0) {
+            } else if (isset($aggregations['most_exact_match']) && $aggregations['most_exact_match']['doc_count'] > 0) {
                 $result = self::SPELLING_TYPE_MOST_EXACT;
-            } else if ($response['aggregations']['most_fuzzy_match']['doc_count'] > 0) {
+            } else if (isset($aggregations['most_fuzzy_match']) && $aggregations['most_fuzzy_match']['doc_count'] > 0) {
                 $result = self::SPELLING_TYPE_MOST_FUZZY;
             }
 
@@ -350,6 +332,17 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                         $fuzzinessConfig,
                         array('query' => $textQuery, 'minimum_should_match' => '100%')
                     )
+                )
+            ),
+            array(
+                'multi_match' => array(
+                    'analyzer' => 'analyzer_' . $languageCode,
+                    'fields'   => $this->getSearchFields(
+                        Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL
+                    ),
+                    'minimum_should_match' => $this->_getMinimumShouldMatch(),
+                    'type'  => 'cross_fields',
+                    'query'                => $textQuery,
                 )
             )
         );

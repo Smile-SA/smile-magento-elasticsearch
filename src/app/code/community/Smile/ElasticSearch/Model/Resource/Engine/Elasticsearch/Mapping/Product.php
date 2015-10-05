@@ -66,7 +66,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
 
         foreach ($this->_stores as $store) {
             $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
-            $fieldMapping = $this->_getStringMapping('category_name_' . $languageCode, $languageCode, 'string', true, true);
+            $fieldMapping = $this->_getStringMapping('category_name_' . $languageCode, $languageCode, 'string', true, true, true);
             $mapping['properties'] = array_merge($mapping['properties'], $fieldMapping);
         }
 
@@ -79,10 +79,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         );
 
         // Append dynamic mapping for product prices and discount fields
-        $fieldTemplate = array('match' => 'price_*', 'mapping' => array('type' => 'double', 'fielddata' => array('format' => 'doc_values')));
+        $fieldTemplate = array(
+            'match' => 'price_*', 'mapping' => array('type' => 'double', 'fielddata' => array('format' => 'doc_values'))
+        );
         $mapping['dynamic_templates'][] = array('prices' => $fieldTemplate);
 
-        $fieldTemplate = array('match' => 'has_discount_*', 'mapping' => array('type' => 'boolean', 'fielddata' => array('format' => 'doc_values')));
+        $fieldTemplate = array(
+            'match' => 'has_discount_*', 'mapping' => array('type' => 'boolean', 'fielddata' => array('format' => 'doc_values'))
+        );
         $mapping['dynamic_templates'][] = array('has_discount' => $fieldTemplate);
 
         $mappingObject = new Varien_Object($mapping);
@@ -240,28 +244,31 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
     /**
      * Return a list of all searchable field for the current type (by locale code).
      *
-     * @param string $localeCode Locale code
+     * @param string $languageCode Language code.
+     * @param string $searchType   Type of search currentlty used.
+     * @param string $analyzer     Allow to force the analyzer used for the field (shingle, ...).
      *
      * @return array.
      */
-    public function getSearchFields($localeCode)
+    public function getSearchFields($languageCode, $searchType = null, $analyzer = null)
     {
-        $searchFields = parent::getSearchFields($localeCode);
+        $searchFields[$searchType] = parent::getSearchFields($languageCode, $searchType, $analyzer);
         $advancedSettingsPathPrefix = 'elasticsearch_advanced_search_settings/fulltext_relevancy/';
-        $searchInCategoryName = (bool) Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name');
-        if ($searchInCategoryName) {
+        $searchInCategorySettingsPathPrefix = $advancedSettingsPathPrefix . 'search_in_category_name_';
+        $isSearchable = (bool) Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name');
+        if (in_array($searchType, array(self::SEARCH_TYPE_FUZZY, self::SEARCH_TYPE_PHONETIC))) {
+            $isSearchable = $isSearchable && (bool) Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'fuzzy');
+        } else if ($searchType == self::SEARCH_TYPE_AUTOCOMPLETE) {
+            $isSearchable = $isSearchable && (bool) Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'use_in_autocomplete');
+        }
 
-            $searchInCategorySettingsPathPrefix = $advancedSettingsPathPrefix . 'search_in_category_name_';
+        if ($isSearchable) {
             $weight = (int) Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'weight');
-            $enableFuzzySearch = (bool) Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'fuzzy');
-            $usedInAutocomplete = (bool) Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'use_in_autocomplete');
-
-            $searchFields['category_name_' . $localeCode] = array(
-                'weight'               => (int) Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'weight'),
-                'fuzziness'            => $enableFuzzySearch,
-                'used_in_autocomplete' => $usedInAutocomplete
+            $analyzer = $this->_getDefaultAnalyzerBySearchType($languageCode, $searchType);
+            $searchFields[$searchType][] = sprintf(
+                "%s^%s", $this->getFieldName('category_name', $languageCode, self::FIELD_TYPE_SEARCH, $analyzer), $weight
             );
         }
-        return $searchFields;
+        return $searchFields[$searchType];
     }
 }
