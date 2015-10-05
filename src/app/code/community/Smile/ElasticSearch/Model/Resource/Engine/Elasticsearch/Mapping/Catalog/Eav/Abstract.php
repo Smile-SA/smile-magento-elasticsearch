@@ -60,26 +60,11 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             'properties' => array()
         );
 
+        $mapping['properties'] = $this->_getSpellingFieldMapping();
+
         $attributes = $this->_getAttributesById();
         foreach ($attributes as $attribute) {
             $mapping['properties'] = array_merge($mapping['properties'], $this->_getAttributeMapping($attribute));
-        }
-
-        foreach ($this->_stores as $store) {
-            $languageCode = $this->_helper->getLanguageCodeByStore($store);
-            $mapping['properties']['spelling_' . $languageCode]['type'] = 'multi_field';
-            $spellcheckBaseFieldProperties = array('type' => 'string', 'store' => false, 'fielddata' => array('format' => 'disabled'));
-            $mapping['properties']['spelling_' . $languageCode]['fields'] = array(
-                'spelling_' . $languageCode => array_merge(array('analyzer' => 'analyzer_' . $languageCode), $spellcheckBaseFieldProperties),
-                'shingle'                   => array_merge(array('analyzer' => 'shingle'), $spellcheckBaseFieldProperties),
-                'whitespace'                => array_merge(array('analyzer' => 'whitespace'), $spellcheckBaseFieldProperties),
-            );
-
-            if ($this->getCurrentIndex()->isPhoneticSupported($languageCode)) {
-                $mapping['properties']['spelling_' . $languageCode]['fields']['phonetic_' . $languageCode] = array_merge(
-                    array('analyzer' => 'phonetic_' . $languageCode), $spellcheckBaseFieldProperties
-                );
-            }
         }
 
         $mapping['properties']['unique']   = array('type' => 'string', 'store' => false, 'index' => 'not_analyzed');
@@ -104,6 +89,11 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $attributeCode = $attribute->getAttributeCode();
             $type = $this->_getAttributeType($attribute);
 
+            $isFacet = (bool) ($attribute->getIsFilterable() || $attribute->getIsFilterableInSearch());
+            $isFuzzy = (bool) $attribute->getIsFuzzinessEnabled();
+            $usedForSortBy = (bool) $attribute->getUsedForSortBy();
+            $isAutocomplete = (bool) ($attribute->getIsUsedInAutocomplete() || $attribute->getIsDisplayedInAutocomplete());
+
             if ($type === 'string' && !$attribute->getBackendModel() && $attribute->getFrontendInput() != 'media_image') {
                 foreach ($this->_stores as $store) {
                     $languageCode = $this->_helper->getLanguageCodeByStore($store);
@@ -115,11 +105,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
 
                     if ($multiTypeField) {
                         $fieldMapping = $this->_getStringMapping(
-                            $fieldName,
-                            $languageCode,
-                            $type,
-                            $attribute->getBackendType() == 'varchar',
-                            (bool) $attribute->getIsFuzzinessEnabled()
+                            $fieldName, $languageCode, $type, $usedForSortBy, $isFuzzy, $isFacet, $isAutocomplete
                         );
                         $mapping = array_merge($mapping, $fieldMapping);
                     }
@@ -132,7 +118,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 );
             } else {
                 $mapping[$attributeCode] = array(
-                    'type' => $type, 'store' => false, 'fielddata' => array('format' => $type == 'string' ? 'fst' :'doc_values')
+                    'type' => $type, 'store' => false, 'fielddata' => array('format' => $type == 'string' ? 'disabled' :'doc_values')
                 );
             }
 
@@ -141,67 +127,11 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     $languageCode = $this->_helper->getLanguageCodeByStore($store);
                     $fieldName = 'options' . '_' .  $attributeCode . '_' . $languageCode;
                     $fieldMapping = $this->_getStringMapping(
-                        $fieldName,
-                        $languageCode,
-                        'string',
-                        true,
-                        (bool) $attribute->getIsFuzzinessEnabled()
+                        $fieldName, $languageCode, 'string', $usedForSortBy, $isFuzzy, $isFacet, $isAutocomplete
                     );
                     $mapping = array_merge($mapping, $fieldMapping);
                 }
             }
-        }
-
-        return $mapping;
-    }
-
-    /**
-     * Return mapping for an attribute of type varchar
-     *
-     * @param string $fieldName    Name of the field
-     * @param string $languageCode Language code we want the mapping for
-     * @param string $type         ES core type (string default)
-     * @param bool   $sortable     Can the attribute be used for sorting
-     * @param bool   $fuzzy        Can the attribute be used in fuzzy searches.
-     *
-     * @return array string
-     */
-    protected function _getStringMapping($fieldName, $languageCode, $type = 'string', $sortable = false, $fuzzy = true)
-    {
-        $mapping = array();
-
-        $analyzers = array('shingle');
-
-        $mapping[$fieldName] = array('type' => 'multi_field', 'fields' => array());
-        $mapping[$fieldName]['fields'][$fieldName] = array(
-            'type' => $type, 'analyzer' => 'analyzer_' . $languageCode, 'store' => false, 'fielddata' => array('format' => 'disabled')
-        );
-
-        if ($sortable == true) {
-            $analyzers[] = 'sortable';
-            $analyzers[] = 'whitespace';
-            $analyzers[] = 'edge_ngram_front';
-            $mapping[$fieldName]['fields']['untouched'] = array(
-                'type' => $type, 'index' => 'not_analyzed', 'store' => false, 'fielddata' => array('format' => 'doc_values')
-            );
-        }
-
-        if ($this->getCurrentIndex()->isPhoneticSupported($languageCode)) {
-            $analyzers[] = 'phonetic_' . $languageCode;
-        }
-
-        foreach ($analyzers as $analyzer) {
-            $mapping[$fieldName]['fields'][$analyzer] = array('type' => $type, 'analyzer' => $analyzer, 'store' => false);
-
-            if (isset($analyzersOptions[$analyzer])) {
-                $mapping[$fieldName]['fields'][$analyzer] = array_merge(
-                    $mapping[$fieldName]['fields'][$analyzer], $analyzersOptions[$analyzer]
-                );
-            }
-        }
-
-        if ($fuzzy == true) {
-            $mapping[$fieldName]['fields'][$fieldName]['copy_to'] = 'spelling_' . $languageCode;
         }
 
         return $mapping;
@@ -666,48 +596,68 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     /**
      * Return a list of all searchable field for the current type (by locale code).
      *
-     * @param string $localeCode Locale code
+     * @param string $languageCode Language code.
+     * @param string $searchType   Type of search currentlty used.
+     * @param string $analyzer     Allow to force the analyzer used for the field (shingle, ...).
      *
      * @return array.
      */
-    public function getSearchFields($localeCode)
+    public function getSearchFields($languageCode, $searchType = null, $analyzer = null)
     {
-        if ($this->_searchFields == null) {
+        if ($searchType == null) {
+            $searchType = self::SEARCH_TYPE_NORMAL;
+        }
+
+        if (!isset($this->_searchFields[$searchType])) {
+
+            if ($analyzer == null) {
+                $analyzer = $this->_getDefaultAnalyzerBySearchType($languageCode, $searchType);
+            }
 
             $mapping = $this->getMappingProperties();
-            $this->_searchFields = array();
+            $this->_searchFields[$searchType] = $this->_getDefaultSearchFieldBySearchType($languageCode, $searchType);
+            $hasDefaultField = !empty($this->_searchFields[$searchType]);
 
             $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
 
             $attributes = Mage::getResourceModel($this->_attributeCollectionModel)
-                ->setEntityTypeFilter($entityType->getEntityTypeId());
-
-            $conditions = array(
-                'additional_table.is_searchable = 1',
-                'additional_table.is_used_in_autocomplete = 1',
-            );
-
-            $attributes->getSelect()->where(sprintf('(%s)', implode(' OR ', $conditions)));
+                ->setEntityTypeFilter($entityType->getEntityTypeId())
+                ->addFieldToFilter('is_searchable', 1);
 
             foreach ($attributes as $attribute) {
-
-                if ($attribute->getIsSearchable() || $attribute->getAttributeCode() == 'name') {
-
-                    $field = $this->getFieldName($attribute->getAttributeCode(), $localeCode);
+                $isAttributeSearchable = $this->_isAttributeUsedForSearchType($attribute, $searchType);
+                if ($isAttributeSearchable) {
+                    $field = $this->getFieldName($attribute->getAttributeCode(), $languageCode, self::FIELD_TYPE_SEARCH, $analyzer);
                     $weight = (int) $attribute->getSearchWeight();
-                    if ($field !== false && $weight > 0) {
-                        $currentAttributeConfig = array(
-                            'weight'               => $weight,
-                            'fuzziness'            => (bool) $attribute->getIsFuzzinessEnabled(),
-                            'used_in_autocomplete' => (bool) $attribute->getIsUsedInAutocomplete(),
-                        );
-                        $this->_searchFields[$field] = $currentAttributeConfig;
+                    if ($field !== false && $weight > 0 && !($hasDefaultField && $weight == 1)) {
+                        $this->_searchFields[$searchType][] = $field . '^' . $weight;
                     }
                 }
             }
         }
 
-        return $this->_searchFields;
+        return $this->_searchFields[$searchType];
+    }
+
+    /**
+     * Indicates if an attribute is used into a search type.
+     *
+     * @param Mage_Eav_Model_Attribute $attribute  Attribute we want the value for.
+     * @param string                   $searchType Search type
+     *
+     * @return boolean
+     */
+    protected function _isAttributeUsedForSearchType($attribute, $searchType)
+    {
+        $isSearchable = $attribute->getIsSearchable() || $attribute->getAttributeCode() == 'name';
+
+        if (in_array($searchType, array(self::SEARCH_TYPE_FUZZY, self::SEARCH_TYPE_PHONETIC))) {
+            $isSearchable = $isSearchable && (bool) $attribute->getIsFuzzinessEnabled();
+        } else if ($searchType == self::SEARCH_TYPE_AUTOCOMPLETE) {
+            $isSearchable = $isSearchable && (bool) $attribute->getIsUsedInAutocomplete();
+        }
+
+        return $isSearchable;
     }
 
     /**

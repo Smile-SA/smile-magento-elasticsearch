@@ -327,7 +327,6 @@
                 <phonetic_search_fuzziness_prefix_length>1</phonetic_search_fuzziness_prefix_length>
                 <phonetic_search_fuzziness_max_expansions>2</phonetic_search_fuzziness_max_expansions>
                 <search_minimum_should_match><![CDATA[2<75% 6<50%]]></search_minimum_should_match>
-                <search_autocomplete_fuzziness>0.01</search_autocomplete_fuzziness>
             </fulltext_relevancy>
             <popular_terms_autocomplete>
                 <max_size>3</max_size>
