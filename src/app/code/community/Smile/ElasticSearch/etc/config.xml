@@ -326,6 +326,10 @@
                 <phonetic_search_fuzziness_value>0.5</phonetic_search_fuzziness_value>
                 <phonetic_search_fuzziness_prefix_length>1</phonetic_search_fuzziness_prefix_length>
                 <phonetic_search_fuzziness_max_expansions>2</phonetic_search_fuzziness_max_expansions>
+                <autocomplete_enable_fuzziness>1</autocomplete_enable_fuzziness>
+                <autocomplete_fuzziness_value>0.25</autocomplete_fuzziness_value>
+                <autocomplete_fuzziness_prefix_length>1</autocomplete_fuzziness_prefix_length>
+                <autocomplete_fuzziness_max_expansions>10</autocomplete_fuzziness_max_expansions>
                 <search_minimum_should_match><![CDATA[2<75% 6<50%]]></search_minimum_should_match>
             </fulltext_relevancy>
             <popular_terms_autocomplete>
