@@ -159,19 +159,6 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
-     * Forces error display.
-     *
-     * @param string $error Error to be displayed
-     *
-     * @return void
-     */
-    public function showError($error)
-    {
-        echo Mage::app()->getLayout()->createBlock('core/messages')
-            ->addError($error)->getGroupedHtml();
-    }
-
-    /**
      * Indicates if the current Magento instance is a Enterprise one.
      *
      * @return bool
