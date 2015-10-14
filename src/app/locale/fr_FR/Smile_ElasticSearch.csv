@@ -26,6 +26,8 @@
 "Use language analysis","Utiliser l'analyse linguistique"
 "Enable fuzziness","Activer la recherche approchante"
 "Facet max. size","Taille maximale de la facette"
+"Facet coverage rate","Taux de couverture de la facette"
+Ex: Brand facet will be displayed only if 90% of the product have a brand.,Ex: La facette "marque" sera affichée uniquement si 90% of des produits ont une marque.
 "Max number of values returned by a facet query.","Nombre maximale de valeurs affichées par la facette."
 "Facet sort order","Ordre de tri de la facette"
 "Result count","Nombre de résultat",
