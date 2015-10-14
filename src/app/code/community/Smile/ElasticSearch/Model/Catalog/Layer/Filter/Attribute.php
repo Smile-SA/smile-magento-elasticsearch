@@ -25,6 +25,26 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     const MAX_SUGGEST_SIZE = 100;
 
     /**
+     * @var string
+     */
+    const SORT_ORDER_COUNT = 'count';
+
+    /**
+     * @var string
+     */
+    const SORT_ORDER_TERM  = 'term';
+
+    /**
+     * @var string
+     */
+    const SORT_ORDER_RELEVANCE = "_score";
+
+    /**
+     * @var string
+     */
+    const TERM_STAT_AGGREGATOR = 'mean';
+
+    /**
      * List of filter in raw form.
      *
      * @var array()
@@ -41,13 +61,22 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     public function addFacetCondition()
     {
         $query = $this->getLayer()->getProductCollection()->getSearchEngineQuery();
+        $facetType = "terms";
         $options = array(
-            'field' => $this->_getFilterField(),
             'size'  => $this->_getFacetMaxSize(),
-            'order' => $this->_getFacetSortOrder(),
         );
+        if ($this->_getFacetSortOrder() == self::SORT_ORDER_RELEVANCE) {
+            $options['key_field'] = $this->_getFilterField();
+            $options['value_script'] = self::SORT_ORDER_RELEVANCE;
+            $options['order'] = self::TERM_STAT_AGGREGATOR;
+            $facetType = "termsStats";
+        } else {
+            $options['field'] = $this->_getFilterField();
+            $options['order'] = $this->_getFacetSortOrder();
+        }
+
         $options = $this->_addSuggestFacetFilter($options);
-        $query->addFacet($this->_requestVar, 'terms', $options);
+        $query->addFacet($this->_requestVar, $facetType, $options);
 
         return $this;
     }
@@ -220,7 +249,6 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
         /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
         $attribute = $this->getAttributeModel();
         $this->_requestVar = $attribute->getAttributeCode();
-
         $items = $this->_getFacet()->getItems();
         $data = array();
         if (array_sum($items) > 0) {

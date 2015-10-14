@@ -443,7 +443,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
             $query['body']['sort'] = $this->_prepareSortCondition();
             $query['body'] = array_merge($query['body'], $this->_page);
         } else {
-            $query['search_type'] = 'count';
+            $query['body'] = array_merge($query['body'], $this->_page);
         }
 
         return $query;
