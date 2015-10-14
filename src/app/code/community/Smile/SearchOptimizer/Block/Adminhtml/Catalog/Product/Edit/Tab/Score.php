@@ -57,7 +57,7 @@ class Smile_SearchOptimizer_Block_Adminhtml_Catalog_Product_Edit_Tab_Score
     */
     public function canShowTab()
     {
-        return true;
+        return Mage::helper('smile_elasticsearch')->isActiveEngine();
     }
 
     /**
