@@ -42,6 +42,8 @@
 "Display in autocomplete","Display in autocomplete"
 "Use language analysis","Use language analysis"
 "Enable fuzziness","Enable fuzziness"
+"Facet coverage rate","Facet coverage rate"
+Ex: Brand facet will be displayed only if 90% of the product have a brand.,Ex: Brand facet will be displayed only if 90% of the product have a brand.
 "Facet max. size","Facet max. size"
 "Max number of values returned by a facet query.","Max number of values returned by a facet query."
 "Facet sort order","Facet sort order"
