@@ -258,10 +258,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
             $this->_test = false;
         }
 
-        if ($this->_test === false && $this->_getHelper()->isDebugEnabled()) {
-            $this->_getHelper()->showError('Elasticsearch engine is not available');
-        }
-
         return $this->_test;
     }
 
