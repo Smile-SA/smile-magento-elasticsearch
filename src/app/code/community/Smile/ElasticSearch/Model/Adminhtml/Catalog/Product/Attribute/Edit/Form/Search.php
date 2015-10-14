@@ -141,12 +141,16 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
                 'label'   => Mage::helper('smile_elasticsearch')->__('Facet sort order'),
                 'values'  => array(
                     array(
-                        'value' => Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_Terms::SORT_ORDER_COUNT,
+                        'value' => Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute::SORT_ORDER_COUNT,
                         'label' => Mage::helper('smile_elasticsearch')->__('Result count'),
                     ),
                     array(
-                        'value' => Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_Terms::SORT_ORDER_TERM,
+                        'value' => Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute::SORT_ORDER_TERM,
                         'label' => Mage::helper('smile_elasticsearch')->__('Name'),
+                    ),
+                    array(
+                        'value' => Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute::SORT_ORDER_RELEVANCE,
+                        'label' => Mage::helper('smile_elasticsearch')->__('Relevance'),
                     ),
                 )
             ),

@@ -20,16 +20,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_Terms
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Facet_Abstract
 {
     /**
-     * @var string
-     */
-    const SORT_ORDER_COUNT = 'count';
-
-    /**
-     * @var string
-     */
-    const SORT_ORDER_TERM  = 'term';
-
-    /**
      * Default options for the facet.
      *
      * @var array
