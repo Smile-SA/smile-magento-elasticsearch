@@ -415,7 +415,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                                 if (isset($values[$field])) {
                                     $parentValue = is_array($values[$field]) ? $values[$field] : array($values[$field]);
                                 }
-                                $values[$field] = array_unique(array_merge($parentValue, $fieldValue));
+                                $values[$field] = array_values(array_unique(array_merge($parentValue, $fieldValue)));
                             }
                         }
                     }
