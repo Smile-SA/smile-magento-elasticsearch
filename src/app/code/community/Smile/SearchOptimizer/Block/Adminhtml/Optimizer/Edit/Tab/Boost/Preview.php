@@ -239,4 +239,21 @@ class Smile_SearchOptimizer_Block_Adminhtml_Optimizer_Edit_Tab_Boost_Preview ext
 
         return $result;
     }
+
+    /**
+     * Load product image thumbnail.
+     *
+     * @param Mage_Catalog_Model_Product $product
+     *
+     * @return boolean|string
+     */
+    public function getProductThumbnailUrl($product)
+    {
+        try {
+            $imageUrl = $this->helper('catalog/image')->init($product, 'small_image')->keepFrame(false)->resize(50, 50);
+        } catch (Exception $e) {
+            $imageUrl = false;
+        }
+        return $imageUrl;
+    }
 }

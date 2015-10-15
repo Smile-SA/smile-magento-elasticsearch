@@ -32,7 +32,10 @@
                         <td>
                             <?php $product = $this->getProductById($baseProductIds[$i]); ?>
                             <div class="left" style="padding: 5px; margin: 0 10px; witdh: 50px; height: 50px">
-                                <img src="<?php echo $this->helper('catalog/image')->init($product, 'small_image')->keepFrame(false)->resize(50, 50); ?>"/>
+                                <?php $imgUrl = $this->getProductThumbnailUrl($product); ?>
+                                <?php if ($imgUrl !== false) : ?>
+                                <img src="<?php echo $imgUrl; ?>"/>
+                                <?php endif; ?>
                             </div>
                             <div>
                                 <p><strong><?php echo $helper->productAttribute($product, $product->getName(), 'name'); ?></strong></p>
@@ -46,7 +49,10 @@
                         <td>
                             <?php $product = $this->getProductById($optimizedProductIds[$i]); ?>
                             <div class="left" style="padding: 5px; margin: 0 10px; witdh: 50px; height: 50px">
-                                <img src="<?php echo $this->helper('catalog/image')->init($product, 'small_image')->keepFrame(false)->resize(50, 50); ?>"/>
+                                <?php $imgUrl = $this->getProductThumbnailUrl($product); ?>
+                                <?php if ($imgUrl !== false) : ?>
+                                <img src="<?php echo $imgUrl; ?>"/>
+                                <?php endif; ?>
                             </div>
                             <div class="right">
                                 <div style="font-size:2em; margin: 10px;">
