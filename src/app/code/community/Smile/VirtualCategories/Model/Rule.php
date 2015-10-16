@@ -220,11 +220,25 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
         return $this;
     }
 
-    public function setStore($store) {
+    /**
+     * Update the rule current store from the store.
+     *
+     * @param Mage_Core_Model_Store $store Store to be set.
+     *
+     * @return Smile_VirtualCategories_Model_Rule Self Reference.
+     */
+    public function setStore($store)
+    {
         $this->setData('store', $store);
         $this->setData('store_id', $store->getId());
+        return $this;
     }
 
+    /**
+     * Retrieve rule current store.
+     *
+     * @return Mage_Core_Model_Store
+     */
     public function getStore()
     {
         $store = Mage::app()->getStore();
@@ -242,6 +256,11 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
         return $store;
     }
 
+    /**
+     * Retrieve rule current store id.
+     *
+     * @return int
+     */
     public function getStoreId()
     {
         return $this->getStore()->getId();
