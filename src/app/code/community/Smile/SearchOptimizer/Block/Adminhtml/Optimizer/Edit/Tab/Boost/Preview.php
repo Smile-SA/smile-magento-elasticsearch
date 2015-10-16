@@ -138,7 +138,9 @@ class Smile_SearchOptimizer_Block_Adminhtml_Optimizer_Edit_Tab_Boost_Preview ext
      */
     private function _getOptimizedQuery($query)
     {
-        return $this->getCurrentOptimizer()->applyOptimizer($query);
+        $currentOptimizer = $this->getCurrentOptimizer();
+        $currentOptimizer->setCanUseCachedFilter(false);
+        return $currentOptimizer->applyOptimizer($query);
     }
 
     /**

@@ -1,4 +1,5 @@
 <?php
+use Elasticsearch\Serializers\SerializerInterface;
 /**
  * Optimizer model implementation
  *
@@ -69,6 +70,7 @@ class Smile_SearchOptimizer_Model_Optimizer extends Mage_Core_Model_Abstract
     protected function _construct()
     {
         $this->_init('smile_searchoptimizer/optimizer');
+        $this->setCanUseCachedFilter(true);
     }
 
     /**
@@ -228,7 +230,34 @@ class Smile_SearchOptimizer_Model_Optimizer extends Mage_Core_Model_Abstract
      */
     public function getFilterRuleSearchQuery()
     {
-        return $this->getFilterRule()->getConditions()->getSearchQuery();
+        $filterRuleQuery = false;
+        $cacheKey = false;
+
+        if ($this->getId() && (bool) $this->getCanUseCachedFilter()) {
+            $useCache = true;
+            $storeId = Mage::app()->getStore()->getId();
+            if ($this->getFilterRule()->getStore()) {
+                $storeId = $this->getFilterRule()->getStore()->getId();
+            }
+            $cacheKey = 'OPTIMIZER_FILTER_RULE_' . $this->getId() . '_' . $storeId;
+        }
+
+        if ($cacheKey) {
+            $data = Mage::app()->loadCache($cacheKey);
+            if ($data) {
+                $filterRuleQuery = unserialize($data);
+            }
+        }
+
+        if ($filterRuleQuery === false) {
+            $filterRule = $this->getFilterRule();
+            $filterRule->getConditions()->setRule($filterRule);
+            $filterRuleQuery = $filterRule->getConditions()->getSearchQuery();
+            $data = serialize($filterRuleQuery);
+            Mage::app()->saveCache($data, $cacheKey, $this->getCacheIdTags(), Mage_Core_Model_Cache::DEFAULT_LIFETIME);
+        }
+
+        return $filterRuleQuery;
     }
 
     /**
