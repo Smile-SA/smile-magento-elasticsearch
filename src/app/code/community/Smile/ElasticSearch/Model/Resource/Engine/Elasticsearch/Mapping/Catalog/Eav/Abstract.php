@@ -608,14 +608,14 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $searchType = self::SEARCH_TYPE_NORMAL;
         }
 
-        if (!isset($this->_searchFields[$searchType])) {
+        if ($analyzer == null) {
+            $analyzer = $this->_getDefaultAnalyzerBySearchType($languageCode, $searchType);
+        }
 
-            if ($analyzer == null) {
-                $analyzer = $this->_getDefaultAnalyzerBySearchType($languageCode, $searchType);
-            }
+        if (!isset($this->_searchFields[$searchType . $analyzer])) {
 
             $mapping = $this->getMappingProperties();
-            $this->_searchFields[$searchType] = $this->_getDefaultSearchFieldBySearchType($languageCode, $searchType);
+            $this->_searchFields[$searchType . $analyzer] = $this->_getDefaultSearchFieldBySearchType($languageCode, $searchType);
             $hasDefaultField = !empty($this->_searchFields[$searchType]);
 
             $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
@@ -630,13 +630,13 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     $field = $this->getFieldName($attribute->getAttributeCode(), $languageCode, self::FIELD_TYPE_SEARCH, $analyzer);
                     $weight = (int) $attribute->getSearchWeight();
                     if ($field !== false && $weight > 0 && !($hasDefaultField && $weight == 1)) {
-                        $this->_searchFields[$searchType][] = $field . '^' . $weight;
+                        $this->_searchFields[$searchType . $analyzer][] = $field . '^' . $weight;
                     }
                 }
             }
         }
 
-        return $this->_searchFields[$searchType];
+        return $this->_searchFields[$searchType . $analyzer];
     }
 
     /**
