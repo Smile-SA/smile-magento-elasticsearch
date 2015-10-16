@@ -548,7 +548,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
      * Retrieves searchable fields according to text query.
      *
      * @param string $searchType Type of search currentlty used.
-     * @param string $analyzer   Allow to force the analyzer used for the field (shingle, ...).
+     * @param string $analyzer   Allow to force the analyzer used for the field (whitespace, ...).
      *
      * @return array
      */

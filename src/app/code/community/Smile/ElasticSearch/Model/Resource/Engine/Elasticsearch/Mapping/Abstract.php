@@ -46,11 +46,6 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
     /**
      * @var string
      */
-    const SEARCH_TYPE_PHRASE  = 'phrase';
-
-    /**
-     * @var string
-     */
     const SEARCH_TYPE_FUZZY = 'fuzzy';
 
     /**
@@ -118,7 +113,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
      *
      * @param string $languageCode Language code.
      * @param string $searchType   Type of search currentlty used.
-     * @param string $analyzer     Allow to force the analyzer used for the field (shingle, ...).
+     * @param string $analyzer     Allow to force the analyzer used for the field (whitespace, ...).
      *
      * @return array.
      */
@@ -130,7 +125,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
      * @param string $field        Document base field (name, size, ...).
      * @param string $languageCode Language code we want the field for.
      * @param string $type         How the field will be used : search, filter, facet, sort
-     * @param string $analyzer     Allow to force the analyzer used for the field (shingle, ...).
+     * @param string $analyzer     Allow to force the analyzer used for the field (whitespace, ...).
      *
      * @return string
      */
@@ -186,7 +181,6 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
             $spellcheckBaseFieldProperties = array('type' => 'string', 'store' => false, 'fielddata' => array('format' => 'disabled'));
             $mapping['spelling_' . $languageCode]['fields'] = array(
                 'spelling_' . $languageCode => array_merge(array('analyzer' => $defaultAnalyzer), $spellcheckBaseFieldProperties),
-                'shingle'                   => array_merge(array('analyzer' => 'shingle'), $spellcheckBaseFieldProperties),
                 'whitespace'                => array_merge(array('analyzer' => 'whitespace'), $spellcheckBaseFieldProperties),
             );
 
@@ -221,7 +215,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
     ) {
         $mapping = array();
 
-        $analyzers = array('shingle', 'whitespace');
+        $analyzers = array('whitespace');
 
         $mapping[$fieldName] = array('type' => 'multi_field', 'fields' => array());
         $mapping[$fieldName]['fields'][$fieldName] = array(
@@ -338,9 +332,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
     {
         $analyzer = null;
 
-        if ($searchType == self::SEARCH_TYPE_PHRASE) {
-            $analyzer = 'shingle';
-        } else if ($searchType == self::SEARCH_TYPE_FUZZY) {
+        if ($searchType == self::SEARCH_TYPE_FUZZY) {
             $analyzer = 'whitespace';
         } else if ($searchType == self::SEARCH_TYPE_PHONETIC) {
             $analyzer = 'phonetic_' . $languageCode;

@@ -246,7 +246,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
      *
      * @param string $languageCode Language code.
      * @param string $searchType   Type of search currentlty used.
-     * @param string $analyzer     Allow to force the analyzer used for the field (shingle, ...).
+     * @param string $analyzer     Allow to force the analyzer used for the field (whitesapce, ...).
      *
      * @return array.
      */
