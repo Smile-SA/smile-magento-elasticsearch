@@ -244,7 +244,7 @@ class Smile_SearchOptimizer_Block_Adminhtml_Optimizer_Edit_Tab_Boost_Preview ext
     /**
      * Load product image thumbnail.
      *
-     * @param Mage_Catalog_Model_Product $product
+     * @param Mage_Catalog_Model_Product $product The current product.
      *
      * @return boolean|string
      */
