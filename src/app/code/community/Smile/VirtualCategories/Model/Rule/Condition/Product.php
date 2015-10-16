@@ -115,6 +115,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
             }
         } else {
             $category = Mage::getModel('catalog/category')
+                ->setStoreId($this->getStore()->getId())
                 ->load($value);
             if ($category->getId() && !in_array($value, $excludedCategories)) {
                 $virtualRule = Mage::helper('smile_virtualcategories')->getVirtualRule($category);
@@ -332,9 +333,9 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
      */
     public function getStore()
     {
-        $store = Mage::app()->getStore();
-        if ($this->getRule()->getStore()) {
-            $store = $this->getRule()->getStore();
+        $store = $this->getRule()->getStore();
+        if ($store->getId() == 0) {
+            throw new Exception('Test');
         }
         return $store;
     }
