@@ -252,7 +252,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
      */
     public function getSearchFields($languageCode, $searchType = null, $analyzer = null)
     {
-        $searchFields[$searchType] = parent::getSearchFields($languageCode, $searchType, $analyzer);
+        $searchFields = parent::getSearchFields($languageCode, $searchType, $analyzer);
         $advancedSettingsPathPrefix = 'elasticsearch_advanced_search_settings/fulltext_relevancy/';
         $searchInCategorySettingsPathPrefix = $advancedSettingsPathPrefix . 'search_in_category_name_';
         $isSearchable = (bool) Mage::getStoreConfig($advancedSettingsPathPrefix . 'search_in_category_name');
@@ -265,10 +265,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         if ($isSearchable) {
             $weight = (int) Mage::getStoreConfig($searchInCategorySettingsPathPrefix . 'weight');
             $analyzer = $this->_getDefaultAnalyzerBySearchType($languageCode, $searchType);
-            $searchFields[$searchType][] = sprintf(
+            $searchFields[] = sprintf(
                 "%s^%s", $this->getFieldName('category_name', $languageCode, self::FIELD_TYPE_SEARCH, $analyzer), $weight
             );
         }
-        return $searchFields[$searchType];
+        return $searchFields;
     }
 }

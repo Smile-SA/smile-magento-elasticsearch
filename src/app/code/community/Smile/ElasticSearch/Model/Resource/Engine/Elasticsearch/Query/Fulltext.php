@@ -146,6 +146,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         $exactSearchFields = $this->getSearchFields(
             Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL
         );
+
         $exactMatchQuery = array('multi_match' => array('query' => $textQuery, 'type' => 'cross_fields', 'tie_breaker' => 0.5));
         $exactMatchQuery['multi_match']['fields'] = $exactSearchFields;
         $exactMatchQuery['multi_match']['analyzer']  = 'analyzer_' .$languageCode;
@@ -153,7 +154,21 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
             $exactMatchQuery['multi_match']['minimum_should_match'] = $this->_getMinimumShouldMatch();
         }
 
-        return $exactMatchQuery;
+        $refinedQueryFields = $this->getSearchFields(
+            Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL,
+            'whitespace'
+        );
+        $refinedQuery['multi_match'] = array(
+            'fields'   => $refinedQueryFields,
+            'analyzer' => 'whitespace',
+            'boost'    => 10,
+            'query'    => $textQuery,
+            'type' => 'best_fields'
+        );
+
+        $query = array('bool' => array('should' => array($refinedQuery), 'must' => array($exactMatchQuery)));
+
+        return $query;
     }
 
     /**
