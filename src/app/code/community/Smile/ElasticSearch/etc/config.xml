@@ -251,11 +251,6 @@
                             <filter>word_delimiter,ascii_folding,lowercase,trim,edge_ngram_front</filter>
                             <char_filter>html_strip</char_filter>
                         </edge_ngram_front>
-                        <shingle>
-                            <tokenizer>whitespace</tokenizer>
-                            <filter>word_delimiter,shingle,length,lowercase,ascii_folding,trim,synonym</filter>
-                            <char_filter>html_strip</char_filter>
-                        </shingle>
                         <sortable>
                             <tokenizer>keyword</tokenizer>
                             <filter>lowercase,ascii_folding,trim</filter>
@@ -269,11 +264,6 @@
                         <lowercase>
                             <type>lowercase</type>
                         </lowercase>
-                        <shingle>
-                            <type>shingle</type>
-                            <min_shingle_size>2</min_shingle_size>
-                            <max_shingle_size>4</max_shingle_size>
-                        </shingle>
                         <strip_whitespaces>
                             <type>pattern_replace</type>
                             <pattern>\s</pattern>
@@ -297,10 +287,6 @@
                             <type>elision</type>
                             <articles>l,d,m,t,qu,n,s,j</articles>
                         </elision_fr>
-                        <shingle_limiter>
-                            <type>limit</type>
-                            <max_token_count>5</max_token_count>
-                        </shingle_limiter>
                         <word_delimiter>
                             <type>word_delimiter</type>
                             <generate_word_parts>0</generate_word_parts>

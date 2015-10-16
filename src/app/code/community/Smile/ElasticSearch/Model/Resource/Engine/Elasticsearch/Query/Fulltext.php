@@ -123,8 +123,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                     $query['bool']['should'][] = $fuzzyQuery;
                 }
             }
-        } else {
-            $query['bool']['should'][] = $this->_getPhraseQueryMatch($textQuery, $spellingType);
         }
 
         if ($spellingType != self::SPELLING_TYPE_FUZZY || empty($query)) {
@@ -156,33 +154,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         }
 
         return $exactMatchQuery;
-    }
-
-    /**
-     * Build the query part for phrase matching.
-     *
-     * @param string $textQuery    Text submitted by the user.
-     * @param int    $spellingType Type of spelling applied.
-     *
-     * @return string
-     */
-    protected function _getPhraseQueryMatch($textQuery, $spellingType)
-    {
-        $languageCode = $this->getLanguageCode();
-        $phraseSearchFields = array();
-        $phraseSearchFields = $this->getSearchFields(
-            Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_PHRASE
-        );
-        $phraseMatchQuery = array(
-            'multi_match' => array(
-                'fields'        => $phraseSearchFields,
-                'query'         => $textQuery,
-                'analyzer'      => 'shingle',
-                'type'          => 'best_fields'
-            )
-        );
-
-        return $phraseMatchQuery;
     }
 
     /**
