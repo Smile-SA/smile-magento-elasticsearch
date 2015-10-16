@@ -66,8 +66,8 @@ class Smile_VirtualCategories_Model_Rule_Condition_Combine extends Mage_CatalogR
         $ruleValue    = $this->getValue();
 
         $conditions   = array();
-
         foreach ($this->getConditions() as $condition) {
+            $condition->setRule($this->getRule());
             $conditions[] = $condition->getSearchQuery($excludedCategories);
         }
 

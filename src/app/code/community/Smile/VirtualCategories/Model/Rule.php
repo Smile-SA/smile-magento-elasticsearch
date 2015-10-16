@@ -143,6 +143,7 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
             $this->_usedCategories = array();
             $this->addUsedCategoryIds($category->getId());
             if ($category->getIsVirtual()) {
+                $this->getConditions()->setRule($this);
                 $query = $this->getConditions()->getSearchQuery($excludedCategories);
             } else {
                 $query = '(categories:' . $category->getId() . ') OR (show_in_categories:' . $category->getId() . ')';
@@ -176,9 +177,8 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
         $queries = array();
 
         $rootCategory = $this->getCategory();
-
         $categories = Mage::getResourceModel('smile_virtualcategories/catalog_virtualCategory_collection')
-            ->setStoreId($rootCategory->getStoreId())
+            ->setStore($rootCategory->getStoreId())
             ->addIsActiveFilter()
             ->addFieldToFilter('path', array('like' => $rootCategory->getPath() . '/%'))
             ->addAttributeToSelect('virtual_category');
@@ -194,6 +194,7 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
         foreach ($categories as $currentCategory) {
             if ($currentCategory->getIsVirtual() || ($onlyVirtual == false)) {
                 $virtualRule = $currentCategory->getVirtualRule();
+                $virtualRule->setStoreId($rootCategory->getStoreId());
                 $query = $virtualRule->getSearchQuery($excludedCategories);
                 if ($query) {
                     $queries[$currentCategory->getId()] = '(' . $query . ')';
@@ -214,7 +215,35 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
      */
     public function setStoreId($storeId)
     {
-        $this->setStore(Mage::app()->getStore($storeId));
+        $this->setData('store', Mage::app()->getStore($storeId));
+        $this->setData('store_id', $storeId);
         return $this;
+    }
+
+    public function setStore($store) {
+        $this->setData('store', $store);
+        $this->setData('store_id', $store->getId());
+    }
+
+    public function getStore()
+    {
+        $store = Mage::app()->getStore();
+        if ($this->getCategory() && $this->getCategory()->getStoreId()) {
+            $storeId = $this->getCategory()->getStoreId();
+            $store = Mage::app()->getStore($storeId);
+        }
+        if ($this->getData('store')) {
+            $store = $this->getData('store');
+        }
+        if ($this->getData('store_id')) {
+            $storeId = $this->getData('store_id');
+            $store = Mage::app()->getStore($storeId);
+        }
+        return $store;
+    }
+
+    public function getStoreId()
+    {
+        return $this->getStore()->getId();
     }
 }

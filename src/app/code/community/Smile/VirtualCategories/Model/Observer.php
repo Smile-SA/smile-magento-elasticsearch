@@ -56,7 +56,6 @@ class Smile_VirtualCategories_Model_Observer
         // Append the query string for the virtual categories
         $qs = $this->_getVirtualRule($category)->getSearchQuery();
         $query->addFilter('query', array('query_string' => $qs));
-
         // Mark filter as installed (avoid default filter behavior)
         $filter->setProductCollectionFilterSet(true);
 
@@ -83,7 +82,6 @@ class Smile_VirtualCategories_Model_Observer
         $queries = $this->_getVirtualRule($category)->getChildrenCategoryQueries(array(), false, 1);
         $options = array('queries' => $queries, 'prefix' => 'categories_');
         $query->addFacet('categories', 'queryGroup', $options);
-
         $filter->setProductCollectionFacetSet(true);
 
         return $this;
