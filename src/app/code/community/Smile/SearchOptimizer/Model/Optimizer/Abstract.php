@@ -112,7 +112,7 @@ abstract class Smile_SearchOptimizer_Model_Optimizer_Abstract
         $rule->getConditions()->setJsFormObject('optimizer_virtual_fieldset');
 
         $field->setRule($rule)
-              ->setRenderer(Mage::getBlockSingleton('rule/conditions'));
+            ->setRenderer(Mage::getBlockSingleton('rule/conditions'));
 
         return $this;
     }
