@@ -334,9 +334,6 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
     public function getStore()
     {
         $store = $this->getRule()->getStore();
-        if ($store->getId() == 0) {
-            throw new Exception('Test');
-        }
         return $store;
     }
 }
