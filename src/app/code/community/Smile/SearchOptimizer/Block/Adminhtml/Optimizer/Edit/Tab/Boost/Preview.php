@@ -45,7 +45,6 @@ class Smile_SearchOptimizer_Block_Adminhtml_Optimizer_Edit_Tab_Boost_Preview ext
         $client = Mage::helper('catalogsearch')->getEngine()->getClient();
         $baseQuery      = $this->_getBaseSearchQuery();
         $optimizedQuery = $this->_getOptimizedQuery($baseQuery);
-        Mage::log(json_encode($optimizedQuery));
         $baseProductIds = $this->_getProductIdsFromSearchQuery($baseQuery);
         $optimizeProductIds = $this->_getProductIdsFromSearchQuery($optimizedQuery);
 

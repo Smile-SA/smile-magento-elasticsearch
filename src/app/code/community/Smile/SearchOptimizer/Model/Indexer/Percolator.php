@@ -120,7 +120,6 @@ class Smile_SearchOptimizer_Model_Indexer_Percolator extends Mage_Index_Model_In
                     'delete' => array('_index' => $this->_index->getCurrentName(), '_type' => '.percolator', '_id' => $docId)
                 );
             }
-            Mage::log($bulk);
             $this->_engine->getClient()->bulk($bulk);
             $this->_index->refresh();
         }
