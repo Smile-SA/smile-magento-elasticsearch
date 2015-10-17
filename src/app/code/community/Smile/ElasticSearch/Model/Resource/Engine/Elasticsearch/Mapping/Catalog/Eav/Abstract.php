@@ -284,20 +284,14 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     continue;
                 }
 
-                $entityAttr = array();
-
                 foreach ($entityAttributes[$entityData['entity_id']] as $attributeId => $value) {
                     $attribute = $attributesById[$attributeId];
-                    $entityAttr = array_merge(
-                        $entityAttr,
-                        $this->_getAttributeIndexValues($attribute, $value, $storeId, $languageCode)
-                    );
+                    $entityData += $this->_getAttributeIndexValues($attribute, $value, $storeId, $languageCode);
 
                 }
 
-                $entityAttr = array_merge($entityData, $entityAttr);
-                $entityAttr['store_id'] = $storeId;
-                $entityIndexes[$entityData['entity_id']] = $entityAttr;
+                $entityData['store_id'] = $storeId;
+                $entityIndexes[$entityData['entity_id']] = $entityData;
             }
 
             $entityIndexes = $this->_addChildrenData($entityIndexes, $entityAttributes, $entityRelations, $storeId, $languageCode);
