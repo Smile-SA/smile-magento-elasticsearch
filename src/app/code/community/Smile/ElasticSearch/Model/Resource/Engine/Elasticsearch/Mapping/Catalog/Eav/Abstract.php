@@ -272,8 +272,10 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             }
 
             $entityRelations = $this->_getChildrenIds($ids, $websiteId);
-            $allChildrenIds = call_user_func_array('array_merge', $entityRelations);
-            $ids = array_merge($ids, $allChildrenIds);
+            if (!empty($entityRelations)) {
+                $allChildrenIds = call_user_func_array('array_merge', $entityRelations);
+                $ids = array_merge($ids, $allChildrenIds);
+            }
 
             $entityIndexes    = array();
             $entityAttributes = $this->_getAttributes($storeId, $ids, $dynamicFields);
