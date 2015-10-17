@@ -530,15 +530,6 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             if ($inputType == 'multiselect') {
                 $value = explode(',', $value);
             }
-        } else {
-            $inputType = $attribute->getFrontend()->getInputType();
-            if ($inputType == 'price') {
-                $value = Mage::app()->getStore($storeId)->roundPrice($value);
-            }
-        }
-
-        if (is_string($value)) {
-            $value = preg_replace("#\s+#siu", ' ', trim(strip_tags($value)));
         }
 
         return $value;
