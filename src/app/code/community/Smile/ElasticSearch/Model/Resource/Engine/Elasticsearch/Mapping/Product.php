@@ -160,7 +160,15 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         return array_map(array($this, '_fixBaseFieldTypes'), $result);
     }
 
-    protected function _fixBaseFieldTypes($entityData) {
+    /**
+     * Cast all base fields to their correct type.
+     *
+     * @param array $entityData Data for the current product
+     *
+     * @return array
+     */
+    protected function _fixBaseFieldTypes($entityData)
+    {
         $entityData['entity_id'] = (int) $entityData['entity_id'];
         $entityData['entity_type_id'] = (int) $entityData['entity_type_id'];
         $entityData['attribute_set_id'] = (int) $entityData['attribute_set_id'];
