@@ -55,20 +55,15 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
             $ratingData = $this->_getRatingData($storeId, $productIds);
 
             foreach ($index as $productId => &$productData) {
+                if (isset($ratingData[$productId])) {
+                    $productData += $ratingData[$productId];
+                }
 
                 if (isset($categoryData[$productId]) && isset($priceData[$productId])) {
                     $productData += $categoryData[$productId];
                     $productData += $priceData[$productId];
                 } else {
-                    $productData += array(
-                        'categories' => array(),
-                        'show_in_categories' => array(),
-                        'visibility' => 0
-                    );
-                }
-
-                if (isset($ratingData[$productId])) {
-                    $productData += $ratingData[$productId];
+                    unset($index[$productId]);
                 }
             }
         }
