@@ -47,6 +47,12 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      */
     protected $_attributesById;
 
+    /**
+     * Cache of option text indexed by value (added to increase pefrormance into _getOptionText method.
+     *
+     * @var array
+     */
+    protected $_indexedOptionText = array();
 
     /**
      * Get mapping properties as stored into the index
@@ -286,17 +292,16 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     continue;
                 }
 
+                $this->_addChildrenData($entityData['entity_id'], $entityAttributes, $entityRelations, $storeId);
+
                 foreach ($entityAttributes[$entityData['entity_id']] as $attributeId => $value) {
                     $attribute = $attributesById[$attributeId];
                     $entityData += $this->_getAttributeIndexValues($attribute, $value, $storeId, $languageCode);
-
                 }
 
                 $entityData['store_id'] = $storeId;
                 $entityIndexes[$entityData['entity_id']] = $entityData;
             }
-
-            $entityIndexes = $this->_addChildrenData($entityIndexes, $entityAttributes, $entityRelations, $storeId, $languageCode);
 
             $this->_saveIndexes($storeId, $entityIndexes);
         }
@@ -329,10 +334,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
 
                 if ($attribute->usesSource()) {
                     $field = 'options_' . $attribute->getAttributeCode() . '_' . $languageCode;
-                    $value = $this->_getOptionsText($attribute, $value, $storeId);
-                    if ($value) {
-                        $attrs[$field] = $value;
-                    }
+                    $attrs[$field] = $this->_getOptionsText($attribute, $storedValue, $storeId);
                 }
             }
         }
@@ -371,56 +373,48 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     /**
      * Append children attributes to parents doc.
      *
-     * @param array  $entityIndexes    Final index results
-     * @param array  $entityAttributes Attributes values by entity id
-     * @param array  $entityRelations  Array of the entities relations
-     * @param int    $storeId          Store id
-     * @param string $languageCode     Locale
+     * @param unknown $parentId          Entity id
+     * @param unknown &$entityAttributes Attributes values by entity id
+     * @param unknown $entityRelations   Array of the entities relations
+     * @param unknown $storeId           Store id
      *
-     * @return array
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Catalog_Eav_Abstract
      */
-    protected function _addChildrenData($entityIndexes, $entityAttributes, $entityRelations, $storeId, $languageCode)
+    protected function _addChildrenData($parentId, &$entityAttributes, $entityRelations, $storeId)
     {
-
         $attributesById = $this->_getAttributesById();
-
-        foreach ($entityRelations as $parentId => $childrenIds) {
-
-            $values = $entityIndexes[$parentId];
-
-            foreach ($childrenIds as $childrenId) {
+        $entityData = $entityAttributes[$parentId];
+        if (isset($entityRelations[$parentId])) {
+            foreach ($entityRelations[$parentId] as $childrenId) {
                 if (isset($entityAttributes[$childrenId])) {
-
                     foreach ($entityAttributes[$childrenId] as $attributeId => $value) {
-
                         $isAttributeIndexed = isset($attributesById[$attributeId]);
                         $frontendInput      = $isAttributeIndexed ? $attributesById[$attributeId]->getFrontendInput() : false;
                         $isAttributeIndexed =  $isAttributeIndexed && in_array($frontendInput, array('select', 'multiselect'));
-
-                        if ($isAttributeIndexed == true) {
-                            $attribute = $attributesById[$attributeId];
-                            $childrenValues = $this->_getAttributeIndexValues($attribute, $value, $storeId, $languageCode);
-                            foreach ($childrenValues as $field => $fieldValue) {
-                                $parentValue = array();
-
-                                if (!is_array($fieldValue)) {
-                                    $fieldValue = array($fieldValue);
+                        if ($value != null && $isAttributeIndexed) {
+                            if (!isset($entityAttributes[$parentId][$attributeId])) {
+                                $entityAttributes[$parentId][$attributeId] =  $value;
+                            } else {
+                                if (!is_array($entityAttributes[$parentId][$attributeId])) {
+                                    $entityAttributes[$parentId][$attributeId] = explode(
+                                        ',', $entityAttributes[$parentId][$attributeId]
+                                    );
                                 }
-
-                                if (isset($values[$field])) {
-                                    $parentValue = is_array($values[$field]) ? $values[$field] : array($values[$field]);
+                                if (is_array($value)) {
+                                    $entityAttributes[$parentId][$attributeId] = array_merge(
+                                        $value, $entityAttributes[$parentId][$attributeId]
+                                    );
+                                } else {
+                                    $entityAttributes[$parentId][$attributeId][] = $value;
                                 }
-                                $values[$field] = array_values(array_unique(array_merge($parentValue, $fieldValue)));
                             }
                         }
                     }
                 }
             }
-
-            $entityIndexes[$parentId] = $values;
         }
 
-        return $entityIndexes;
+        return $this;
     }
 
     /**
@@ -507,7 +501,9 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $select = $adapter->select()->union($selects, Zend_Db_Select::SQL_UNION_ALL);
             $query = $adapter->query($select);
             while ($row = $query->fetch()) {
-                $result[$row['entity_id']][$row['attribute_id']] = $row['value'];
+                if ($row['value'] !== null) {
+                    $result[$row['entity_id']][$row['attribute_id']] = $row['value'];
+                }
             }
         }
 
@@ -525,11 +521,13 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      */
     protected function _getAttributeValue($attribute, $value, $storeId)
     {
-        if ($attribute->usesSource()) {
-            $inputType = $attribute->getFrontend()->getInputType();
-            if ($inputType == 'multiselect') {
-                $value = explode(',', $value);
+        if ($attribute->usesSource() && !is_array($value)) {
+            $value = explode(',', $value);
+            if (count($value) == 1) {
+                $value = current($value);
             }
+        } else if ($attribute->getBackendType() == 'decimal') {
+            $value = floatval($value);
         }
 
         return $value;
@@ -572,11 +570,61 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      */
     protected function _getOptionsText($attribute, $value, $storeId)
     {
-        $attribute->setStoreId($storeId);
-        if ($attribute->getSource()) {
-            $value = $attribute->getSource()->getIndexOptionText($value);
+        $attributeId = $attribute->getAttributeId();
+        if (!isset($this->_indexedOptionText[$attributeId]) || !isset($this->_indexedOptionText[$attributeId][$storeId])) {
+            $this->_getAllOptionsText($attribute, $storeId);
         }
+
+        if (is_array($value)) {
+            $values = array();
+            foreach ($value as $currentValue) {
+                $currentValue = trim($currentValue, ',');
+                if ($currentValue && isset($this->_indexedOptionText[$attributeId][$storeId][$currentValue])) {
+                    $values[] = $this->_indexedOptionText[$attributeId][$storeId][$currentValue];
+                }
+            }
+            $value = $values;
+        } else {
+            $value = (string) trim($value, ',');
+            if (isset($this->_indexedOptionText[$attributeId][$storeId][$value])) {
+                $value = $this->_indexedOptionText[$attributeId][$storeId][$value];
+            }
+        }
+
         return $value;
+    }
+
+    /**
+     * Load all options for an attribute using source.
+     *
+     * @param Mage_Eav_Model_Attribute $attribute Attribute we want the value for.
+     * @param int                      $storeId   Store id.
+     *
+     * @return array
+     */
+    protected function _getAllOptionsText($attribute, $storeId)
+    {
+        $attributeId = $attribute->getAttributeId();
+        if (!isset($this->_indexedOptionText[$attributeId]) || !isset($this->_indexedOptionText[$attributeId][$storeId])) {
+            $options = array();
+            if ($attribute->getSource()) {
+                $storeIds = array(0, $storeId);
+                foreach ($storeIds as $storeId) {
+                    $attribute->setStoreId($storeId);
+                    $allOptions = $attribute->getSource()->getAllOptions(false);
+                    foreach ($allOptions as $key => $value) {
+                        if (is_array($value) && isset($value['value'])) {
+                            $options[$value['value']] = $value['label'];
+                        } else {
+                            $options[$key] = $value;
+                        }
+                    }
+                }
+            }
+            $this->_indexedOptionText[$attributeId][$storeId] = $options;
+        }
+
+        return $this->_indexedOptionText[$attributeId][$storeId];
     }
 
     /**
