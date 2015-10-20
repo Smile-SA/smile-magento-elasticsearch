@@ -161,28 +161,28 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
     }
 
     /**
-     * Save docs to the index
+     * Append additional data to the index
      *
+     * @param array $entityIndexes Indexed data
      * @param int   $storeId       Store id
-     * @param array $entityIndexes Doc values.
      *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Catalog_Eav_Abstract
+     * @return array
      */
-    protected function _saveIndexes($storeId, $entityIndexes)
+    protected function _addAdvancedIndex($entityIndexes, $storeId)
     {
         $index = Mage::getResourceSingleton('smile_elasticsearch/engine_index');
         $entityIndexes = $index->addAdvancedIndex($entityIndexes, $storeId);
         $store = Mage::app()->getStore($storeId);
         $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
 
-        foreach ($entityIndexes as &$entityIndex) {
-            if (isset($entityIndex['category_name'])) {
-                $entityIndex['category_name_' . $languageCode] = $entityIndex['category_name'];
-                unset($entityIndex['category_name']);
+        foreach ($entityIndexes as &$entityData) {
+            if (isset($entityData['category_name'])) {
+                $entityData['category_name_' . $languageCode] = $entityData['category_name'];
+                unset($entityData['category_name']);
             }
         }
 
-        return parent::_saveIndexes($storeId, $entityIndexes);
+        return $entityIndexes;
     }
 
     /**
