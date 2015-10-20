@@ -270,40 +270,43 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 break;
             }
 
-            $ids = array();
+            $ids = array_column($entities, 'entity_id');
+            $lastObjectId = end($ids);
 
-            foreach ($entities as $entityData) {
-                $lastObjectId = $entityData['entity_id'];
-                $ids[]  = $entityData['entity_id'];
-            }
+            $entities = $this->_addAdvancedIndex($entities, $storeId);
 
-            $entityRelations = $this->_getChildrenIds($ids, $websiteId);
-            if (!empty($entityRelations)) {
-                $allChildrenIds = call_user_func_array('array_merge', $entityRelations);
-                $ids = array_merge($ids, $allChildrenIds);
-            }
+            if (!empty($entities)) {
 
-            $entityIndexes    = array();
-            $entityAttributes = $this->_getAttributes($storeId, $ids, $dynamicFields);
+                $ids = array_column($entities, 'entity_id');
 
-            foreach ($entities as $entityData) {
-
-                if (!isset($entityAttributes[$entityData['entity_id']])) {
-                    continue;
+                $entityRelations = $this->_getChildrenIds($ids, $websiteId);
+                if (!empty($entityRelations)) {
+                    $allChildrenIds = call_user_func_array('array_merge', $entityRelations);
+                    $ids = array_merge($ids, $allChildrenIds);
                 }
 
-                $this->_addChildrenData($entityData['entity_id'], $entityAttributes, $entityRelations, $storeId);
+                $entityIndexes    = array();
+                $entityAttributes = $this->_getAttributes($storeId, $ids, $dynamicFields);
 
-                foreach ($entityAttributes[$entityData['entity_id']] as $attributeId => $value) {
-                    $attribute = $attributesById[$attributeId];
-                    $entityData += $this->_getAttributeIndexValues($attribute, $value, $storeId, $languageCode);
+                foreach ($entities as &$entityData) {
+
+                    if (!isset($entityAttributes[$entityData['entity_id']])) {
+                        continue;
+                    }
+
+                    $this->_addChildrenData($entityData['entity_id'], $entityAttributes, $entityRelations, $storeId);
+
+                    foreach ($entityAttributes[$entityData['entity_id']] as $attributeId => $value) {
+                        $attribute = $attributesById[$attributeId];
+                        $entityData += $this->_getAttributeIndexValues($attribute, $value, $storeId, $languageCode);
+                    }
+
+                    $entityData['store_id'] = $storeId;
+                    $entityIndexes[$entityData['entity_id']] = $entityData;
                 }
 
-                $entityData['store_id'] = $storeId;
-                $entityIndexes[$entityData['entity_id']] = $entityData;
+                $this->_saveIndexes($storeId, $entityIndexes);
             }
-
-            $this->_saveIndexes($storeId, $entityIndexes);
         }
 
         return $this;
@@ -415,6 +418,19 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         }
 
         return $this;
+    }
+
+    /**
+     * Append additional data to the index
+     *
+     * @param array $entityIndexes Indexed data
+     * @param int   $storeId       Store id
+     *
+     * @return array
+     */
+    protected function _addAdvancedIndex($entityIndexes, $storeId)
+    {
+        return $entityIndexes;
     }
 
     /**

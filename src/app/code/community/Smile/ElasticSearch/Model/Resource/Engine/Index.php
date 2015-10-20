@@ -43,10 +43,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
     public function addAdvancedIndex($index, $storeId, $productIds = null)
     {
         if (is_null($productIds) || !is_array($productIds)) {
-            $productIds = array();
-            foreach ($index as $productData) {
-                $productIds[] = $productData['entity_id'];
-            }
+            $productIds = array_column($index, 'entity_id');
+            $index = array_combine($productIds, $index);
         }
         if (count($productIds)) {
             $categoryData = $this->_getCatalogCategoryData($storeId, $productIds);
