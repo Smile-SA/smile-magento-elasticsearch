@@ -47,19 +47,21 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
             $index = array_combine($productIds, $index);
         }
         if (count($productIds)) {
-            $categoryData = $this->_getCatalogCategoryData($storeId, $productIds);
-            $priceData = $this->_getCatalogProductPriceData($productIds);
 
-            $ratingData = $this->_getRatingData($storeId, $productIds);
+            $categoryData = $this->_getCatalogCategoryData($storeId, $productIds);
+            $priceData = $this->_getCatalogProductPriceData(array_keys($categoryData));
+            $ratingData = $this->_getRatingData($storeId, array_keys($priceData));
 
             foreach ($index as $productId => &$productData) {
-                if (isset($ratingData[$productId])) {
-                    $productData += $ratingData[$productId];
-                }
 
                 if (isset($categoryData[$productId]) && isset($priceData[$productId])) {
                     $productData += $categoryData[$productId];
                     $productData += $priceData[$productId];
+
+                    if (isset($ratingData[$productId])) {
+                        $productData += $ratingData[$productId];
+                    }
+
                 } else {
                     unset($index[$productId]);
                 }
@@ -103,28 +105,27 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
      */
     protected function _getRatingData($storeId, $productIds)
     {
-        $adapter = $this->_getWriteAdapter();
-        $indexedRatingId = $this->_getDefaultRatingId($storeId);
-
         $result = array();
-        if ($indexedRatingId !== false) {
 
-            $select = $adapter->select();
+        if (!empty($productIds)) {
+            $adapter = $this->_getWriteAdapter();
+            $indexedRatingId = $this->_getDefaultRatingId($storeId);
 
-            $select->from(array('r' => $this->getTable('rating/rating_vote_aggregated')))
-                ->where('r.entity_pk_value IN (?)', $productIds)
-                ->where('r.rating_id = ?', $indexedRatingId)
-                ->where('store_id = ?', $storeId);
+            if ($indexedRatingId !== false) {
 
-            foreach ($adapter->fetchAll($select) as $row) {
-                $productId = $row['entity_pk_value'];
-                if (!isset($result[$productId])) {
-                    $result[$productId] = array();
+                $select = $adapter->select();
+
+                $select->from(array('r' => $this->getTable('rating/rating_vote_aggregated')))
+                    ->where('r.entity_pk_value IN (?)', $productIds)
+                    ->where('r.rating_id = ?', $indexedRatingId)
+                    ->where('store_id = ?', $storeId);
+
+                foreach ($adapter->fetchAll($select) as $row) {
+                    $productId = $row['entity_pk_value'];
+                    $result[$productId]['rating_filter'] = (float) $row['percent'];
                 }
-                $result[$productId]['rating_filter'] = (float) $row['percent'];
             }
         }
-
 
         return $result;
     }
@@ -212,34 +213,34 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
      */
     protected function _getCatalogProductPriceData($productIds = null)
     {
-        $adapter = $this->_getWriteAdapter();
-
-        $select = $adapter->select()
-            ->from(
-                $this->getTable('catalog/product_index_price'),
-                array(
-                    'entity_id',
-                    'customer_group_id',
-                    'website_id',
-                    'min_price',
-                    'has_discount' => new Zend_Db_Expr('COALESCE((price - min_price) > 0, 0)')
-                )
-            );
-
-        if ($productIds) {
-            $select->where('entity_id IN (?)', $productIds);
-        }
-
         $result = array();
-        foreach ($adapter->fetchAll($select) as $row) {
-            if (!isset($result[$row['entity_id']])) {
-                $result[$row['entity_id']] = array();
-            }
-            $priceKey = sprintf('price_%s_%s', $row['customer_group_id'], $row['website_id']);
-            $result[$row['entity_id']][$priceKey] = round($row['min_price'], 2);
 
-            $discountKey = sprintf('has_discount_%s_%s', $row['customer_group_id'], $row['website_id']);
-            $result[$row['entity_id']][$discountKey] = (bool) $row['has_discount'];
+        if (!empty($productIds)) {
+            $adapter = $this->_getWriteAdapter();
+
+            $select = $adapter->select()
+                ->from(
+                    $this->getTable('catalog/product_index_price'),
+                    array(
+                        'entity_id',
+                        'customer_group_id',
+                        'website_id',
+                        'min_price',
+                        'has_discount' => new Zend_Db_Expr('COALESCE((price - min_price) > 0, 0)')
+                    )
+                );
+
+            if ($productIds) {
+                $select->where('entity_id IN (?)', $productIds);
+            }
+
+            foreach ($adapter->fetchAll($select) as $row) {
+                $priceKey = sprintf('price_%s_%s', $row['customer_group_id'], $row['website_id']);
+                $result[$row['entity_id']][$priceKey] = round($row['min_price'], 2);
+
+                $discountKey = sprintf('has_discount_%s_%s', $row['customer_group_id'], $row['website_id']);
+                $result[$row['entity_id']][$discountKey] = (bool) $row['has_discount'];
+            }
         }
 
         return $result;
