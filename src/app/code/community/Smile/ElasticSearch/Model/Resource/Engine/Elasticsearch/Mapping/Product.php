@@ -62,7 +62,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         $mapping = parent::_getMappingProperties(true);
         $mapping['properties']['categories'] = array('type' => 'long', 'fielddata' => array('format' => 'doc_values'));
         $mapping['properties']['show_in_categories'] = array('type' => 'long', 'fielddata' => array('format' => 'doc_values'));
-        $mapping['properties']['in_stock']   = array('type' => 'integer', 'fielddata' => array('format' => 'doc_values'));
+        $mapping['properties']['in_stock']   = array('type' => 'boolean', 'fielddata' => array('format' => 'doc_values'));
 
         foreach ($this->_stores as $store) {
             $languageCode = Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store);
@@ -157,7 +157,17 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
 
         $result = $adapter->fetchAll($select);
 
-        return $result;
+        return array_map(array($this, '_fixBaseFieldTypes'), $result);
+    }
+
+    protected function _fixBaseFieldTypes($entityData) {
+        $entityData['entity_id'] = (int) $entityData['entity_id'];
+        $entityData['entity_type_id'] = (int) $entityData['entity_type_id'];
+        $entityData['attribute_set_id'] = (int) $entityData['attribute_set_id'];
+        $entityData['has_options'] = (bool) $entityData['has_options'];
+        $entityData['required_options'] = (bool) $entityData['required_options'];
+        $entityData['in_stock'] = (bool) $entityData['in_stock'];
+        return $entityData;
     }
 
     /**

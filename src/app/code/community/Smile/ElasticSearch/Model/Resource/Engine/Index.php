@@ -180,8 +180,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         $result = array();
         foreach ($adapter->fetchAll($select) as $row) {
             $data = array(
-                'categories'          => array_values(array_filter(explode(' ', $row['parents']))),
-                'show_in_categories'  => array_values(array_filter(explode(' ', $row['anchors']))),
+                'categories'          => array_map('intval', array_values(array_filter(explode(' ', $row['parents'])))),
+                'show_in_categories'  => array_map('intval', array_values(array_filter(explode(' ', $row['anchors'])))),
                 'category_name'       => array_values(array_filter(explode('|', $row['category_name']))),
             );
             foreach (explode(' ', trim($row['positions'])) as $value) {
@@ -190,14 +190,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
                     list($categoryId, $position) = $value;
                     if ($categoryId && $position) {
                         $data['category_position'][] = array(
-                            'category_id' => $categoryId,
-                            'position'    => $position
+                            'category_id' => (int) $categoryId,
+                            'position'    => (int) $position
                         );
                     }
                 }
             }
             if ($visibility) {
-                $data['visibility'] = $row['visibility'];
+                $data['visibility'] = (int) $row['visibility'];
             }
 
             $result[$row['product_id']] = $data;
@@ -242,7 +242,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
             $result[$row['entity_id']][$priceKey] = round($row['min_price'], 2);
 
             $discountKey = sprintf('has_discount_%s_%s', $row['customer_group_id'], $row['website_id']);
-            $result[$row['entity_id']][$discountKey] = $row['has_discount'];
+            $result[$row['entity_id']][$discountKey] = (bool) $row['has_discount'];
         }
 
         return $result;
