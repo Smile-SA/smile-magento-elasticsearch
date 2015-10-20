@@ -537,8 +537,12 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      */
     protected function _getAttributeValue($attribute, $value, $storeId)
     {
-        if ($attribute->usesSource() && !is_array($value)) {
-            $value = explode(',', $value);
+        if ($attribute->usesSource()) {
+            if (!is_array($value)) {
+                $value = explode(',', $value);
+            }
+            $value = array_filter($value);
+            $value = array_values(array_unique($value));
             if (count($value) == 1) {
                 $value = current($value);
             }
