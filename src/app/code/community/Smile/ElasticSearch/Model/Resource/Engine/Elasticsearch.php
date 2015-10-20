@@ -391,8 +391,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
 
         $docs = array();
         foreach ($docsData as $entityId => $index) {
-            $index[self::UNIQUE_KEY] = $entityId . '|' . $index['store_id'];
-            $index['id'] = $index['entity_id'];
             $document = $this->getCurrentIndex()->createDocument($index[self::UNIQUE_KEY], $index, $type);
             array_push($docs, $document[0]);
             array_push($docs, $document[1]);

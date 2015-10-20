@@ -302,6 +302,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     }
 
                     $entityData['store_id'] = $storeId;
+                    $entityData[Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch::UNIQUE_KEY] = $entityData['entity_id'] . '|' . $storeId;
                     $entityIndexes[$entityData['entity_id']] = $entityData;
                 }
 
@@ -543,11 +544,16 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             }
             $value = array_filter($value);
             $value = array_values(array_unique($value));
+            if ($attribute->getBackendType() == 'int') {
+                $value = array_map('intval', $value);
+            }
             if (count($value) == 1) {
                 $value = current($value);
             }
         } else if ($attribute->getBackendType() == 'decimal') {
             $value = floatval($value);
+        } else if ($attribute->getBackendType() == 'int') {
+            $value = intval($value);
         }
 
         return $value;
