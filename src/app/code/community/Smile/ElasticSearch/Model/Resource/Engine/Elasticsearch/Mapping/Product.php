@@ -266,6 +266,64 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
     }
 
     /**
+     * Append children attributes to parents doc.
+     *
+     * @param int    $parentId          Entity id
+     * @param array  &$entityAttributes Attributes values by entity id
+     * @param array  $entityRelations   Array of the entities relations
+     * @param int    $storeId           Store id
+     * @param string $entityTypeId      Type of the parent entity
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Catalog_Eav_Abstract
+     */
+    protected function _addChildrenData($parentId, &$entityAttributes, $entityRelations, $storeId, $entityTypeId = null)
+    {
+        $forbiddenAttributesCode = array('visibility', 'status', 'price', 'tax_class_id');
+        $attributesById = $this->_getAttributesById();
+        $entityData = $entityAttributes[$parentId];
+        if (isset($entityRelations[$parentId])) {
+            foreach ($entityRelations[$parentId] as $childrenId) {
+                if (isset($entityAttributes[$childrenId])) {
+                    foreach ($entityAttributes[$childrenId] as $attributeId => $value) {
+                        $attribute = $attributesById[$attributeId];
+                        $attributeCode = $attribute->getAttributeCode();
+                        $isAttributeIndexed = !in_array($attributeCode, $forbiddenAttributesCode);
+
+                        if ($entityTypeId == Mage_Catalog_Model_Product_Type_Configurable::TYPE_CODE) {
+                            $frontendInput = $isAttributeIndexed ? $attribute->getFrontendInput() : false;
+                            $isAttributeIndexed = $isAttributeIndexed && in_array($frontendInput, array('select', 'multiselect'));
+                            $isAttributeIndexed = $isAttributeIndexed && (bool) $attribute->getIsConfigurable();
+                        } else {
+                            $isAttributeIndexed = $isAttributeIndexed && $attribute->getBackendType() != 'static';
+                        }
+
+                        if ($isAttributeIndexed && $value != null) {
+                            if (!isset($entityAttributes[$parentId][$attributeId])) {
+                                $entityAttributes[$parentId][$attributeId] =  $value;
+                            } else {
+                                if (!is_array($entityAttributes[$parentId][$attributeId])) {
+                                    $entityAttributes[$parentId][$attributeId] = explode(
+                                        ',', $entityAttributes[$parentId][$attributeId]
+                                    );
+                                }
+                                if (is_array($value)) {
+                                    $entityAttributes[$parentId][$attributeId] = array_merge(
+                                        $value, $entityAttributes[$parentId][$attributeId]
+                                    );
+                                } else {
+                                    $entityAttributes[$parentId][$attributeId][] = $value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * Return a list of all searchable field for the current type (by locale code).
      *
      * @param string $languageCode Language code.

@@ -148,10 +148,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
 
         $columns = array('product_id' => 'cat.product_id');
 
-        if ($visibility) {
-            $columns[] = 'visibility';
-        }
-
         $nameAttr = $this->_getCategoryNameAttribute();
         $joinDefaultNameCond = $adapter->quoteInto(
             'cat.category_id = d_name.entity_id AND d_name.attribute_id = ? AND d_name.store_id = 0',
@@ -190,6 +186,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
                 'show_in_categories'  => array_map('intval', array_values(array_filter(explode(' ', $row['anchors'])))),
                 'category_name'       => array_values(array_filter(explode('|', $row['category_name']))),
             );
+
             foreach (explode(' ', trim($row['positions'])) as $value) {
                 $value = explode('_', $value);
                 if (count($value) == 2) {
@@ -201,9 +198,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
                         );
                     }
                 }
-            }
-            if ($visibility) {
-                $data['visibility'] = (int) $row['visibility'];
             }
 
             $result[$row['product_id']] = $data;

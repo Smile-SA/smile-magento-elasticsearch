@@ -293,8 +293,8 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     if (!isset($entityAttributes[$entityData['entity_id']])) {
                         continue;
                     }
-
-                    $this->_addChildrenData($entityData['entity_id'], $entityAttributes, $entityRelations, $storeId);
+                    $entityTypeId = isset($entityData['type_id']) ? $entityData['type_id'] : null;
+                    $this->_addChildrenData($entityData['entity_id'], $entityAttributes, $entityRelations, $storeId, $entityTypeId);
 
                     foreach ($entityAttributes[$entityData['entity_id']] as $attributeId => $value) {
                         $attribute = $attributesById[$attributeId];
@@ -380,47 +380,16 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     /**
      * Append children attributes to parents doc.
      *
-     * @param unknown $parentId          Entity id
-     * @param unknown &$entityAttributes Attributes values by entity id
-     * @param unknown $entityRelations   Array of the entities relations
-     * @param unknown $storeId           Store id
+     * @param int    $parentId          Entity id
+     * @param array  &$entityAttributes Attributes values by entity id
+     * @param array  $entityRelations   Array of the entities relations
+     * @param int    $storeId           Store id
+     * @param string $entityTypeId      Type of the parent entity
      *
      * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Catalog_Eav_Abstract
      */
-    protected function _addChildrenData($parentId, &$entityAttributes, $entityRelations, $storeId)
+    protected function _addChildrenData($parentId, &$entityAttributes, $entityRelations, $storeId, $entityTypeId)
     {
-        $attributesById = $this->_getAttributesById();
-        $entityData = $entityAttributes[$parentId];
-        if (isset($entityRelations[$parentId])) {
-            foreach ($entityRelations[$parentId] as $childrenId) {
-                if (isset($entityAttributes[$childrenId])) {
-                    foreach ($entityAttributes[$childrenId] as $attributeId => $value) {
-                        $isAttributeIndexed = isset($attributesById[$attributeId]);
-                        $frontendInput      = $isAttributeIndexed ? $attributesById[$attributeId]->getFrontendInput() : false;
-                        $isAttributeIndexed =  $isAttributeIndexed && in_array($frontendInput, array('select', 'multiselect'));
-                        if ($value != null && $isAttributeIndexed) {
-                            if (!isset($entityAttributes[$parentId][$attributeId])) {
-                                $entityAttributes[$parentId][$attributeId] =  $value;
-                            } else {
-                                if (!is_array($entityAttributes[$parentId][$attributeId])) {
-                                    $entityAttributes[$parentId][$attributeId] = explode(
-                                        ',', $entityAttributes[$parentId][$attributeId]
-                                    );
-                                }
-                                if (is_array($value)) {
-                                    $entityAttributes[$parentId][$attributeId] = array_merge(
-                                        $value, $entityAttributes[$parentId][$attributeId]
-                                    );
-                                } else {
-                                    $entityAttributes[$parentId][$attributeId][] = $value;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         return $this;
     }
 
