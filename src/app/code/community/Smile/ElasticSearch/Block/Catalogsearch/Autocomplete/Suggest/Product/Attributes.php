@@ -50,7 +50,7 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product_Attri
                 $fieldType = Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::FIELD_TYPE_FACET;
                 $fieldName = $mapping->getFieldName($attribute, $languageCode, $fieldType);
                 $facetOptions = array(
-                    'key_field' => $fieldName, 'value_script' => '_score', 'order' => 'mean', 'size' => $this->getMaxSize()
+                    'key_field' => $fieldName, 'value_script' => '_score', 'order' => 'total', 'size' => $this->getMaxSize()
                 );
                 $query->addFacet($attribute, 'termsStats', $facetOptions);
             }
