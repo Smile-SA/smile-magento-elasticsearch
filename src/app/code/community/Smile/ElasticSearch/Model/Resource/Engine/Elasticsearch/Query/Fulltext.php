@@ -28,7 +28,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     protected static $_analyzedQueries = array();
 
     /**
-     * @var array Already analyzed queries cache.
+     * Already assembed queries cache.
+     *
+     * @var array
      */
     protected static $_assembledQueries = array();
 
