@@ -76,8 +76,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Category
             ->limit($limit)
             ->order('e.entity_id');
 
-        $result = $adapter->fetchAll($select);
+        $result = array();
+        $values = $adapter->fetchAll($select);
+        foreach ($values as $value) {
+            $result[$value['entity_id']] = $value;
+        }
 
-        return $result;
+        return array_combine($ids, $values);
     }
 }

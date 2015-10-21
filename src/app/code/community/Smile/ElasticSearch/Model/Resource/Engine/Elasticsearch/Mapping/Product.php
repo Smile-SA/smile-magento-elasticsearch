@@ -160,7 +160,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
             );
         }
 
-        $result = $adapter->fetchAll($select);
+        $result = array();
+        $values = $adapter->fetchAll($select);
+        foreach ($values as $value) {
+            $result[$value['entity_id']] = $value;
+        }
 
         return array_map(array($this, '_fixBaseFieldTypes'), $result);
     }
@@ -253,9 +257,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
                 foreach ($data as $link) {
                     $parentId = $link[$relation->getParentFieldName()];
                     $childId  = $link[$relation->getChildFieldName()];
-                    if (!isset($children[$parentId])) {
-                        $children[$parentId] = array();
-                    }
                     $children[$parentId][] = $childId;
                 }
             }
