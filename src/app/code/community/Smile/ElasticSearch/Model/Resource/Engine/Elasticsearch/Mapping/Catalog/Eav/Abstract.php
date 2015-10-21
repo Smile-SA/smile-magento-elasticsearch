@@ -274,7 +274,6 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             foreach ($entities as $entityData) {
                 $ids[] = $entityData['entity_id'];
             }
-
             $lastObjectId = end($ids);
 
             $entities = $this->_addAdvancedIndex($entities, $storeId);
@@ -339,13 +338,16 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             if ($field) {
                 $storedValue = $this->_getAttributeValue($attribute, $value, $storeId);
 
-                if ($storedValue != null && $storedValue != false && $storedValue != '0000-00-00 00:00:00') {
+                if ($storedValue != null && $storedValue != false && $storedValue != '0000-00-00 00:00:00' && !empty($storedValue)) {
                     $attrs[$field] = $storedValue;
-                }
 
-                if ($attribute->usesSource()) {
-                    $field = 'options_' . $attribute->getAttributeCode() . '_' . $languageCode;
-                    $attrs[$field] = $this->_getOptionsText($attribute, $storedValue, $storeId);
+                    if ($attribute->usesSource()) {
+                        $field = 'options_' . $attribute->getAttributeCode() . '_' . $languageCode;
+                        $optionValue = $this->_getOptionsText($attribute, $storedValue, $storeId);
+                        if ($optionValue) {
+                            $attrs[$field] = $optionValue;
+                        }
+                    }
                 }
             }
         }
@@ -609,18 +611,18 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         }
 
         if (is_array($value)) {
-            $values = array();
-            foreach ($value as $currentValue) {
-                $currentValue = trim($currentValue, ',');
-                if ($currentValue && isset($this->_indexedOptionText[$attributeId][$storeId][$currentValue])) {
-                    $values[] = $this->_indexedOptionText[$attributeId][$storeId][$currentValue];
-                }
+            $value = array_values(array_intersect_key($this->_indexedOptionText[$attributeId][$storeId], array_flip($value)));
+            if (empty($value)) {
+                $value = false;
+            } else if (count($value) == 1) {
+                $value = current($value);
             }
-            $value = $values;
         } else {
             $value = (string) trim($value, ',');
             if (isset($this->_indexedOptionText[$attributeId][$storeId][$value])) {
                 $value = $this->_indexedOptionText[$attributeId][$storeId][$value];
+            } else {
+                $value == false;
             }
         }
 
