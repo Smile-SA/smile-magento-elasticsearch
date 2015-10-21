@@ -88,3 +88,6 @@ Ex: Brand facet will be displayed only if 90% of the product have a brand.,Ex: B
 "No result found for "%s","No result found for "%s"
 "Show more","Show more"
 "Show less","Show less"
+"Phrase match configuration","Phrase match configuration"
+"Enable boost on phrase match","Enable boost on phrase match"
+"Phrase match boost value","Phrase match boost value"

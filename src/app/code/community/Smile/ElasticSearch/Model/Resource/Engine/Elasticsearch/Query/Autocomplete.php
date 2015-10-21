@@ -82,9 +82,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
     protected function _buildFulltextQuery($textQuery, $spellingType)
     {
         $query = array();
-        $searchFields = $this->getSearchFields(
-            Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_AUTOCOMPLETE
+        $searchFields = array_merge(
+            $this->getSearchFields(
+                Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_AUTOCOMPLETE
+            ),
+            $this->getSearchFields(
+                Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL, 'whitespace'
+            )
         );
+
+        $phraseBoostValue = $this->_getPhraseMatchBoost();
         $baseMatchQuery = array(
             'fields'               => $searchFields,
             'analyzer'             => 'whitespace',
@@ -103,14 +110,18 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
                     array('type' => 'most_fields', 'minimum_should_match' => $minimumShouldMatch)
                 )
             );
+            if ($phraseBoostValue !== false) {
+                $query['bool']['should'][] = array(
+                    'multi_match' => array_merge(
+                        $baseMatchQuery,
+                        array('type' => 'phrase', 'boost' => $phraseBoostValue)
+                    )
+                );
+            }
         }
 
         $fuzzinessConfig = $this->_getFuzzinessConfig($this->getLanguageCode());
         if ($spellingType != self::SPELLING_TYPE_EXACT && $fuzzinessConfig != false) {
-            $clause = 'should';
-            if ($spellingType == self::SPELLING_TYPE_MOST_FUZZY) {
-                $clause = 'must';
-            }
             $query['bool']['must'][] = array(
                 'multi_match' => array_merge(
                     $fuzzinessConfig,
