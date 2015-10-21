@@ -82,6 +82,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Category
             $result[$value['entity_id']] = $value;
         }
 
-        return array_combine($ids, $values);
+        return $result;
     }
 }
