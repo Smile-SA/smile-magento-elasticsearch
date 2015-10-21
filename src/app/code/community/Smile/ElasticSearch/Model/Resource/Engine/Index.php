@@ -49,8 +49,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
             }
             $index = array_combine($productIds, $index);
         }
-        if (count($productIds)) {
 
+        if (count($productIds)) {
             $categoryData = $this->_getCatalogCategoryData($storeId, $productIds);
             $priceData = $this->_getCatalogProductPriceData(array_keys($categoryData));
             $ratingData = $this->_getRatingData($storeId, array_keys($priceData));
@@ -153,14 +153,19 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         }
 
         $nameAttr = $this->_getCategoryNameAttribute();
-        $joinNameCond = $adapter->quoteInto(
-            'cat.category_id = name.entity_id AND name.attribute_id = ? AND name.store_id IN(0, cat.store_id)',
+        $joinDefaultNameCond = $adapter->quoteInto(
+            'cat.category_id = d_name.entity_id AND d_name.attribute_id = ? AND d_name.store_id = 0',
+            $nameAttr->getAttributeId()
+        );
+        $joinStoreNameCond = $adapter->quoteInto(
+            'cat.category_id = s_name.entity_id AND s_name.attribute_id = ? AND s_name.store_id = ' . $storeId,
             $nameAttr->getAttributeId()
         );
 
         $select = $adapter->select()
             ->from(array('cat'  => $this->getTable('catalog/category_product_index')), $columns)
-            ->join(array('name' => $nameAttr->getBackendTable()), $joinNameCond, array())
+            ->join(array('d_name' => $nameAttr->getBackendTable()), $joinDefaultNameCond, array())
+            ->joinLeft(array('s_name' => $nameAttr->getBackendTable()), $joinStoreNameCond, array())
             ->where('cat.product_id IN (?)', $productIds)
             ->where('cat.store_id = ?', $storeId)
             ->group('cat.product_id');
@@ -172,7 +177,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         $helper->addGroupConcatColumn(
             $select,
             'category_name',
-            new Zend_Db_Expr('IF(cat.category_id = 2, "", name.value)'),
+            new Zend_Db_Expr('IF(cat.category_id = 2, "", COALESCE(s_name.value,d_name.value))'),
             '|'
         );
 
