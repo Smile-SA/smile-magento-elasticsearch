@@ -77,6 +77,20 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     }
 
     /**
+     * Return the value of the boost applied on phrase match. False if disabled.
+     *
+     * @return bool|int
+     */
+    protected function _getPhraseMatchBoost()
+    {
+        $boostValue = (bool) Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'enable_phrase_match');
+        if ($boostValue !== false) {
+            $boostValue = (int) Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'phrase_match_boost_value');
+        }
+        return $boostValue;
+    }
+
+    /**
       * Build the fulltext query condition for the query.
       *
       * @return array
@@ -154,19 +168,22 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
             $exactMatchQuery['multi_match']['minimum_should_match'] = $this->_getMinimumShouldMatch();
         }
 
-        $refinedQueryFields = $this->getSearchFields(
-            Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL,
-            'whitespace'
-        );
-        $refinedQuery['multi_match'] = array(
-            'fields'   => $refinedQueryFields,
-            'analyzer' => 'whitespace',
-            'boost'    => 10,
-            'query'    => $textQuery,
-            'type' => 'best_fields'
-        );
+        $phraseBoostValue = $this->_getPhraseMatchBoost();
 
-        $query = array('bool' => array('should' => array($refinedQuery), 'must' => array($exactMatchQuery)));
+        if ($phraseBoostValue !== false) {
+            $refinedQueryFields = $this->getSearchFields(
+                Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL,
+                'whitespace'
+            );
+            $refinedQuery['multi_match'] = array(
+                'fields'   => $refinedQueryFields,
+                'analyzer' => 'whitespace',
+                'boost'    => $phraseBoostValue,
+                'query'    => $textQuery,
+                'type' => 'phrase'
+            );
+            $query = array('bool' => array('should' => array($refinedQuery), 'must' => array($exactMatchQuery)));
+        }
 
         return $query;
     }

@@ -72,3 +72,6 @@ Ex: Brand facet will be displayed only if 90% of the product have a brand.,Ex: L
 "No result found for "%s","Aucun résultat piur "%s"
 "Show more","Voir plus"
 "Show less","Voir moins"
+"Phrase match configuration","Configuration de la recherche par phrase"
+"Enable boost on phrase match","Activer le boost sur les phrases"
+"Phrase match boost value","Valeur du boost sur les phrases"

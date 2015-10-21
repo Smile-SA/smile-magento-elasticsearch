@@ -317,6 +317,8 @@
                 <fuzziness_prefix_length>1</fuzziness_prefix_length>
                 <fuzziness_max_expansions>10</fuzziness_max_expansions>
                 <enable_phonetic_search>1</enable_phonetic_search>
+                <enable_phrase_match>1</enable_phrase_match>
+                <phrase_match_boost_value>10</phrase_match_boost_value>
                 <enable_phonetic_search_fuzziness>1</enable_phonetic_search_fuzziness>
                 <phonetic_search_fuzziness_value>0.5</phonetic_search_fuzziness_value>
                 <phonetic_search_fuzziness_prefix_length>1</phonetic_search_fuzziness_prefix_length>
