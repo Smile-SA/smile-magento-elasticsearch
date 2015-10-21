@@ -144,16 +144,21 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         /**
          * Add additional external limitation
         */
-        $eventName = sprintf('prepare_catalog_%s_index_select', $this->_type);
-        Mage::dispatchEvent(
-            $eventName,
-            array(
-                'select'        => $select,
-                'entity_field'  => new Zend_Db_Expr('e.entity_id'),
-                'website_field' => new Zend_Db_Expr('website.website_id'),
-                'store_field'   => $storeId
-            )
+        $eventNames = array(
+            sprintf('prepare_catalog_%s_index_select', $this->_type),
+            sprintf('prepare_catalog_search_%s_index_select', $this->_type),
         );
+        foreach ($eventNames as $eventName) {
+            Mage::dispatchEvent(
+                $eventName,
+                array(
+                    'select'        => $select,
+                    'entity_field'  => new Zend_Db_Expr('e.entity_id'),
+                    'website_field' => new Zend_Db_Expr('website.website_id'),
+                    'store_field'   => $storeId
+                )
+            );
+        }
 
         $result = $adapter->fetchAll($select);
 
