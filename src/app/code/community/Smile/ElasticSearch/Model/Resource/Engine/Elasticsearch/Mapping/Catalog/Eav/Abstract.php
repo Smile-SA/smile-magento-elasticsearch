@@ -270,14 +270,21 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 break;
             }
 
-            $ids = array_column($entities, 'entity_id');
+            $ids = array();
+            foreach ($entities as $entityData) {
+                $ids[] = $entityData['entity_id'];
+            }
+
             $lastObjectId = end($ids);
 
             $entities = $this->_addAdvancedIndex($entities, $storeId);
 
             if (!empty($entities)) {
 
-                $ids = array_column($entities, 'entity_id');
+                $ids = array();
+                foreach ($entities as $entityData) {
+                    $ids[] = $entityData['entity_id'];
+                }
 
                 $entityRelations = $this->_getChildrenIds($ids, $websiteId);
                 if (!empty($entityRelations)) {
