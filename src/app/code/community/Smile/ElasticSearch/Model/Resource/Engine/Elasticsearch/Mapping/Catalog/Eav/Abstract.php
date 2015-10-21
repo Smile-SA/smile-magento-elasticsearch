@@ -362,7 +362,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 ->setEntityTypeFilter($entityType->getEntityTypeId());
 
             if (method_exists($attributes, 'addToIndexFilter')) {
-                $attributes->addToIndexFilter();
+                $attributes->addToIndexFilter(true);
             }
 
             $this->_attributesById = array();
