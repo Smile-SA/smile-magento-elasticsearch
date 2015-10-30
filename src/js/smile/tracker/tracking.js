@@ -111,7 +111,7 @@ var smileTracker = (function () {
 
     function getTrackerUrl() {
 
-        initSession.bind(this)(this.config.sessionConfig);
+        initSession.bind(this)();
 
         if (this.trackerSent == false) {
             addStandardPageVars.bind(this)();
@@ -161,12 +161,16 @@ var smileTracker = (function () {
         return prefix + "." + varName;
     }
 
-    function initSession(config) {
+    function initSession() {
+        var config = this.config.sessionConfig
         var expireAt = new Date();
 
         if (getCookie(config['visit_cookie_name']) == null) {
             expireAt.setSeconds(expireAt.getSeconds() + parseInt(config['visit_cookie_lifetime']));
             setCookie(config['visit_cookie_name'], guid(), expireAt);
+        } else {
+            expireAt.setSeconds(expireAt.getSeconds() + parseInt(config['visit_cookie_lifetime']));
+            setCookie(config['visit_cookie_name'], getCookie(config['visit_cookie_name']), expireAt);
         }
 
         if (getCookie(config['visitor_cookie_name']) == null) {
