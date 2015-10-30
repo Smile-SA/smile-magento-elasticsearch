@@ -48,6 +48,13 @@ class Smile_Tracker_Block_Variables_Page_Order extends Smile_Tracker_Block_Varia
                     $variables[$prefix . '.row_total'] = $item->getRowTotal();
                     $variables[$prefix . '.label'] = $item->getName();
                     $variables[$prefix . '.salesrules'] = $item->getAppliedRuleIds();
+
+                    if ($product = $item->getProduct()) {
+                        $categoriesId = $product->getCategoryIds();
+                        if (count($categoriesId)) {
+                            $variables[$prefix . '.category_ids'] = implode(",", $categoriesId);
+                        }
+                    }
                 }
             }
         }
