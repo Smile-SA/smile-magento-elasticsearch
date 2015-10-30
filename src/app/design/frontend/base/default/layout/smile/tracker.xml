@@ -45,13 +45,7 @@
             <block type="smile_tracker/variables_page_cms" name="smile.tracker.page.cms" />
         </reference>
     </cms_page>
-    
-    <checkout_onepage_index>
-        <reference name="before_body_end">
-            <block type="core/template" name="smile.tracker.page.opc" template="smile/tracker/variables/checkout.phtml" />
-        </reference>
-    </checkout_onepage_index>
-    
+
     <checkout_onepage_success>
         <reference name="before_body_end">
             <block type="smile_tracker/variables_page_order" name="smile.tracker.page.order" />
