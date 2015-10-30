@@ -19,7 +19,6 @@
 
     <default>
         <reference name="head">
-            <action method="addItem"><type>js</type><name>smile/tracker/boomerang/boomerang.js</name><params/><if/><condition>is_smile_tracker_enabled</condition></action>
             <action method="addItem"><type>js</type><name>smile/tracker/tracking.js</name><params/><if/><condition>is_smile_tracker_enabled</condition></action>
             <block type="smile_tracker/config" name="smile.tracker.config" template="smile/tracker/config.phtml" />
         </reference>
