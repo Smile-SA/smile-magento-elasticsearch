@@ -25,6 +25,11 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
     const DEFAULT_ROWS_LIMIT = 10000;
 
     /**
+     * @var int
+     */
+    const SORT_ORDER_LAST = PHP_INT_MAX - 1;
+
+    /**
      * Magento query type (eg: product_search_layer).
      *
      * @var string
@@ -481,7 +486,11 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
                 $sortField = $this->getMapping()->getFieldName($sortField, $this->getLanguageCode(), 'sort');
             }
 
-            $sortDefinition = array('order' => trim(strtolower($sortType)), 'missing' => '_last', 'ignore_unmapped' => true);
+            $sortDefinition = array(
+                'order' => trim(strtolower($sortType)),
+                'missing' => self::SORT_ORDER_LAST,
+                'ignore_unmapped' => true
+            );
 
             if ($sortField == 'position' && $category != null) {
                 $sortDefinition['nested_path'] = 'category_position';
