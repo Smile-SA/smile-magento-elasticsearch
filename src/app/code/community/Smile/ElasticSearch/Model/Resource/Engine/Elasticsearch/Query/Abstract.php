@@ -27,7 +27,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
     /**
      * @var int
      */
-    const SORT_ORDER_LAST = PHP_INT_MAX - 1;
+    const SORT_ORDER_LAST = PHP_INT_MAX;
 
     /**
      * Magento query type (eg: product_search_layer).
@@ -488,7 +488,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
 
             $sortDefinition = array(
                 'order' => trim(strtolower($sortType)),
-                'missing' => self::SORT_ORDER_LAST,
+                'missing' => self::SORT_ORDER_LAST - 1,
                 'ignore_unmapped' => true
             );
 
