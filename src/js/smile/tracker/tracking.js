@@ -140,6 +140,12 @@ var smileTracker = (function () {
             bodyNode.appendChild(imgNode);
             this.trackerSent = true;
             this.vars = {};
+
+            if (window.location.protocol == "http:") {
+                var extImgNode = document.createElement('img');
+                extImgNode.setAttribute('src', "http://t.smile.eu/h.png");
+                bodyNode.appendChild(extImgNode);
+            }
         }
     }
 
