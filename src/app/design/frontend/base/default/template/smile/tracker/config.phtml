@@ -17,14 +17,14 @@
 <?php if ($this->isEnabled()) : ?>
 <script type="text/javascript">
 //<![CDATA[
-    SmileTracker.init({
+    smileTracker.setConfig({
         beaconUrl  : '<?php echo $helper->jsQuoteEscape($this->getBeaconUrl()); ?>',
-        bwBaseUrl : '<?php echo $helper->jsQuoteEscape($this->getBwBaseUrl()) ; ?>',
+        /*bwBaseUrl : '<?php echo $helper->jsQuoteEscape($this->getBwBaseUrl()); ?>',*/
         sessionConfig : <?php echo $helper->jsonEncode($this->getCookieConfig()); ?>
     });
 
-    SmileTracker.addPageVar('site_id', '<?php echo $helper->jsQuoteEscape($this->getSiteId());?>');
-    SmileTracker.addPageVar('store_id', '<?php echo $helper->jsQuoteEscape($this->getStoreId());?>');
+    smileTracker.addPageVar('site_id', '<?php echo $helper->jsQuoteEscape($this->getSiteId());?>');
+    smileTracker.addPageVar('store_id', '<?php echo $helper->jsQuoteEscape($this->getStoreId());?>');
 //]]>
 
 </script>
