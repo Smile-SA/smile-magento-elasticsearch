@@ -111,6 +111,8 @@ var smileTracker = (function () {
 
     function getTrackerUrl() {
 
+        initSession.bind(this)(this.config.sessionConfig);
+
         if (this.trackerSent == false) {
             addStandardPageVars.bind(this)();
             addReferrerVars.bind(this)();
@@ -178,7 +180,6 @@ var smileTracker = (function () {
 
     // Implementation of the tracker
     var SmileTrackerImpl = function() {
-
         this.vars = {};
         this.trackerSent = false;
 
@@ -190,13 +191,9 @@ var smileTracker = (function () {
         window.addEventListener('load', sendTag.bind(this));
     };
 
-
     SmileTrackerImpl.prototype.setConfig = function (config) {
-
         this.config  = config;
         this.baseUrl = config.beaconUrl;
-
-        initSession.bind(this)(config.sessionConfig);
     }
 
     SmileTrackerImpl.prototype.addPageVar = function (varName, value) {
