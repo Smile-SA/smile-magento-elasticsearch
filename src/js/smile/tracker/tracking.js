@@ -57,8 +57,8 @@ var smileTracker = (function () {
         // Page title tracking
         this.addPageVar("title", encodeURI(document.title));
 
-        // Current timestamp
-        this.addPageVar("time", Date.now());
+        // Current timestamp in seconds
+        this.addPageVar("time", parseInt(new Date().getTime() / 1000));
     }
 
     // Append GA campaign variable to the tracked variables
