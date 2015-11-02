@@ -471,7 +471,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             Mage::dispatchEvent('smile_elasticsearch_index_install_before', array('index_name' => $this->getCurrentName()));
 
             $indices = $this->getClient()->indices();
-            $indices->close(array('index' => $this->getCurrentName()));
             $alias = $this->getConfig('alias');
             $indices->putSettings(
                 array(
@@ -482,7 +481,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                     )
                 )
             );
-            $indices->open(array('index' => $this->getCurrentName()));
 
             $deletedIndices = array();
             $aliasActions = array();
