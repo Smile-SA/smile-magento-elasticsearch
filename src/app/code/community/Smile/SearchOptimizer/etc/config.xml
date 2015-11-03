@@ -61,14 +61,6 @@
             </indexer>
         </index>
         <events>
-            <smile_elasticsearch_index_create_before>
-                <observers>
-                    <add_stats_mapping_to_index>
-                        <class>smile_searchoptimizer/observer</class>
-                        <method>addStatsMappingToIndex</method>
-                    </add_stats_mapping_to_index>
-                </observers>
-            </smile_elasticsearch_index_create_before>
             <search_engine_product_mapping_properties>
                 <observers>
                     <add_popularity_field_to_mapping>
@@ -79,18 +71,10 @@
             </search_engine_product_mapping_properties>
             <smile_elasticsearch_index_install_before>
                 <observers>
-                    <create_session_mapping_template>
-                        <class>smile_searchoptimizer/observer</class>
-                        <method>createSessionMappingTemplate</method>
-                    </create_session_mapping_template>
                     <create_searchoptimizers_percolators>
                         <class>smile_searchoptimizer/observer</class>
                         <method>reindexPercolators</method>
                     </create_searchoptimizers_percolators>
-                    <copy_old_data>
-                        <class>smile_searchoptimizer/observer</class>
-                        <method>copyOldData</method>
-                    </copy_old_data>
                 </observers>
             </smile_elasticsearch_index_install_before>
             <smile_elasticsearch_query_assembled>
@@ -102,28 +86,6 @@
                 </observers>
             </smile_elasticsearch_query_assembled>
         </events>
-        <smile_searchoptimizer>
-            <optimizer_models>
-                <constant_score>smile_searchoptimizer/optimizer_constantScore</constant_score>
-                <popularity>smile_searchoptimizer/optimizer_popularity</popularity>
-                <!--constant_score>smile_searchoptimizer/optimizer_popularity</constant_score-->
-            </optimizer_models>
-            <elasticsearch>
-                <tracking_indexers>
-                    <popularity>
-                        <class>eu.smile.es.tracking.indexer.magento.PopularProduct</class>
-                    </popularity>
-                    <session>
-                        <class>eu.smile.es.tracking.indexer.magento.CustomerSession</class>
-                        <index>magento-session</index>
-                        <index_per_date>1</index_per_date>
-                    </session>
-                </tracking_indexers>
-                <duplicated_types>
-                    <stats/>
-                </duplicated_types>
-            </elasticsearch>
-        </smile_searchoptimizer>
     </global>
     <adminhtml>
         <layout>
