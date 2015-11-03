@@ -638,7 +638,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         }
 
         $headerRow = array('update' => $headerData);
-        $dataRow = $data;
+        $dataRow   = array('doc' => $data);
 
         $result = array($headerRow, $dataRow);
         return $result;
