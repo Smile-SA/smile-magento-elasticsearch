@@ -617,6 +617,34 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     }
 
     /**
+     * Update document to index.
+     *
+     * @param string $id   Document Id
+     * @param array  $data Data indexed
+     * @param string $type Document type
+     *
+     * @return string Json representation of the bulk document
+     */
+    public function updateDocument($id, array $data = array(), $type = 'product')
+    {
+        $headerData = array(
+            '_index' => $this->getCurrentName(),
+            '_type'  => $type,
+            '_id'    => $id
+        );
+
+        if (isset($data['_parent'])) {
+            $headerData['_parent'] = $data['_parent'];
+        }
+
+        $headerRow = array('update' => $headerData);
+        $dataRow = $data;
+
+        $result = array($headerRow, $dataRow);
+        return $result;
+    }
+
+    /**
      * Bulk document insert
      *
      * @param array $docs Document prepared with createDoc/updateDoc methods
