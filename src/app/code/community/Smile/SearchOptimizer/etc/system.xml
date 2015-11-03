@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Module specific editable configguration
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * This work is a fork of Johann Reinke <johann@bubblecode.net> previous module
+ * available at https://github.com/jreinke/magento-elasticsearch
+ *
+ * @category  Smile
+ * @package   Smile_ElasticSearch
+ * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+ * @copyright 2013 Smile
+ * @license   Apache License Version 2.0
+ */
+ -->
+<config>
+    <sections>
+        <elasticsearch_advanced_search_settings translate="label" module="smile_searchoptimizer">
+            <groups>
+                <behavioral_optimizers translate="label">
+                    <label>Behavioral Optimizers</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>400</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <recommender_index translate="label">
+                            <label>Recommendation index</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>1</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </recommender_index>
+                    </fields>
+                </behavioral_optimizers>
+            </groups>
+        </elasticsearch_advanced_search_settings>
+    </sections>
+</config>
