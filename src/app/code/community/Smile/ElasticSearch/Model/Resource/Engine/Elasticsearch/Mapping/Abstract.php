@@ -72,6 +72,11 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
      */
     protected $_searchFields = array();
 
+    /**
+     * Data providers.
+     *
+     * @var array
+     */
     protected $_dataProviders = array();
 
     /**
@@ -98,21 +103,24 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
     }
 
     /**
+     * Retrieve data providers as defined in configuration
      *
+     * @return array
      */
     public function getDataProviders()
     {
         if ($this->_dataProviders == null) {
             $this->_dataProviders = array();
             $configurationRoot = Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index::MAPPING_CONF_ROOT_NODE;
-            $configurationNode = "$configurationRoot" . "/" . $this->_type ."/external_data_providers";
+            $configurationNode = $configurationRoot . "/" . $this->_type . "/data_providers";
             $config = Mage::getConfig()->getNode($configurationNode);
+
             if ($config) {
-                foreach ($config->asArray() as $dataProviderIdentifer => $dataProviderModelName) {
+                foreach ($config->asArray() as $dataProviderIdentifier => $dataProviderModelName) {
                     $dataProvider = Mage::getResourceModel($dataProviderModelName);
                     if ($dataProvider) {
                         $dataProvider->setMapping($this);
-                        $this->_dataProviders[$dataProviderIdentifer] = $dataProvider;
+                        $this->_dataProviders[$dataProviderIdentifier] = $dataProvider;
                     }
                 }
             }
@@ -121,12 +129,19 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
         return $this->_dataProviders;
     }
 
+    /**
+     * Retrieve a data provider by its identifier
+     *
+     * @param string $dataProviderIdentifier The data provider identifier
+     *
+     * @return null
+     */
     public function getDataProvider($dataProviderIdentifier)
     {
-        $externalDataProviders = $this->getDataProviders();
-        $dataProvider = null;
-        if ($externalDataProviders[$dataProviderIdentifier]) {
-            $dataProvider = $externalDataProviders[$dataProviderIdentifier];
+        $dataProviders = $this->getDataProviders();
+        $dataProvider  = null;
+        if ($dataProviders[$dataProviderIdentifier]) {
+            $dataProvider = $dataProviders[$dataProviderIdentifier];
         }
         return $dataProvider;
     }
