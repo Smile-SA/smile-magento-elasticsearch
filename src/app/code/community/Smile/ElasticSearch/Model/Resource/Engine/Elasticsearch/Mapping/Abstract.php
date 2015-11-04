@@ -467,7 +467,22 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
      *
      * @return array
      */
-    abstract protected function _getMappingProperties();
+    protected function _getMappingProperties()
+    {
+        $mapping = array(
+            '_all' => array('enabled' => false),
+            'properties' => array()
+        );
+
+        foreach ($this->getDataProviders() as $dataProvider) {
+            $mapping = array_merge(
+                $mapping,
+                $dataProvider->getMapping()
+            );
+        }
+
+        return $mapping;
+    }
 
     /**
      * Rebuild the index (full or diff).
