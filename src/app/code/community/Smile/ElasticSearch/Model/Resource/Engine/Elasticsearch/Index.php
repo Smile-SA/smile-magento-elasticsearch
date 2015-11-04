@@ -493,7 +493,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
             foreach (array_keys($allIndices) as $index) {
                 if ($index != $this->getCurrentName()) {
                     $deletedIndices[] = $index;
-                    $aliasActions[] = array('add' => array('index' => $index, 'alias' => $alias));
+                    $aliasActions[] = array('remove' => array('index' => $index, 'alias' => $alias));
                 }
             }
 
