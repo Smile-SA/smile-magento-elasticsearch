@@ -61,10 +61,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      */
     protected function _getMappingProperties()
     {
-        $mapping = array(
-            '_all' => array('enabled' => false),
-            'properties' => array()
-        );
+        $mapping = parent::_getMappingProperties();
 
         $mapping['properties'] = $this->_getSpellingFieldMapping();
 
