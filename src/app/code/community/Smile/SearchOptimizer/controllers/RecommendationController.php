@@ -27,6 +27,8 @@ class Smile_SearchOptimizer_RecommendationController extends Mage_Core_Controlle
         $alias          = null;
         $deletedIndices = null;
 
+        $response = array("exception" => array());
+
         if ($indexName) {
 
             /** @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch $engine */
@@ -34,8 +36,6 @@ class Smile_SearchOptimizer_RecommendationController extends Mage_Core_Controlle
 
             $indices = $engine->getClient()->indices();
             $alias   = Mage::helper("smile_searchoptimizer")->getRecommenderIndex();
-
-            //$indices->putSettings(array('index' => $indexName, 'body' => array()));
 
             $deletedIndices = array();
             $aliasActions = array();
@@ -45,6 +45,7 @@ class Smile_SearchOptimizer_RecommendationController extends Mage_Core_Controlle
                 $allIndices = $indices->getMapping(array('index'=> $alias));
             } catch (\Elasticsearch\Common\Exceptions\Missing404Exception $e) {
                 $allIndices = array();
+                $response['exception'][] = $e->getMessage();
             }
 
             foreach (array_keys($allIndices) as $index) {
@@ -54,7 +55,11 @@ class Smile_SearchOptimizer_RecommendationController extends Mage_Core_Controlle
                 }
             }
 
-            $indices->updateAliases(array('body' => array('actions' => $aliasActions)));
+            try {
+                $indices->updateAliases(array('body' => array('actions' => $aliasActions)));
+            } catch (\Elasticsearch\Common\Exceptions\Missing404Exception $e) {
+                $response['exception'][] = $e->getMessage();
+            }
 
             foreach ($deletedIndices as $index) {
                 $indices->delete(array('index' => $index));
@@ -62,10 +67,13 @@ class Smile_SearchOptimizer_RecommendationController extends Mage_Core_Controlle
 
         }
 
-        $response = array(
+        $response = array_merge(
+            $response,
+            array(
             "alias"           => !is_null($alias) ? $alias : "",
             "index_name"      => $indexName,
             "deleted_indexes" => !is_null($deletedIndices) ? $deletedIndices : ""
+            )
         );
 
         $this->getResponse()->setBody(Mage::helper("core")->jsonEncode($response));
