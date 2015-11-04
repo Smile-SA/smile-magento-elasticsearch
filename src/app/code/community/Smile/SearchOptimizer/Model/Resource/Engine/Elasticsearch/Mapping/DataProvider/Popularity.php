@@ -50,9 +50,24 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
                         'index' => (string) $recommenderIndex,
                         'body'  => array(
                             "query" => array(
-                                "term" => array(
-                                    "event.eventEntity" => $entityId
-                                    // unsufficient here, @TODO must add eventType=product but don't know how
+                                "bool" => array(
+                                    "must" => array(
+                                        array(
+                                            "term" => array(
+                                                "event.eventType" => "product"
+                                            )
+                                        ),
+                                        array(
+                                            "term" => array(
+                                                "event.eventStoreId" => $storeId
+                                            )
+                                        ),
+                                        array(
+                                            "term" => array(
+                                                "event.eventEntity" => $entityId
+                                            )
+                                        )
+                                    )
                                 )
                             ),
                             "fields" => $fields
@@ -102,4 +117,20 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
         return $data;
     }
 
+    /**
+     * Return custom mapping for data added by this provider
+     *
+     * @return array
+     */
+    public function getMapping()
+    {
+        $mapping = array(
+            "properties" => array(
+                "_optimizer_sale_count" => array('type' => 'long', 'doc_values' => true),
+                "_optimizer_view_count" => array('type' => 'long', 'doc_values' => true)
+            )
+        );
+
+        return $mapping;
+    }
 }
