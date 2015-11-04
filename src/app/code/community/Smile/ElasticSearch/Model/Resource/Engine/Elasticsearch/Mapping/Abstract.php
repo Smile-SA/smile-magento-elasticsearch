@@ -477,7 +477,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
         foreach ($this->getDataProviders() as $dataProvider) {
             $mapping = array_merge(
                 $mapping,
-                $dataProvider->getMapping()
+                $dataProvider->getMappingProperties()
             );
         }
 

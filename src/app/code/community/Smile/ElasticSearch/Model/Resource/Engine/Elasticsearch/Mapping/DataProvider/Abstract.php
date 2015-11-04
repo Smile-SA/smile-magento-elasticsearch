@@ -166,5 +166,5 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_D
      *
      * @return array
      */
-    abstract public function getMapping();
+    abstract public function getMappingProperties();
 }
