@@ -225,9 +225,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch
     {
         $object = new Varien_Object();
         $eventDatas = array(
-            'type'    => $type,
-            'indexes' => $object->setBulk($indexes),
-            'engine'  => $this,
+            'type'     => $type,
+            'indexes'  => $object->setBulk($indexes),
+            'engine'   => $this,
+            'store_id' => $storeId,
         );
         Mage::dispatchEvent('search_engine_save_entity_index_before', $eventDatas);
         Mage::dispatchEvent('search_engine_save_'.(string) $type.'_index_before', $eventDatas);
