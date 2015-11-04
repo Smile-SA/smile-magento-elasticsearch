@@ -92,6 +92,18 @@
                 <popularity>smile_searchoptimizer/optimizer_popularity</popularity>
             </optimizer_models>
         </smile_searchoptimizer>
+
+        <smile_elasticsearch>
+            <mapping>
+                <product>
+                    <!-- Custom data provider for product popularity data -->
+                    <data_providers>
+                        <popularity>smile_searchoptimizer/engine_elasticsearch_mapping_dataProvider_popularity</popularity>
+                    </data_providers>
+                </product>
+            </mapping>
+        </smile_elasticsearch>
+
     </global>
     <adminhtml>
         <layout>
