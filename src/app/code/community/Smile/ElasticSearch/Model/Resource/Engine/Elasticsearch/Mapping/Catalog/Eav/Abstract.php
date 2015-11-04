@@ -420,20 +420,6 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     }
 
     /**
-     * Save docs to the index
-     *
-     * @param int   $storeId       Store id
-     * @param array $entityIndexes Doc values.
-     *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Catalog_Eav_Abstract
-     */
-    protected function _saveIndexes($storeId, $entityIndexes)
-    {
-        Mage::helper('catalogsearch')->getEngine()->saveEntityIndexes($storeId, $entityIndexes, $this->_type);
-        return $this;
-    }
-
-    /**
      * Retrieve values for attributes.
      *
      * @param int   $storeId        Store id.
