@@ -39,11 +39,12 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
         );
 
         if ($recommenderIndex !== null) {
-            foreach ($entityIds as $entityId) {
+            /** @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch $engine */
+            $engine = Mage::helper('catalogsearch')->getEngine();
+            if ($engine->getClient()->indices()->exists(array('index' => (string) $recommenderIndex))) {
 
-                /** @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch $engine */
-                $engine = Mage::helper('catalogsearch')->getEngine();
-                if ($engine->getClient()->indices()->exists(array('index' => (string) $recommenderIndex))) {
+                // @TODO maybe request all products at once ?
+                foreach ($entityIds as $entityId) {
 
                     $query = array(
                         'index' => (string) $recommenderIndex,
@@ -51,6 +52,7 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
                             "query" => array(
                                 "term" => array(
                                     "event.eventEntity" => $entityId
+                                    // unsufficient here, @TODO must add eventType=product but don't know how
                                 )
                             ),
                             "fields" => $fields
