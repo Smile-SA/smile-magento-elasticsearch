@@ -23,6 +23,11 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
     const MAXIMUM_MATCHES_PER_PRODUCT = 2;
 
     /**
+     * Alias location in configuration
+     */
+    const RECOMMENDER_ALIAS_CONFIG_PATH = "elasticsearch_advanced_search_settings/behavioral_optimizers/recommender_index_alias";
+
+    /**
      * Retrieve popularity data for entities
      *
      * @param int   $storeId   The store id
@@ -48,7 +53,7 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
                     foreach ($data['hits']['hits'] as $item) {
                         $updateData = $this->_prepareBehavioralData($item['fields']);
                         if (!empty($updateData) && (isset($item['fields']['event.eventEntity']))) {
-                            $result[array_shift($item['fields']['event.eventEntity'])] = $updateData;
+                            $result[current($item['fields']['event.eventEntity'])] = $updateData;
                         }
                     }
                 }
@@ -59,15 +64,13 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
     }
 
     /**
-     * Retrieve recommendation index name
-     *
-     * @TODO : better method handling permutation of index
+     * Retrieve recommendation index alias
      *
      * @return mixed
      */
     protected function _getRecommenderIndex()
     {
-        return Mage::getStoreConfig("elasticsearch_advanced_search_settings/behavioral_optimizers/recommender_index");
+        return Mage::getStoreConfig(self::RECOMMENDER_ALIAS_CONFIG_PATH);
     }
 
     /**
@@ -116,12 +119,15 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
         $data = array();
 
         if (isset($fields["event.actionType"]) && isset($fields["popularity"])) {
-            // @TODO These fields are array, better testing/grabbing of data needed here
-            if (isset($fields["event.actionType"][0]) && isset($fields["popularity"][0])) {
-                if ($fields["event.actionType"][0] == "view") {
-                    $data["_optimizer_view_count"] = $fields["popularity"][0];
-                } elseif ($fields["event.actionType"][0] == "buy") {
-                    $data["_optimizer_sale_count"] = $fields["popularity"][0];
+            if (current($fields["event.actionType"]) && current($fields["popularity"])) {
+
+                $popularity = current($fields["popularity"]);
+                $actionType = current($fields["event.actionType"]);
+
+                if ($actionType == "view") {
+                    $data["_optimizer_view_count"] = $popularity;
+                } elseif ($actionType == "buy") {
+                    $data["_optimizer_sale_count"] = $popularity;
                 }
             }
         }
