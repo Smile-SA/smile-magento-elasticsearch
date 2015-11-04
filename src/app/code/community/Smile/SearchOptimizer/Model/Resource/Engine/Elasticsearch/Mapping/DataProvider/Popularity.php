@@ -23,11 +23,6 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
     const MAXIMUM_MATCHES_PER_PRODUCT = 2;
 
     /**
-     * Alias location in configuration
-     */
-    const RECOMMENDER_ALIAS_CONFIG_PATH = "elasticsearch_advanced_search_settings/behavioral_optimizers/recommender_index_alias";
-
-    /**
      * Retrieve popularity data for entities
      *
      * @param int   $storeId   The store id
@@ -70,7 +65,7 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
      */
     protected function _getRecommenderIndex()
     {
-        return Mage::getStoreConfig(self::RECOMMENDER_ALIAS_CONFIG_PATH);
+        return Mage::helper("smile_searchoptimizer")->getRecommenderIndex();
     }
 
     /**

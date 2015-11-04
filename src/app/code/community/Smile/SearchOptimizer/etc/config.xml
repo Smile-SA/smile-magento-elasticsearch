@@ -97,6 +97,7 @@
         </smile_elasticsearch>
 
     </global>
+
     <adminhtml>
         <layout>
             <updates>
@@ -115,6 +116,7 @@
             </modules>
         </translate>
     </adminhtml>
+
     <admin>
         <routers>
             <adminhtml>
@@ -126,4 +128,16 @@
             </adminhtml>
         </routers>
     </admin>
+
+    <frontend>
+        <routers>
+            <smile_searchoptimizer>
+                <use>standard</use>
+                <args>
+                    <module>Smile_SearchOptimizer</module>
+                    <frontName>search_optimizer</frontName>
+                </args>
+            </smile_searchoptimizer>
+        </routers>
+    </frontend>
 </config>
