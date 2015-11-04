@@ -125,6 +125,9 @@
             <mapping>
                 <product>
                     <model>smile_elasticsearch/engine_elasticsearch_mapping_product</model>
+                    <external_data_providers>
+                        <test>smile_elasticsearch/engine_elasticsearch_mapping_dataProvider_example</test>
+                    </external_data_providers>
                 </product>
                 <category>
                     <model>smile_elasticsearch/engine_elasticsearch_mapping_category</model>
