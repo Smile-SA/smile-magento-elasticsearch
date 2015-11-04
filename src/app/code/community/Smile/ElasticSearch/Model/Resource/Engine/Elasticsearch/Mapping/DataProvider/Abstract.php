@@ -159,4 +159,12 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_D
      * @return mixed
      */
     abstract public function getEntitiesData($storeId, $entityIds);
+
+    /**
+     * This method should be implemetend by descendents
+     * and will return the specific mapping related to this data provider
+     *
+     * @return array
+     */
+    abstract public function getMapping();
 }
