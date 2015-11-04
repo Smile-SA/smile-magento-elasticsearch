@@ -18,6 +18,11 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_DataProvider_Abstract
 {
     /**
+     * Number of maximum matched per product : 2 because there is "view" and "buy"
+     */
+    const MAXIMUM_MATCHES_PER_PRODUCT = 2;
+
+    /**
      * Retrieve popularity data for entities
      *
      * @param int   $storeId   The store id
@@ -29,7 +34,53 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
     {
         $result = array();
 
-        $recommenderIndex = Mage::getStoreConfig("elasticsearch_advanced_search_settings/behavioral_optimizers/recommender_index");
+        $recommenderIndex = $this->_getRecommenderIndex();
+
+        if ($recommenderIndex !== null) {
+            /** @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch $engine */
+            $engine = Mage::helper('catalogsearch')->getEngine();
+            if ($engine->getClient()->indices()->exists(array('index' => (string) $recommenderIndex))) {
+
+                $query = $this->_getPopularityEventQuery($storeId, $entityIds);
+                $data  = $engine->getClient()->search($query);
+
+                if (isset($data['hits']) && ($data['hits']['total'] > 0)) {
+                    foreach ($data['hits']['hits'] as $item) {
+                        $updateData = $this->_prepareBehavioralData($item['fields']);
+                        if (!empty($updateData) && (isset($item['fields']['event.eventEntity']))) {
+                            $result[array_shift($item['fields']['event.eventEntity'])] = $updateData;
+                        }
+                    }
+                }
+
+            }
+            return $result;
+        }
+    }
+
+    /**
+     * Retrieve recommendation index name
+     *
+     * @TODO : better method handling permutation of index
+     *
+     * @return mixed
+     */
+    protected function _getRecommenderIndex()
+    {
+        return Mage::getStoreConfig("elasticsearch_advanced_search_settings/behavioral_optimizers/recommender_index");
+    }
+
+    /**
+     * Build the query to retrieve event popularity for given entity Ids
+     *
+     * @param int   $storeId   The store id
+     * @param array $entityIds The entity ids
+     *
+     * @return array
+     */
+    protected function _getPopularityEventQuery($storeId, $entityIds)
+    {
+        $recommenderIndex = $this->_getRecommenderIndex();
 
         $fields = array(
             "event.eventEntity",
@@ -38,59 +89,20 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
             "popularity"
         );
 
-        if ($recommenderIndex !== null) {
-            /** @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch $engine */
-            $engine = Mage::helper('catalogsearch')->getEngine();
-            if ($engine->getClient()->indices()->exists(array('index' => (string) $recommenderIndex))) {
+        $query = array('index' => (string) $recommenderIndex);
 
-                // @TODO maybe request all products at once ?
-                foreach ($entityIds as $entityId) {
+        $query['size'] = count($entityIds) * self::MAXIMUM_MATCHES_PER_PRODUCT;
 
-                    $query = array(
-                        'index' => (string) $recommenderIndex,
-                        'body'  => array(
-                            "query" => array(
-                                "bool" => array(
-                                    "must" => array(
-                                        array(
-                                            "term" => array(
-                                                "event.eventType" => "product"
-                                            )
-                                        ),
-                                        array(
-                                            "term" => array(
-                                                "event.eventStoreId" => $storeId
-                                            )
-                                        ),
-                                        array(
-                                            "term" => array(
-                                                "event.eventEntity" => $entityId
-                                            )
-                                        )
-                                    )
-                                )
-                            ),
-                            "fields" => $fields
-                        )
-                    );
+        $query['body']['query']['bool']['must'] = array(
+            array('term' => array('event.eventType' => 'product')),
+            array('term' => array('event.eventStoreId' => $storeId)),
+            array('terms' => array('event.eventEntity' => $entityIds))
+        );
 
-                    $data = $engine->getClient()->search($query);
+        $query['body']['fields'] = $fields;
 
-                    if (isset($data['hits']) && ($data['hits']['total'] > 0)) {
-                        foreach ($data['hits']['hits'] as $item) {
-                            $updateData = $this->_prepareBehavioralData($item['fields']);
-                            if (!empty($updateData)) {
-                                $result[$entityId] = $updateData;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return $result;
-        }
+        return $query;
     }
-
 
     /**
      * Prepare behavioral data to insert on product index, based on data coming from recommendation index
@@ -122,7 +134,7 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
      *
      * @return array
      */
-    public function getMapping()
+    public function getMappingProperties()
     {
         $mapping = array(
             "properties" => array(
