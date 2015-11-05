@@ -117,6 +117,25 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
     }
 
     /**
+     * @inheritdoc
+     *
+     * Additional validation when on a category page, so the sub category of the store root category is not added as filter.
+     *
+     * @param Mage_Catalog_Model_Category $category
+     * @return bool
+     */
+    protected function _isValidCategory($category)
+    {
+        $rootId = (int) Mage::app()->getStore()->getRootCategoryId();
+        $isCategoryPage = Mage::registry('current_category') instanceof Mage_Catalog_Model_Category;
+        if ($isCategoryPage && $category->getParentId() === $rootId) {
+            return false;
+        }
+
+        return parent::_isValidCategory($category);
+    }
+
+    /**
      * Retrieves current items data.
      *
      * @return array
