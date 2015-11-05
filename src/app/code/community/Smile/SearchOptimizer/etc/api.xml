@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<config>
+    <api>
+        <resources>
+
+            <recommender_index>
+                <model>smile_searchoptimizer/recommender_index_api</model>
+                <title>Smile Recommender Index API</title>
+                <acl>smile_searchoptimizer</acl>
+                <methods>
+                    <switch translate="title" module="smile_searchoptimizer">
+                        <title>Switch Recommendation index</title>
+                        <method>switchRecommenderIndex</method>
+                        <acl>smile_searchoptimizer/index</acl>
+                    </switch>
+                </methods>
+            </recommender_index>
+
+        </resources>
+
+        <v2>
+            <resources_function_prefix>
+                <recommender_index>recommendationIndex</recommender_index>
+            </resources_function_prefix>
+        </v2>
+
+        <acl>
+            <resources>
+                <smile_searchoptimizer translate="title" module="smile_searchoptimizer">
+                    <title>Search Optimizer services</title>
+                    <sort_order>3</sort_order>
+                    <index translate="title" module="smile_searchoptimizer">
+                        <title>Index management</title>
+                    </index>
+                </smile_searchoptimizer>
+            </resources>
+        </acl>
+    </api>
+</config>
