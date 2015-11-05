@@ -84,9 +84,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
      */
     protected function _getDefaultRatingId($storeId)
     {
-        if (!Mage::helper('core')->isModuleEnabled('Mage_Rating')) {
-            $ratingId = false;
-        } else if (!isset($this->_defaultRatingIdByStore[$storeId])) {
+        $ratingId = false;
+        if (Mage::helper('core')->isModuleEnabled('Mage_Rating') && !isset($this->_defaultRatingIdByStore[$storeId])) {
             $ratingId = false;
             $ratings = Mage::getResourceModel('rating/rating_collection')
                 ->setStoreFilter($storeId);
