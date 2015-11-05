@@ -16,7 +16,7 @@
 class Smile_SearchOptimizer_RecommendationController extends Mage_Core_Controller_Front_Action
 {
     /**
-     * This action will create a new recommendation index and return ???
+     * This action will switch recommender index to a new one passed in parameters
      *
      * @return void Nothing
      */
@@ -30,52 +30,67 @@ class Smile_SearchOptimizer_RecommendationController extends Mage_Core_Controlle
         $response = array("exception" => array());
 
         if ($indexName) {
-
-            /** @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch $engine */
-            $engine = Mage::helper('catalogsearch')->getEngine();
-
-            $indices = $engine->getClient()->indices();
-            $alias   = Mage::helper("smile_searchoptimizer")->getRecommenderIndex();
-
-            $deletedIndices = array();
-            $aliasActions = array();
-            $aliasActions[] = array('add' => array('index' => $indexName, 'alias' => $alias));
-
             try {
-                $allIndices = $indices->getMapping(array('index'=> $alias));
-            } catch (\Elasticsearch\Common\Exceptions\Missing404Exception $e) {
-                $allIndices = array();
-                $response['exception'][] = $e->getMessage();
-            }
+                $response = array_merge($response, $this->_permuteIndex($indexName));
 
-            foreach (array_keys($allIndices) as $index) {
-                if ($index != $indexName) {
-                    $deletedIndices[] = $index;
-                    $aliasActions[] = array('remove' => array('index' => $index, 'alias' => $alias));
-                }
-            }
+                /** Reindex all data from newly created index */
+                $engine       = Mage::helper('catalogsearch')->getEngine();
+                $mapping      = $engine->getCurrentIndex()->getMapping('product');
+                $dataprovider = $mapping->getDataProvider('popularity');
+                $dataprovider->updateAllData();
 
-            try {
-                $indices->updateAliases(array('body' => array('actions' => $aliasActions)));
             } catch (\Elasticsearch\Common\Exceptions\Missing404Exception $e) {
                 $response['exception'][] = $e->getMessage();
             }
-
-            foreach ($deletedIndices as $index) {
-                $indices->delete(array('index' => $index));
+            catch (Exception $e) {
+                $response['exception'][] = $e->getMessage();
             }
-
         }
 
-        $response = array_merge(
-            $response,
-            array(
+        $this->getResponse()->setBody(Mage::helper("core")->jsonEncode($response));
+    }
+
+    /**
+     * Create the new $indexName index and give it the magento recommender alias
+     * Delete previous indexes associated to this alias
+     *
+     * @param string $indexName The index name
+     *
+     * @throws \Elasticsearch\Common\Exceptions\Missing404Exception
+     *
+     * @return array The response
+     */
+    protected function _permuteIndex($indexName)
+    {
+        /** @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch $engine */
+        $engine = Mage::helper('catalogsearch')->getEngine();
+
+        $indices = $engine->getClient()->indices();
+        $alias   = Mage::helper("smile_searchoptimizer")->getRecommenderIndex();
+
+        $deletedIndices = array();
+        $aliasActions = array();
+        $aliasActions[] = array('add' => array('index' => $indexName, 'alias' => $alias));
+
+        $allIndices = $indices->getMapping(array('index'=> $alias));
+
+        foreach (array_keys($allIndices) as $index) {
+            if ($index != $indexName) {
+                $deletedIndices[] = $index;
+                $aliasActions[] = array('remove' => array('index' => $index, 'alias' => $alias));
+            }
+        }
+
+        $indices->updateAliases(array('body' => array('actions' => $aliasActions)));
+
+        foreach ($deletedIndices as $index) {
+            $indices->delete(array('index' => $index));
+        }
+
+        return array(
             "alias"           => !is_null($alias) ? $alias : "",
             "index_name"      => $indexName,
             "deleted_indexes" => !is_null($deletedIndices) ? $deletedIndices : ""
-            )
         );
-
-        $this->getResponse()->setBody(Mage::helper("core")->jsonEncode($response));
     }
 }
