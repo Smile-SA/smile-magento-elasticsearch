@@ -117,11 +117,10 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
     }
 
     /**
-     * @inheritdoc
-     *
      * Additional validation when on a category page, so the sub category of the store root category is not added as filter.
      *
-     * @param Mage_Catalog_Model_Category $category
+     * @param Mage_Catalog_Model_Category $category Category to be validated.
+     *
      * @return bool
      */
     protected function _isValidCategory($category)
