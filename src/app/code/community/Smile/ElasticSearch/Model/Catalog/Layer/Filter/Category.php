@@ -127,8 +127,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
     protected function _isValidCategory($category)
     {
         $rootId = (int) Mage::app()->getStore()->getRootCategoryId();
-        $isCategoryPage = Mage::registry('current_category') instanceof Mage_Catalog_Model_Category;
-        if ($isCategoryPage && $category->getParentId() === $rootId) {
+        if ($this->getUseUrlRewrites() && $category->getParentId() === $rootId) {
             return false;
         }
 
