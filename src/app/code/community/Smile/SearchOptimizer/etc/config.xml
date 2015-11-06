@@ -86,6 +86,12 @@
                 </observers>
             </smile_elasticsearch_query_assembled>
         </events>
+        <smile_searchoptimizer>
+            <optimizer_models>
+                <constant_score>smile_searchoptimizer/optimizer_constantScore</constant_score>
+                <popularity>smile_searchoptimizer/optimizer_popularity</popularity>
+            </optimizer_models>
+        </smile_searchoptimizer>
     </global>
     <adminhtml>
         <layout>
