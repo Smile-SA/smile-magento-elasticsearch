@@ -1,0 +1,17 @@
+{
+    "name": "smile/magento-es",
+    "description": "Magento ElasticSearch Implementation",
+    "homepage": "https://github.com/Smile-SA/smile-magento-elasticsearch",
+    "type": "magento-module",
+    "require": {
+        "elasticsearch/elasticsearch": "~1.2.2"
+    },
+    "license": "OSL-3.0",
+    "authors": [
+        {
+            "name": "Aurélien FOUCRET",
+            "email": "aurelien.foucret@smile.fr"
+        }
+    ],
+    "minimum-stability": "stable"
+}
