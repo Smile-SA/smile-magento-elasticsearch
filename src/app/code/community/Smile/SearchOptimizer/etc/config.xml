@@ -18,7 +18,7 @@
 <config>
     <modules>
         <Smile_SearchOptimizer>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
         </Smile_SearchOptimizer>
     </modules>
     <global>
@@ -61,6 +61,14 @@
             </indexer>
         </index>
         <events>
+            <search_engine_product_mapping_properties>
+                <observers>
+                    <add_popularity_field_to_mapping>
+                        <class>smile_searchoptimizer/observer</class>
+                        <method>addPopularityFieldToMapping</method>
+                    </add_popularity_field_to_mapping>
+                </observers>
+            </search_engine_product_mapping_properties>
             <smile_elasticsearch_index_install_before>
                 <observers>
                     <create_searchoptimizers_percolators>
@@ -96,6 +104,26 @@
             </mapping>
         </smile_elasticsearch>
 
+        <index>
+            <indexer>
+                <recommendations>
+                    <model>smile_searchoptimizer/indexer_recommendations</model>
+                    <action_model>
+                        <all>smile_searchoptimizer/index_action_recommendations_refresh</all>
+                    </action_model>
+                    <!-- DUMMY : There is no real table for this indexer -->
+                    <index_table>recommendations</index_table>
+                    <sort_order>200</sort_order>
+                </recommendations>
+            </indexer>
+        </index>
+
+        <smile_searchoptimizer>
+            <optimizer_models>
+                <constant_score>smile_searchoptimizer/optimizer_constantScore</constant_score>
+                <popularity>smile_searchoptimizer/optimizer_popularity</popularity>
+            </optimizer_models>
+        </smile_searchoptimizer>
     </global>
 
     <adminhtml>

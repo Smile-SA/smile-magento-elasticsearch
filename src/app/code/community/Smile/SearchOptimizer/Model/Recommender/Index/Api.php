@@ -32,17 +32,10 @@ class Smile_SearchOptimizer_Model_Recommender_Index_Api extends Mage_Catalog_Mod
             try {
                 $response = array_merge($response, $this->_permuteIndex($indexName));
 
-                /** Reindex all data from newly created index */
-                $engine       = Mage::helper('catalogsearch')->getEngine();
-                $mapping      = $engine->getCurrentIndex()->getMapping('product');
-                $dataprovider = $mapping->getDataProvider('popularity');
-                $dataprovider->updateAllData();
-
-            } catch (\Elasticsearch\Common\Exceptions\Missing404Exception $e) {
-                //$response['exception'][] = $e->getMessage();
-            }
-            catch (Exception $e) {
-                //$response['exception'][] = $e->getMessage();
+                /** Invalidate the index */
+                $this->_invalidateIndex();
+            } catch (Exception $exception) {
+                $response['exception'][] = $exception->getMessage();
             }
         }
 
@@ -50,6 +43,29 @@ class Smile_SearchOptimizer_Model_Recommender_Index_Api extends Mage_Catalog_Mod
         $response['code']   = 200;
 
         return $response;
+    }
+
+    /**
+     * Invalidate the recommendation index to schedule its re-calculation
+     *
+     * @return void
+     */
+    protected function _invalidateIndex()
+    {
+        if (Mage::helper("core")->isModuleEnabled("Enterprise_Mview")) {
+
+            $client = Mage::getModel('enterprise_mview/client');
+            $client->init(Smile_SearchOptimizer_Model_Indexer_Recommendations::DUMMY_TABLE_NAME);
+
+            $metaData = $client->getMetadata();
+            $metaData
+                ->setViewName(Smile_SearchOptimizer_Model_Indexer_Recommendations::METADATA_VIEW_NAME)
+                ->setGroupCode(Smile_SearchOptimizer_Model_Indexer_Recommendations::METADATA_GROUP_CODE)
+                ->setInvalidStatus();
+
+            $metaData->save();
+
+        }
     }
 
     /**
@@ -71,7 +87,7 @@ class Smile_SearchOptimizer_Model_Recommender_Index_Api extends Mage_Catalog_Mod
         $alias   = Mage::helper("smile_searchoptimizer")->getRecommenderIndex();
 
         $deletedIndices = array();
-        $aliasActions = array();
+        $aliasActions   = array();
         $aliasActions[] = array('add' => array('index' => $indexName, 'alias' => $alias));
 
         $allIndices = $indices->getMapping(array('index'=> $alias));
