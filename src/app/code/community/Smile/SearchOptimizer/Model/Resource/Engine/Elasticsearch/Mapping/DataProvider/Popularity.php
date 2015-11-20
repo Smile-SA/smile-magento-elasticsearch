@@ -52,9 +52,9 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
                         }
                     }
                 }
-
             }
         }
+
         return $result;
     }
 
