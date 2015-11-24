@@ -66,7 +66,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             'properties' => array()
         );
 
-        $mapping['properties'] = $this->_getSpellingFieldMapping();
+        $mapping['properties'] = array_merge($mapping['properties'], $this->_getSpellingFieldMapping());
 
         $attributes = $this->_getAttributesById();
         foreach ($attributes as $attribute) {
