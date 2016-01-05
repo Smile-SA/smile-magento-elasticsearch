@@ -94,9 +94,13 @@ class Smile_VirtualCategories_Block_Adminhtml_Catalog_Category_Tab_Product exten
     private function _prepareVirtualRuleFieldset(Varien_Data_Form $form)
     {
         $url = $this->getUrl('*/promo_catalog/newConditionHtml', array('form' => 'virtual_virtual_fieldset'));
+
+        $virtualProductsGrid = $this->getVirtualProductsGrid();
         $renderer = Mage::getBlockSingleton('adminhtml/widget_form_renderer_fieldset')
             ->setTemplate('smile/virtualcategories/category/rule_fieldset.phtml')
-            ->setNewChildUrl($url);
+            ->setNewChildUrl($url)
+            ->setPreviewUrl($virtualProductsGrid->getGridUrl())
+            ->setVirtualProductsGridHtml($virtualProductsGrid->toHtml());
 
         $fieldset = $form->addFieldset(
             'virtual_fieldset',
@@ -151,5 +155,18 @@ class Smile_VirtualCategories_Block_Adminhtml_Catalog_Category_Tab_Product exten
         $this->setProductFieldsetHtmlId($fieldset->getHtmlId());
 
         return $this;
+    }
+
+    /**
+     * Retrieve Virtual category products grid
+     *
+     * @return Smile_VirtualCategories_Block_Adminhtml_Catalog_Category_Tab_Preview_Grid
+     */
+    public function getVirtualProductsGrid()
+    {
+        return $this->getLayout()->createBlock(
+            'smile_virtualcategories/adminhtml_catalog_category_tab_preview_grid',
+            'virtual.category.product.grid'
+        );
     }
 }

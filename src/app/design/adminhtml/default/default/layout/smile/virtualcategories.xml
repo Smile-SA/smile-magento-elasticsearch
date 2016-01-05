@@ -21,4 +21,10 @@
             <action method="setCanLoadRulesJs"><flag>1</flag></action>
         </reference>
     </adminhtml_catalog_category_edit>
+
+    <adminhtml_catalog_category_preview>
+        <block type="core/text_list" name="root" output="toHtml">
+            <block type="smile_virtualcategories/adminhtml_catalog_category_tab_preview_grid"/>
+        </block>
+    </adminhtml_catalog_category_preview>
  </layout>
