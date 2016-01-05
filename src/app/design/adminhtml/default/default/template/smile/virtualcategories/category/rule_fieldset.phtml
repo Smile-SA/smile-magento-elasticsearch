@@ -61,21 +61,12 @@
         refreshParams: function() {
             SmileVirtualCategoryPreview.params.storeId = $('store_switcher').value;
         },
-        checkParams: function() {
-            var result = true;
-            /*if (SmileVirtualCategoryPreview.params.query == null || SmileVirtualCategoryPreview.params.query.length == 0) {
-                alert('<?php echo $this->__('Please type a search query before launching preview.')?>');
-                result = false;
-            }*/
-            return result;
-        },
         refresh: function() {
             SmileVirtualCategoryPreview.refreshParams();
-            if (SmileVirtualCategoryPreview.checkParams()) {
-                var previewUrl   = SmileVirtualCategoryPreview.previewUrl;
-                var updateParams = {method: "POST", parameters: $('category_edit_form').serialize(), evalScripts: true};
-                new Ajax.Updater('preview-result', previewUrl, updateParams);
-            }
+            var previewUrl   = SmileVirtualCategoryPreview.previewUrl;
+            var updateParams = {method: "POST", parameters: $('category_edit_form').serialize(), evalScripts: true};
+            new Ajax.Updater('preview-result', previewUrl, updateParams);
+
             return false;
         }
     }

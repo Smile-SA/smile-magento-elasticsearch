@@ -56,11 +56,13 @@ class Smile_VirtualCategories_Model_Observer
         $category = $observer->getCategory();
 
         // Retrieve query associated with the filter
+        /** @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext $query */
         $query = $filter->getLayer()->getProductCollection()->getSearchEngineQuery();
 
         // Append the query string for the virtual categories
-        $qs = $this->_getVirtualRule($category)->getSearchQuery();
-        $query->addFilter('query', array('query_string' => $qs));
+        $queryString = $this->_getVirtualRule($category)->getSearchQuery();
+        $query->addFilter('query', array('query_string' => $queryString));
+
         // Mark filter as installed (avoid default filter behavior)
         $filter->setProductCollectionFilterSet(true);
 
@@ -142,6 +144,35 @@ class Smile_VirtualCategories_Model_Observer
             );*/
 
         }
+    }
+
+    /**
+     * Append a sort by our custom positions when viewing a virtual category
+     *
+     * @param Varien_Event_Observer $observer The observer
+     *
+     * @event smile_elasticsearch_query_assembled
+     *
+     * @return Smile_VirtualCategories_Model_Observer self reference
+     */
+    public function applyProductsPositions(Varien_Event_Observer $observer)
+    {
+        $data  = $observer->getQueryData();
+        $query = $data->getQuery();
+
+        $category = Mage::registry("current_category");
+
+        Mage::log("APPLY PRODUCTS POSITIONS");
+
+        if ($category->getId() && ($this->_getVirtualRule($category) !== null)) {
+
+            $optimizer = Mage::getModel("smile_virtualcategories/virtualCategory_product_position");
+            $query     = $optimizer->applyCustomProductsPositions($query, $category);
+
+            $data->setQuery($query);
+        }
+
+        return $this;
     }
 }
 

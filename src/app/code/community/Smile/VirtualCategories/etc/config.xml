@@ -74,6 +74,18 @@
                 </product>
             </mapping>
         </smile_elasticsearch>
+
+        <events>
+            <smile_elasticsearch_query_assembled>
+                <observers>
+                    <apply_virtual_category_products_positions>
+                        <class>smile_virtualcategories/observer</class>
+                        <method>applyProductsPositions</method>
+                    </apply_virtual_category_products_positions>
+                </observers>
+            </smile_elasticsearch_query_assembled>
+        </events>
+
     </global>
     <admin>
         <routers>

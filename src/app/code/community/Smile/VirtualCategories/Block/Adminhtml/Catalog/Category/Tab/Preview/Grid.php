@@ -91,27 +91,32 @@ JAVASCRIPT;
             ->addIdFilter($productIds)
             ->addAttributeToSelect($attributes);
 
+        $storeIds = implode(",", array_unique(array_map("intval", array(Mage_Core_Model_App::ADMIN_STORE_ID, $this->getStoreId()))));
+
         if ($this->getStoreId() != Mage_Core_Model_App::ADMIN_STORE_ID) {
             $collection->setStoreId($this->getStoreId());
+            $joinCond = "category_id = " . (int) $this->getCategory()->getId() . " AND store_id = {$this->getStoreId()}";
+        } else {
+            $joinCond = "category_id = " . (int) $this->getCategory()->getId() . " AND store_id IN ({$storeIds})";
         }
 
-        /*$collection->joinField(
+        $collection->joinField(
             'position',
-            'smile_searchoptimizer/search_term_product_position',
+            'smile_virtualcategories/category_product_position',
             'position',
             'product_id = entity_id',
-            'query_id = ' . (int) $this->getQuery()->getId(),
+            $joinCond,
             'left'
-        );*/
+        );
 
-        /*$collection->getSelect()->order(
+        $collection->getSelect()->order(
             new Zend_Db_Expr("- position DESC") // mimic a "SORT BY #field NULL LAST
         );
 
         $entityIds = implode(",", $productIds);
         $collection->getSelect()->order(
             new Zend_Db_Expr("FIELD(e.entity_id, {$entityIds})") // restore sort order given by ES
-        );*/
+        );
 
         $this->setCollection($collection);
 
