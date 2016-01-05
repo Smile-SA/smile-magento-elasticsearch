@@ -1,6 +1,6 @@
 <?php
 /**
- * _______________________________
+ * Resource model to manage custom products positions into virtual categories
  *
  * DISCLAIMER
  *
@@ -91,7 +91,7 @@ class Smile_VirtualCategories_Model_Resource_Catalog_VirtualCategory_Product_Pos
         $select->where('product_id IN (?)', array_map("intval", $productIds));
 
         if (!is_null($storeId)) {
-            $storeIds = array_map("intval", array(Mage_Core_Model_App::ADMIN_STORE_ID, $storeId));
+            $storeIds = array_unique(array_map("intval", array(Mage_Core_Model_App::ADMIN_STORE_ID, $storeId)));
             $select->where('store_id IN (?)', $storeIds);
         }
 
@@ -110,7 +110,7 @@ class Smile_VirtualCategories_Model_Resource_Catalog_VirtualCategory_Product_Pos
         $adapter = $this->_getReadAdapter();
         $select  = $adapter->select();
 
-        $storeIds = array_map("intval", array(Mage_Core_Model_App::ADMIN_STORE_ID, $category->getStoreId()));
+        $storeIds = array_unique(array_map("intval", array(Mage_Core_Model_App::ADMIN_STORE_ID, $category->getStoreId())));
 
         $select->from(array("main_table" => $this->getMainTable()), "product_id");
         $select->where("{$this->getIdFieldName()} = ?", $category->getId());
@@ -135,7 +135,7 @@ class Smile_VirtualCategories_Model_Resource_Catalog_VirtualCategory_Product_Pos
             $adapter = $this->_getReadAdapter();
             $select  = $adapter->select();
 
-            $storeIds = array_map("intval", array(Mage_Core_Model_App::ADMIN_STORE_ID, $category->getStoreId()));
+            $storeIds = array_unique(array_map("intval", array(Mage_Core_Model_App::ADMIN_STORE_ID, $category->getStoreId())));
 
             $select->from(array("main_table" => $this->getMainTable()));
             $select->where('category_id = ?', (int) $category->getId());
