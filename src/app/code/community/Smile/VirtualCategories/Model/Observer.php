@@ -32,6 +32,11 @@ class Smile_VirtualCategories_Model_Observer
         if ($rule !== false) {
             $ruleInstance = Mage::getModel('smile_virtualcategories/rule')->loadPost($rule);
             $category->setVirtualCategoryRule($ruleInstance);
+
+            $positions = $observer->getRequest()->getParam('position', false);
+            if ($positions !== false) {
+                $category->setVirtualCategoryProductPositions($positions);
+            }
         }
 
         return $this;
@@ -97,6 +102,46 @@ class Smile_VirtualCategories_Model_Observer
     protected function _getVirtualRule($category)
     {
         return Mage::helper('smile_virtualcategories')->getVirtualRule($category);
+    }
+
+    /**
+     * Append products positions to the current virtual category if needed
+     *
+     * @param Varien_Event_Observer $observer The observer
+     *
+     * @event catalogsearch_query_save_after
+     *
+     * @return void Nothing
+     */
+    public function saveProductsPositions(Varien_Event_Observer $observer)
+    {
+        $category  = $observer->getEvent()->getCategory();
+        $positions = $category->getVirtualCategoryProductPositions();
+
+        if (!is_array($positions)) {
+            $positions = array();
+        }
+
+        $filteredPositions = array_filter($positions, 'is_numeric');
+        $resourceModel     = Mage::getResourceModel("smile_virtualcategories/catalog_virtualCategory_product_position");
+        $previousProducts  = $resourceModel->getProductIdsByCategory($category);
+
+        $resourceModel->saveProductsPositions($filteredPositions, $category);
+
+        // If Enterprise version, Mview index will handle editing, otherwise, process reindex
+        if (!Mage::helper("smile_elasticsearch")->isEnterpriseSupportEnabled()) {
+
+            /*Mage::getSingleton('index/indexer')->processEntityAction(
+                $searchTerm->setProductIds(
+                    array_unique(
+                        array_merge($previousProducts, array_keys($filteredPositions))
+                    )
+                ),
+                Smile_SearchOptimizer_Model_Indexer_Search_Terms_Position::ENTITY,
+                Mage_Index_Model_Event::TYPE_SAVE
+            );*/
+
+        }
     }
 }
 
