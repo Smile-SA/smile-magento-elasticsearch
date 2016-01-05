@@ -21,7 +21,7 @@
 <config>
     <modules>
         <Smile_VirtualCategories>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </Smile_VirtualCategories>
     </modules>
     <global>
@@ -32,6 +32,11 @@
             </smile_virtualcategories>
             <smile_virtualcategories_resource>
                 <class>Smile_VirtualCategories_Model_Resource</class>
+                <entities>
+                    <category_product_position>
+                        <table>smile_virtualcategories_product_position</table>
+                    </category_product_position>
+                </entities>
             </smile_virtualcategories_resource>
         </models>
         <helpers>
@@ -58,6 +63,17 @@
                 </setup>
             </smile_virtualcategories_setup>
         </resources>
+
+        <smile_elasticsearch>
+            <mapping>
+                <product>
+                    <data_providers>
+                        <!-- Custom data provider for product positions in virtual categories -->
+                        <virtual_categories_products_position>smile_virtualcategories/engine_elasticsearch_mapping_dataProvider_virtualCategories_position</virtual_categories_products_position>
+                    </data_providers>
+                </product>
+            </mapping>
+        </smile_elasticsearch>
     </global>
     <admin>
         <routers>
@@ -80,6 +96,14 @@
                     </smile_virtualcategories>
                 </observers>
             </catalog_category_prepare_save>
+            <catalog_category_save_commit_after>
+                <observers>
+                    <smile_virtualcategories_save_custom_products_positions>
+                        <class>smile_virtualcategories/observer</class>
+                        <method>saveProductsPositions</method>
+                    </smile_virtualcategories_save_custom_products_positions>
+                </observers>
+            </catalog_category_save_commit_after>
         </events>
         <layout>
             <updates>
