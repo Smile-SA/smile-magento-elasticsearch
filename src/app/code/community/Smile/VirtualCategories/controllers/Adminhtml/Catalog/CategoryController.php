@@ -29,6 +29,11 @@ class Smile_VirtualCategories_Adminhtml_Catalog_CategoryController
         if ($data) {
             $categoryId = $this->getRequest()->getParam('category_id');
             $model      = Mage::getModel('catalog/category')->load($categoryId);
+            $storeId    = $this->getRequest()->getParam('store', false);
+
+            if ($storeId) {
+                $model->setStoreId($storeId);
+            }
 
             // Check if a virtual rule is present in post and load it into the model
             if ($rule = $this->getRequest()->getParam('rule', false)) {
