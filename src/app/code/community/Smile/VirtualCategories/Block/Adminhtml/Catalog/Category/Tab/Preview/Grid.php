@@ -31,6 +31,12 @@ class Smile_VirtualCategories_Block_Adminhtml_Catalog_Category_Tab_Preview_Grid
         $this->setDefaultSort('position');
         $this->setUseAjax(true);
 
+        if ($this->getCategory()->getVirtualRulePreview() == null) {
+            if ($rule = Mage::helper('smile_virtualcategories')->getVirtualRule($this->getCategory())) {
+                $this->getCategory()->setVirtualRulePreview($rule);
+            }
+        }
+
         $this->setAdditionalJavaScript($this->_getPreviewPersistenceJavascript());
 
         return $this;
@@ -196,12 +202,6 @@ JAVASCRIPT;
             'store_id'     => $this->getStoreId(),
             'category_id'  => $this->getCategory()->getId(),
         );
-
-        if ($rule = $this->getRequest()->getParam('rule', false)) {
-            if ($rule !== false) {
-                $parameters["preview_rule"] = Mage::helper("core")->urlEncode(serialize($rule));
-            }
-        }
 
         return $this->getUrl(
             '*/*/preview',
