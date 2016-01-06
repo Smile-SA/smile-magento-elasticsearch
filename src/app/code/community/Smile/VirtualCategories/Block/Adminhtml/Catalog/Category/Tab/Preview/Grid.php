@@ -248,14 +248,10 @@ JAVASCRIPT;
         // Append the query string for the virtual categories
         if ($rule = $this->getCategory()->getVirtualRulePreview()) {
             $queryString = $this->_getQueryStringFromRule($rule);
-
-            Mage::log(json_encode($queryString));
             $query->addFilter('query', array('query_string' => $queryString));
         }
 
         $query = $query->setLanguageCode(Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store));
-
-        Mage::log(json_encode($query->getRawQuery()));
 
         return $query->getRawQuery();
     }
