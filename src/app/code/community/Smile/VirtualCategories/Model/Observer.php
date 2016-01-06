@@ -133,15 +133,15 @@ class Smile_VirtualCategories_Model_Observer
         // If Enterprise version, Mview index will handle editing, otherwise, process reindex
         if (!Mage::helper("smile_elasticsearch")->isEnterpriseSupportEnabled()) {
 
-            /*Mage::getSingleton('index/indexer')->processEntityAction(
-                $searchTerm->setProductIds(
+            Mage::getSingleton('index/indexer')->processEntityAction(
+                $category->setVirtualProductIds(
                     array_unique(
                         array_merge($previousProducts, array_keys($filteredPositions))
                     )
                 ),
-                Smile_SearchOptimizer_Model_Indexer_Search_Terms_Position::ENTITY,
+                Mage_Catalog_Model_Category::ENTITY,
                 Mage_Index_Model_Event::TYPE_SAVE
-            );*/
+            );
 
         }
     }
@@ -161,8 +161,6 @@ class Smile_VirtualCategories_Model_Observer
         $query = $data->getQuery();
 
         $category = Mage::registry("current_category");
-
-        Mage::log("APPLY PRODUCTS POSITIONS");
 
         if ($category->getId() && ($this->_getVirtualRule($category) !== null)) {
 
