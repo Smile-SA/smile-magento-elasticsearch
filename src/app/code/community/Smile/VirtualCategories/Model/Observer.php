@@ -162,7 +162,7 @@ class Smile_VirtualCategories_Model_Observer
 
         $category = Mage::registry("current_category");
 
-        if ($category->getId() && ($this->_getVirtualRule($category) !== null)) {
+        if (($category !== null) && $category->getId() && ($this->_getVirtualRule($category) !== null)) {
 
             $optimizer = Mage::getModel("smile_virtualcategories/virtualCategory_product_position");
             $query     = $optimizer->applyCustomProductsPositions($query, $category);
