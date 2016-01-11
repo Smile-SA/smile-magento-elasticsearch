@@ -16,11 +16,6 @@
 class Smile_VirtualCategories_Model_Indexer_VirtualCategories_Product_Position extends Mage_Index_Model_Indexer_Abstract
 {
     /**
-     * Table name, needed to process correct Mview reindex
-     */
-    const TABLE_NAME         = "smile_virtualcategories_product_position";
-
-    /**
      * Metadata view name, used to identify data related to this index
      */
     const METADATA_VIEW_NAME = "virtual_categories_product_position";
@@ -68,7 +63,9 @@ class Smile_VirtualCategories_Model_Indexer_VirtualCategories_Product_Position e
     {
         $category = $event->getDataObject();
         if ($event->getType() == Mage_Index_Model_Event::TYPE_SAVE) {
-            $this->reindex($category);
+            if (Mage::helper('smile_elasticsearch')->isActiveEngine()) {
+                $this->reindex($category);
+            }
         }
     }
 
