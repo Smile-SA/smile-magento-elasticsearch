@@ -22,7 +22,7 @@ if (Mage::helper("smile_elasticsearch")->isEnterpriseSupportEnabled()) {
 
     Mage::getModel('enterprise_mview/metadata')
         ->setViewName(Smile_VirtualCategories_Model_Indexer_VirtualCategories_Product_Position::METADATA_VIEW_NAME)
-        ->setTableName(Smile_VirtualCategories_Model_Indexer_VirtualCategories_Product_Position::TABLE_NAME)
+        ->setTableName($installer->getTable('smile_virtualcategories/category_product_position'))
         ->setKeyColumn("product_id")
         ->setGroupCode(Smile_VirtualCategories_Model_Indexer_VirtualCategories_Product_Position::METADATA_GROUP_CODE)
         ->setStatus(Enterprise_Mview_Model_Metadata::STATUS_INVALID)
@@ -30,22 +30,20 @@ if (Mage::helper("smile_elasticsearch")->isEnterpriseSupportEnabled()) {
 
     $client = Mage::getModel('enterprise_mview/client');
 
-    $table  = $installer->getTable('smile_virtualcategories/category_product_position');
-
     /* @var $client Enterprise_Mview_Model_Client */
-    $client->init($table);
+    $client->init('smile_virtualcategories/category_product_position');
 
     $client->execute(
         'enterprise_mview/action_changelog_create',
         array(
-            'table_name' => $table
+            'table_name' => $installer->getTable('smile_virtualcategories/category_product_position')
         )
     );
 
     $client->execute(
         'enterprise_mview/action_changelog_subscription_create',
         array(
-           'target_table'  => $table,
+           'target_table'  => $installer->getTable('smile_virtualcategories/category_product_position'),
            'target_column' => "product_id"
         )
     );
