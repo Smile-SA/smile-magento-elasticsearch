@@ -33,7 +33,7 @@ class Smile_VirtualCategories_Model_Observer
             $ruleInstance = Mage::getModel('smile_virtualcategories/rule')->loadPost($rule);
             $category->setVirtualCategoryRule($ruleInstance);
 
-            $positions = $observer->getRequest()->getParam('position', false);
+            $positions = $observer->getRequest()->getParam('virtual_category_position', false);
             if ($positions !== false) {
                 $category->setVirtualCategoryProductPositions($positions);
             }
