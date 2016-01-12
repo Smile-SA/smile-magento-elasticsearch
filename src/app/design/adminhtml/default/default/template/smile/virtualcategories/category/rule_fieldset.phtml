@@ -84,7 +84,9 @@ if (VarienRulesForm.prototype.oldRemoveRuleEntry == undefined) {
         params     : {},
         previewUrl : "<?php echo Mage::helper('core')->jsQuoteEscape($this->getPreviewUrl()); ?>",
         refreshParams: function() {
-            SmileVirtualCategoryPreview.params.storeId = $('store_switcher').value;
+            if ($('store_switcher')) {
+                SmileVirtualCategoryPreview.params.storeId = $('store_switcher').value;
+            }
         },
         refresh: function() {
             SmileVirtualCategoryPreview.refreshParams();

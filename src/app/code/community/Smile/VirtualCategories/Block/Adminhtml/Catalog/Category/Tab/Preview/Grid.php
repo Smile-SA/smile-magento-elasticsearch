@@ -176,7 +176,7 @@ JAVASCRIPT;
         );
 
         $this->addColumn(
-            'position',
+            'virtual_category_position',
             array(
                 'header'   => Mage::helper('catalog')->__('Position'),
                 'width'    => '1',
