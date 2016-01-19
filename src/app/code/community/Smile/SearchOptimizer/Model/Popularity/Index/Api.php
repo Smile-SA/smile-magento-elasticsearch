@@ -13,18 +13,18 @@
  * @copyright 2015 Smile
  * @license   Apache License Version 2.0
  */
-class Smile_SearchOptimizer_Model_Recommender_Index_Api extends Mage_Catalog_Model_Api_Resource
+class Smile_SearchOptimizer_Model_Popularity_Index_Api extends Mage_Catalog_Model_Api_Resource
 {
     /**
-     * This method will switch recommendation index to a new one passed in parameter
-     *  - Associate the new indexName to the magento recommender alias
+     * This method will switch popularity index to a new one passed in parameter
+     *  - Associate the new indexName to the magento popularity alias
      *  - Delete previous indexes associated to this alias
      *
      * @param string $indexName The new index name
      *
      * @return array
      */
-    public function switchRecommenderIndex($indexName)
+    public function switchPopularityIndex($indexName)
     {
         $response = array("exception" => array());
 
@@ -46,7 +46,7 @@ class Smile_SearchOptimizer_Model_Recommender_Index_Api extends Mage_Catalog_Mod
     }
 
     /**
-     * Invalidate the recommendation index to schedule its re-calculation
+     * Invalidate the Popularity index to schedule its re-calculation
      *
      * @return void
      */
@@ -55,12 +55,12 @@ class Smile_SearchOptimizer_Model_Recommender_Index_Api extends Mage_Catalog_Mod
         if (Mage::helper("core")->isModuleEnabled("Enterprise_Mview")) {
 
             $client = Mage::getModel('enterprise_mview/client');
-            $client->init(Smile_SearchOptimizer_Model_Indexer_Recommendations::DUMMY_TABLE_NAME);
+            $client->init(Smile_SearchOptimizer_Model_Indexer_Popularity::DUMMY_TABLE_NAME);
 
             $metaData = $client->getMetadata();
             $metaData
-                ->setViewName(Smile_SearchOptimizer_Model_Indexer_Recommendations::METADATA_VIEW_NAME)
-                ->setGroupCode(Smile_SearchOptimizer_Model_Indexer_Recommendations::METADATA_GROUP_CODE)
+                ->setViewName(Smile_SearchOptimizer_Model_Indexer_Popularity::METADATA_VIEW_NAME)
+                ->setGroupCode(Smile_SearchOptimizer_Model_Indexer_Popularity::METADATA_GROUP_CODE)
                 ->setInvalidStatus();
 
             $metaData->save();
@@ -69,7 +69,7 @@ class Smile_SearchOptimizer_Model_Recommender_Index_Api extends Mage_Catalog_Mod
     }
 
     /**
-     * Create the new $indexName index and give it the magento recommender alias
+     * Create the new $indexName index and give it the magento Popularity alias
      * Delete previous indexes associated to this alias
      *
      * @param string $indexName The index name
@@ -84,7 +84,7 @@ class Smile_SearchOptimizer_Model_Recommender_Index_Api extends Mage_Catalog_Mod
         $engine = Mage::helper('catalogsearch')->getEngine();
 
         $indices = $engine->getClient()->indices();
-        $alias   = Mage::helper("smile_searchoptimizer")->getRecommenderIndex();
+        $alias   = Mage::helper("smile_searchoptimizer")->getPopularityIndex();
 
         $deletedIndices = array();
         $aliasActions   = array();
@@ -108,7 +108,6 @@ class Smile_SearchOptimizer_Model_Recommender_Index_Api extends Mage_Catalog_Mod
         return array(
             "alias"           => !is_null($alias) ? $alias : "",
             "index_name"      => $indexName,
-            //"deleted_indexes" => !is_null($deletedIndices) ? $deletedIndices : ""
         );
     }
 }

@@ -8,7 +8,7 @@
                   targetNamespace="urn:{{var wsdl.name}}">
     <wsdl:types>
         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:{{var wsdl.name}}">
-            <xsd:complexType name="recommendationIndexSwitchResult">
+            <xsd:complexType name="popularityIndexSwitchResult">
                 <xsd:sequence>
                     <xsd:element name="alias" type="xsd:string" />
                     <xsd:element name="index_name" type="xsd:string" />
@@ -17,7 +17,7 @@
                 </xsd:sequence>
             </xsd:complexType>
 
-            <xsd:element name="recommendationIndexSwitchRequestParam">
+            <xsd:element name="popularityIndexSwitchRequestParam">
                 <xsd:complexType>
                     <xsd:sequence>
                         <xsd:element minOccurs="1" maxOccurs="1" name="sessionId" type="xsd:string" />
@@ -25,31 +25,31 @@
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
-            <xsd:element name="recommendationIndexSwitchResponseParam">
+            <xsd:element name="popularityIndexSwitchResponseParam">
                 <xsd:complexType>
                     <xsd:sequence>
-                        <xsd:element minOccurs="1" maxOccurs="1" name="result" type="typens:recommendationIndexSwitchResult" />
+                        <xsd:element minOccurs="1" maxOccurs="1" name="result" type="typens:popularityIndexSwitchResult" />
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
         </xsd:schema>
     </wsdl:types>
-    <wsdl:message name="recommendationIndexSwitchRequest">
-        <wsdl:part name="parameters" element="typens:recommendationIndexSwitchRequestParam" />
+    <wsdl:message name="popularityIndexSwitchRequest">
+        <wsdl:part name="parameters" element="typens:popularityIndexSwitchRequestParam" />
     </wsdl:message>
-    <wsdl:message name="recommendationIndexSwitchResponse">
-        <wsdl:part name="parameters" element="typens:recommendationIndexSwitchResponseParam" />
+    <wsdl:message name="popularityIndexSwitchResponse">
+        <wsdl:part name="parameters" element="typens:popularityIndexSwitchResponseParam" />
     </wsdl:message>
     <wsdl:portType name="{{var wsdl.handler}}PortType">
-        <wsdl:operation name="recommendationIndexSwitch">
-            <wsdl:documentation>Switch recommendation index</wsdl:documentation>
-            <wsdl:input message="typens:recommendationIndexSwitchRequest" />
-            <wsdl:output message="typens:recommendationIndexSwitchResponse" />
+        <wsdl:operation name="popularityIndexSwitch">
+            <wsdl:documentation>Switch popularity index</wsdl:documentation>
+            <wsdl:input message="typens:popularityIndexSwitchRequest" />
+            <wsdl:output message="typens:popularityIndexSwitchResponse" />
         </wsdl:operation>
     </wsdl:portType>
     <wsdl:binding name="{{var wsdl.handler}}Binding" type="typens:{{var wsdl.handler}}PortType">
         <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
-        <wsdl:operation name="recommendationIndexSwitch">
+        <wsdl:operation name="popularityIndexSwitch">
             <soap:operation soapAction="" />
             <wsdl:input>
                 <soap:body use="literal" />

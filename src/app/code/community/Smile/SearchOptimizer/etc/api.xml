@@ -3,24 +3,24 @@
     <api>
         <resources>
 
-            <recommender_index>
-                <model>smile_searchoptimizer/recommender_index_api</model>
-                <title>Smile Recommender Index API</title>
+            <popularity_index>
+                <model>smile_searchoptimizer/popularity_index_api</model>
+                <title>Popularity Index API</title>
                 <acl>smile_searchoptimizer</acl>
                 <methods>
                     <switch translate="title" module="smile_searchoptimizer">
-                        <title>Switch Recommendation index</title>
-                        <method>switchRecommenderIndex</method>
+                        <title>Switch Popularity index</title>
+                        <method>switchPopularityIndex</method>
                         <acl>smile_searchoptimizer/index</acl>
                     </switch>
                 </methods>
-            </recommender_index>
+            </popularity_index>
 
         </resources>
 
         <v2>
             <resources_function_prefix>
-                <recommender_index>recommendationIndex</recommender_index>
+                <popularity_index>popularityIndex</popularity_index>
             </resources_function_prefix>
         </v2>
 
