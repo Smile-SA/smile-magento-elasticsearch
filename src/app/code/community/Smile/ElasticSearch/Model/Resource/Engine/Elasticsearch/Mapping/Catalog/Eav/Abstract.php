@@ -61,12 +61,9 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      */
     protected function _getMappingProperties()
     {
-        $mapping = array(
-            '_all' => array('enabled' => false),
-            'properties' => array()
-        );
+        $mapping = parent::_getMappingProperties();
 
-        $mapping['properties'] = $this->_getSpellingFieldMapping();
+        $mapping['properties'] = array_merge($mapping['properties'], $this->_getSpellingFieldMapping());
 
         $attributes = $this->_getAttributesById();
         foreach ($attributes as $attribute) {
@@ -417,20 +414,6 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     protected function _getChildrenIds($entityIds, $websiteId)
     {
         return array();
-    }
-
-    /**
-     * Save docs to the index
-     *
-     * @param int   $storeId       Store id
-     * @param array $entityIndexes Doc values.
-     *
-     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Catalog_Eav_Abstract
-     */
-    protected function _saveIndexes($storeId, $entityIndexes)
-    {
-        Mage::helper('catalogsearch')->getEngine()->saveEntityIndexes($storeId, $entityIndexes, $this->_type);
-        return $this;
     }
 
     /**
