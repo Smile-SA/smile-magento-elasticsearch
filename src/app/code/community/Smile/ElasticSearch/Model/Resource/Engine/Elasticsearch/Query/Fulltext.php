@@ -69,6 +69,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     const SPELLING_TYPE_FUZZY      = 3;
 
     /**
+     * @var int
+     */
+    const SPELLING_TYPE_PURE_STOPWORDS = 4;
+
+    /**
      * Returns the minimum should match clause from config.
      *
      * @return string
@@ -93,6 +98,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     }
 
     /**
+     * Return the configuration of the cutoff frequency
+     *
+     * @return array
+     */
+    protected function _getCutOffFrequencyConfig()
+    {
+        return 0.07;
+    }
+
+    /**
       * Build the fulltext query condition for the query.
       *
       * @return array
@@ -104,15 +119,15 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         if ($this->_fulltextQuery && is_string($this->_fulltextQuery)) {
             $spellingType = $this->_analyzeSpelling($this->_fulltextQuery);
 
+            if (!in_array($spellingType, array(self::SPELLING_TYPE_EXACT, self::SPELLING_TYPE_PURE_STOPWORDS))) {
+                $this->_isSpellChecked = true;
+            }
+
             if (!isset(self::$_assembledQueries[$this->_fulltextQuery])) {
                 self::$_assembledQueries[$this->_fulltextQuery] = $this->_buildFulltextQuery($this->_fulltextQuery, $spellingType);
             }
 
             $query = self::$_assembledQueries[$this->_fulltextQuery];
-
-            if ($spellingType != self::SPELLING_TYPE_EXACT) {
-                $this->_isSpellChecked = true;
-            }
         }
 
         return $query;
@@ -130,7 +145,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     {
         $query = array();
 
-        if ($spellingType != self::SPELLING_TYPE_EXACT) {
+        if ($this->isSpellchecked()) {
             $fuzzyQuery = $this->_getFuzzyQueryMatch($textQuery, $spellingType);
             if ($fuzzyQuery !== false) {
                 if (in_array($spellingType, array(self::SPELLING_TYPE_FUZZY, self::SPELLING_TYPE_MOST_FUZZY))) {
@@ -142,10 +157,37 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         }
 
         if ($spellingType != self::SPELLING_TYPE_FUZZY || empty($query)) {
-            $query['bool']['must'][] = $this->_getExactQueryMatch($textQuery, $spellingType);
+            $exactMacthQuery = $this->_getExactQueryMatch($textQuery, $spellingType);
+            if ($exactMacthQuery !== false) {
+                $clause = 'must';
+                if ($spellingType == self::SPELLING_TYPE_MOST_FUZZY) {
+                    $clause = 'should';
+                }
+                $query['bool'][$clause][] = $this->_addPhraseOptimizations($exactMacthQuery, $textQuery, $spellingType);
+            }
         }
 
         return $query;
+    }
+
+    protected function _getDefaultSearchField()
+    {
+        return 'search_' . $this->getLanguageCode();
+    }
+
+    public function _getWeightedSearchFields()
+    {
+        return $this->getSearchFields(Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL);
+    }
+
+    protected function _getDefaultSubField()
+    {
+        return false;
+    }
+
+    protected function _getDefaultAnalyzer()
+    {
+        return false;
     }
 
     /**
@@ -158,38 +200,74 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
      */
     protected function _getExactQueryMatch($textQuery, $spellingType)
     {
-        $languageCode = $this->getLanguageCode();
-        $exactSearchFields = $this->getSearchFields(
-            Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL
+        $query = false;
+        $weightedMultiMatchQuery = array(
+            'query' => $textQuery , 'type' => 'best_fields', 'tie_breaker' => 1, 'fields' => $this->_getWeightedSearchFields()
         );
 
-        $exactMatchQuery = array('multi_match' => array('query' => $textQuery, 'type' => 'cross_fields', 'tie_breaker' => 0.5));
-        $exactMatchQuery['multi_match']['fields'] = $exactSearchFields;
-        $exactMatchQuery['multi_match']['analyzer']  = 'analyzer_' .$languageCode;
-        if ($spellingType != self::SPELLING_TYPE_MOST_FUZZY) {
-            $exactMatchQuery['multi_match']['minimum_should_match'] = $this->_getMinimumShouldMatch();
+        if ($this->_getDefaultAnalyzer()) {
+            $weightedMultiMatchQuery['analyzer'] = $this->_getDefaultAnalyzer();
         }
 
-        $phraseBoostValue = $this->_getPhraseMatchBoost();
-
-        if ($phraseBoostValue !== false) {
-            $refinedQueryFields = $this->getSearchFields(
-                Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL,
-                'whitespace'
-            );
-            $refinedQuery['multi_match'] = array(
-                'fields'   => $refinedQueryFields,
-                'analyzer' => 'whitespace',
-                'boost'    => $phraseBoostValue,
-                'query'    => $textQuery,
-                'type' => 'phrase'
-            );
-            $query = array('bool' => array('should' => array($refinedQuery), 'must' => array($exactMatchQuery)));
+        if ($spellingType == self::SPELLING_TYPE_PURE_STOPWORDS) {
+            $weightedMultiMatchQuery['minimum_should_match'] = "100%";
+            $query = array('multi_match' => $weightedMultiMatchQuery);
+        } else {
+            $cutoffFrequencyConfig = $this->_getCutOffFrequencyConfig();
+            $weightedMultiMatchQuery['cutoff_frequency'] = $cutoffFrequencyConfig;
+            if ($spellingType == self::SPELLING_TYPE_MOST_FUZZY) {
+                $query = array('multi_match' => $weightedMultiMatchQuery);
+            } else {
+                $defaultSearchField = $this->_getDefaultSearchField();
+                if ($this->_getDefaultSubField()) {
+                    $defaultSearchField = $defaultSearchField . '.' . $this->_getDefaultSubField();
+                }
+                $filterQuery = array('query' => $textQuery, 'cutoff_frequency' => $cutoffFrequencyConfig);
+                $filterQuery['minimum_should_match'] = array('low_freq' => $this->_getMinimumShouldMatch());
+                $query = array(
+                    'filtered' => array(
+                        'query' => array('multi_match' => $weightedMultiMatchQuery),
+                        'filter' => array('query' => array('common' => array($defaultSearchField => $filterQuery))),
+                    ),
+                );
+            }
         }
 
         return $query;
     }
 
+    protected function _addPhraseOptimizations($query, $textQuery, $spellingType)
+    {
+        $phraseBoostValue = $this->_getPhraseMatchBoost();
+
+        if ($phraseBoostValue !== false) {
+
+            $defaultSearchField = $this->_getDefaultSearchField();
+
+            if (str_word_count($textQuery) > 1) {
+                $qs = array('query' => $textQuery, 'default_field' => $defaultSearchField . '.shingle');
+                $qsFilter = array('query' => array('query_string' => $qs));
+                $optimizationFunction = array('filter' => $qsFilter, 'boost_factor' => $phraseBoostValue);
+            } else if ($spellingType != self::SPELLING_TYPE_PURE_STOPWORDS) {
+                $qs = array('query' => $textQuery, 'default_field' => $defaultSearchField . '.whitespace');
+                $qsFilter = array('query' => array('query_string' => $qs));
+                $optimizationFunction = array('filter' => $qsFilter, 'boost_factor' => $phraseBoostValue);
+            }
+
+            if ($optimizationFunction !== false) {
+                $query = array('function_score' => array('query' => $query, 'functions' => array($optimizationFunction)));
+            }
+        }
+
+        return $query;
+    }
+
+    protected function _getFuzzySearchFields()
+    {
+        return $this->getSearchFields(
+            Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL, 'whitespace'
+        );
+    }
     /**
      * Retrieve fuzziness configuration for fulltext queries. False if fuzziness is disabled.
      *
@@ -197,21 +275,28 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
      *
      * @return array|boolean
      */
-    protected function _getFuzzinessConfig($languageCode)
+    protected function _getFuzzinessConfig()
     {
         $fuzzinessConfig = (bool) Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'enable_fuzziness');
         if ($fuzzinessConfig) {
-            $fuzzySearchFields = $this->getSearchFields(
-                Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_FUZZY
-            );
+            $fuzzySearchFields = $this->_getFuzzySearchFields();
             $fuzzinessConfig = array(
-                'fields'         => $fuzzySearchFields,
-                'fuzziness'      => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'fuzziness_value'),
-                'prefix_length'  => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'fuzziness_prefix_length'),
-                'max_expansions' => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'fuzziness_max_expansions'),
+                'fields'           => $fuzzySearchFields,
+                'fuzziness'        => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'fuzziness_value'),
+                'prefix_length'    => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'fuzziness_prefix_length'),
+                'max_expansions'   => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'fuzziness_max_expansions'),
+                'cutoff_frequency' => $this->_getCutOffFrequencyConfig(),
             );
         }
+
         return $fuzzinessConfig;
+    }
+
+    protected function _getPhoneticSearchFields()
+    {
+        return $this->getSearchFields(
+            Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL, 'phonetic'
+        );
     }
 
     /**
@@ -221,24 +306,24 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
      *
      * @return array|boolean
      */
-    protected function _getPhoneticConfig($languageCode)
+    protected function _getPhoneticConfig()
     {
         $phoneticConfig = false;
-        $configPrexfix = self::RELEVANCY_SETTINGS_BASE_PATH;
-        $isSupported = $this->getAdapter()->getCurrentIndex()->isPhoneticSupported($languageCode);
-        $isEnabled   = Mage::getStoreConfig($configPrexfix . 'enable_phonetic_search');
+        $languageCode   = $this->getLanguageCode();
+        $configPrexfix  = self::RELEVANCY_SETTINGS_BASE_PATH;
+        $isSupported    = $this->getAdapter()->getCurrentIndex()->isPhoneticSupported($languageCode);
+        $isEnabled      = Mage::getStoreConfig($configPrexfix . 'enable_phonetic_search');
 
         if ($isSupported && $isEnabled) {
             $phoneticAnalyzer = 'phonetic_' . $languageCode;
-            $phoneticSearchFields = $this->getSearchFields(
-                Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_PHONETIC
-            );
+            $phoneticSearchFields = $this->_getPhoneticSearchFields();
             $phoneticConfig = array('analyzer' => $phoneticAnalyzer, 'fields' => $phoneticSearchFields);
             if ((bool) Mage::getStoreConfig($configPrexfix . 'enable_phonetic_search_fuzziness')) {
                 $fuzzinessConfig = array(
-                    'fuzziness'      => Mage::getStoreConfig($configPrexfix . 'phonetic_search_fuzziness_value'),
-                    'prefix_length'  => Mage::getStoreConfig($configPrexfix . 'phonetic_search_fuzziness_prefix_length'),
-                    'max_expansions' => Mage::getStoreConfig($configPrexfix . 'phonetic_search_fuzziness_max_expansions'),
+                    'fuzziness'        => Mage::getStoreConfig($configPrexfix . 'phonetic_search_fuzziness_value'),
+                    'prefix_length'    => Mage::getStoreConfig($configPrexfix . 'phonetic_search_fuzziness_prefix_length'),
+                    'max_expansions'   => Mage::getStoreConfig($configPrexfix . 'phonetic_search_fuzziness_max_expansions'),
+                    'cutoff_frequency' => $this->_getCutOffFrequencyConfig(),
                 );
                 $phoneticConfig = array_merge($phoneticConfig, $fuzzinessConfig);
             }
@@ -258,18 +343,17 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     protected function _getFuzzyQueryMatch($textQuery, $spellingType)
     {
         $fuzzyQuery = array();
-        $languageCode = $this->getLanguageCode();
 
         $matchQuery = array('query' => $textQuery, 'type' => 'best_fields', 'minimum_should_match' => "100%");
 
-        $fuzzinessConfig = $this->_getFuzzinessConfig($languageCode);
+        $fuzzinessConfig = $this->_getFuzzinessConfig();
         if ($fuzzinessConfig !== false) {
             $fuzzyQuery['bool']['should'][] = array('multi_match' => array_merge($matchQuery, $fuzzinessConfig));
         }
 
-        $phoneticConfig = $this->_getPhoneticConfig($languageCode);
+        $phoneticConfig = $this->_getPhoneticConfig();
         if ($phoneticConfig !== false) {
-            $fuzzyQuery['bool']['should'][] = array('multi_match' => array_merge($matchQuery, $phoneticConfig));
+            //$fuzzyQuery['bool']['should'][] = array('multi_match' => array_merge($matchQuery, $phoneticConfig));
         }
 
         if (!isset($fuzzyQuery['bool'])) {
@@ -291,89 +375,89 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     protected function _analyzeSpelling($textQuery)
     {
         if (!isset(self::$_analyzedQueries[$textQuery])) {
+            $queryTermStats = $this->_getQueryTermStats($textQuery);
+
             $result = self::SPELLING_TYPE_FUZZY;
-            $spellingQuery = $this->_buildSpellingQuery($textQuery);
-            Varien_Profiler::start('ES:EXECUTE:SPELLING_QUERY');
-            $response = $this->getClient()->search($spellingQuery);
-            Varien_Profiler::stop('ES:EXECUTE:SPELLING_QUERY');
-            $aggregations = $response['aggregations'];
-            if (isset($aggregations['exact_match']) && $aggregations['exact_match']['doc_count'] > 0) {
+            if ($queryTermStats['total'] == $queryTermStats['stop']) {
+                $result = self::SPELLING_TYPE_PURE_STOPWORDS;
+            } else if ($queryTermStats['total'] == $queryTermStats['stop'] + $queryTermStats['exact']) {
                 $result = self::SPELLING_TYPE_EXACT;
-            } else if (isset($aggregations['most_exact_match']) && $aggregations['most_exact_match']['doc_count'] > 0) {
+            } else if ($queryTermStats['missing'] == 0) {
                 $result = self::SPELLING_TYPE_MOST_EXACT;
-            } else if (isset($aggregations['most_fuzzy_match']) && $aggregations['most_fuzzy_match']['doc_count'] > 0) {
+            } else if ($queryTermStats['total'] - $queryTermStats['missing'] > 0) {
                 $result = self::SPELLING_TYPE_MOST_FUZZY;
             }
-
             self::$_analyzedQueries[$textQuery] = $result;
         }
 
         return self::$_analyzedQueries[$textQuery];
     }
 
+    protected function _getSpellingBaseField() {
+        return 'spelling_' . $this->getLanguageCode();
+    }
+
+    protected function _getSpellingAnalayzers() {
+        return array('whitespace', 'none');
+    }
+
     /**
-     * Build the query which detect if some words have been mispelled by the user.
+     *
      *
      * @param string $textQuery Query issued by the customer.
      *
      * @return array
      */
-    protected function _buildSpellingQuery($textQuery)
+    protected function _getQueryTermStats($textQuery)
     {
-        $languageCode = $this->getLanguageCode();
-        $query = array(
-            'index' => $this->getAdapter()->getCurrentIndex()->getCurrentName(),
-            'type'  => $this->getType(),
-            'size'  => 0,
-            'search_type' => 'count'
-        );
+        $baseField = $this->_getSpellingBaseField();
+        $analyzers = $this->_getSpellingAnalayzers();
 
-        $fuzzinessConfig = $this->_getFuzzinessConfig($languageCode);
-        if ($fuzzinessConfig != false) {
-            unset($fuzzinessConfig['fields']);
-        } else {
-            $fuzzinessConfig = array();
+        $currentIndex = $this->getAdapter()->getCurrentIndex()->getCurrentName();
+
+        $termVectorQuery = array('index' => $currentIndex, 'type' => $this->getType(), 'id' => '', 'term_statistics'  => true);
+        $termVectorQuery['body']['doc'] = array($baseField => $textQuery);
+        Varien_Profiler::start('ES:EXECUTE:SPELLING_QUERY');
+        $indexStatResponse = $this->getAdapter()->getCurrentIndex()->getStatus();
+        $termVectResponse  = $this->getClient()->termvector($termVectorQuery);
+        Varien_Profiler::stop('ES:EXECUTE:SPELLING_QUERY');
+        $terms = array();
+
+        $indexTotalDocs = (int) $indexStatResponse['total']['docs']['count'];
+
+        foreach ($analyzers as $currentAnalyzer) {
+            $currentField = $currentAnalyzer == 'none' ? $baseField : sprintf('%s.%s', $baseField, $currentAnalyzer);
+            $currentTermVector = $termVectResponse['term_vectors'][$currentField];
+            foreach ($currentTermVector['terms'] as $currentTerm => $termVector) {
+                foreach ($termVector['tokens'] as $token) {
+                    $positionKey = sprintf("%s_%s", $token['start_offset'], $token['end_offset']);
+                    $frequency = 0;
+                    if (isset($termVector['doc_freq'])) {
+                        $frequency = $termVector['doc_freq'] / $indexTotalDocs;
+                        $terms[$positionKey]['analyzers'][] = $currentTerm;
+                        $terms[$positionKey]['analyzers'][] = $currentAnalyzer;
+                    }
+                    if (isset($term[$positionKey]) && isset($term[$positionKey]['frequency'])) {
+                        $frequency = max($terms[$positionKey]['frequency'], $frequency);
+                    }
+                    $terms[$positionKey]['frequency'] = $frequency;
+                }
+            }
+        }
+        $queryTermStats = array('stop' => 0, 'exact' => 0, 'standard' => 0, 'missing' => 0, 'total' => count($terms));
+
+        foreach ($terms as $term) {
+            if ($term['frequency'] == 0) {
+                $queryTermStats['missing']++;
+            } else if ($term['frequency'] > $this->_getCutOffFrequencyConfig()) {
+                $queryTermStats['stop']++;
+            } else if (in_array('whitespace', $term['analyzers'])) {
+                $queryTermStats['exact']++;
+            } else {
+                $queryTermStats['standard']++;
+            }
         }
 
-        $query['body']['query']['bool']['should'] = array(
-            array(
-                'match' => array(
-                    'spelling_' . $languageCode . '.whitespace' => array_merge(
-                        $fuzzinessConfig,
-                        array('query' => $textQuery, 'minimum_should_match' => '100%')
-                    )
-                )
-            ),
-            array(
-                'multi_match' => array(
-                    'analyzer' => 'analyzer_' . $languageCode,
-                    'fields'   => $this->getSearchFields(
-                        Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL
-                    ),
-                    'minimum_should_match' => $this->_getMinimumShouldMatch(),
-                    'type'  => 'cross_fields',
-                    'query'                => $textQuery,
-                )
-            )
-        );
-
-        $query['body']['aggs']['exact_match']['filter']['query']['match']['spelling_' . $languageCode . '.whitespace'] = array(
-            'analyzer'             => 'whitespace',
-            'query'                => $textQuery,
-            'minimum_should_match' => '100%'
-        );
-
-        $query['body']['aggs']['most_exact_match']['filter']['query']['match']['spelling_' . $languageCode] = array(
-            'analyzer'             => 'analyzer_' . $languageCode,
-            'query'                => $textQuery,
-            'minimum_should_match' => $this->_getMinimumShouldMatch(),
-        );
-
-        $query['body']['aggs']['most_fuzzy_match']['filter']['query']['match']['spelling_' . $languageCode] = array(
-            'analyzer'             => 'analyzer_' . $languageCode,
-            'query'                => $textQuery
-        );
-
-        return $query;
+        return $queryTermStats;
     }
 }

@@ -78,19 +78,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     protected $_dateFormat = 'date';
 
     /**
-     * Stop languages for token filter.
-     *
-     * @var array
-     * @link http://www.elasticsearch.org/guide/reference/index-modules/analysis/stop-tokenfilter.html
-     */
-    protected $_stopLanguages = array(
-        'arabic', 'armenian', 'basque', 'brazilian', 'bulgarian', 'catalan', 'czech',
-        'danish', 'dutch', 'english', 'finnish', 'french', 'galician', 'german', 'greek',
-        'hindi', 'hungarian', 'indonesian', 'italian', 'norwegian', 'persian', 'portuguese',
-        'romanian', 'russian', 'spanish', 'swedish', 'turkish',
-    );
-
-    /**
      * Snowball languages.
      *
      * @var array
@@ -146,6 +133,22 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         return $this->_currentIndexName;
     }
 
+    /**
+     *
+     */
+    public function getStatus()
+    {
+        $result = false;
+        $indexName = $this->getCurrentName();
+        $statQuery = array('index' => $indexName);
+        $indexStatResponse = $this->getClient()->indices()->stats($statQuery);
+        
+        if (isset($indexStatResponse['indices'])) {
+            $result = current($indexStatResponse['indices']);
+        }
+
+        return $result;
+    }
 
     /**
      * Refreshes index
@@ -270,13 +273,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         );
 
         if (in_array($lang, $this->_snowballLanguages)) {
-            if (in_array($lang, $this->_stopLanguages)) {
-                $indexSettings['analysis']['filter']['stop_' . $languageCode] = array(
-                    'type' => 'stop', 'stopwords' => '_' . $lang . '_'
-                );
-                $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode]['filter'][] = 'stop_' . $languageCode;
-            }
-
             $languageStemmer = $lang;
             if (isset($indexSettings['analysis']['language_stemmers'][$lang])) {
                 $languageStemmer = $indexSettings['analysis']['language_stemmers'][$lang];

@@ -238,23 +238,35 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
         foreach ($this->_stores as $store) {
             $languageCode = $this->_helper->getLanguageCodeByStore($store);
             $defaultAnalyzer = 'analyzer_' . $languageCode;
-            $mapping['spelling_' . $languageCode]['type'] = 'multi_field';
-            $spellcheckBaseFieldProperties = array('type' => 'string', 'store' => false, 'fielddata' => array('format' => 'disabled'));
-            $mapping['spelling_' . $languageCode]['fields'] = array(
-                'spelling_' . $languageCode => array_merge(array('analyzer' => $defaultAnalyzer), $spellcheckBaseFieldProperties),
-                'whitespace'                => array_merge(array('analyzer' => 'whitespace'), $spellcheckBaseFieldProperties),
-            );
-
-            $mapping['autocomplete'] = array(
-                'type' => 'string', 'store' => false, 'analyzer' => 'edge_ngram_front', 'fielddata' => array('format' => 'disabled'),
-            );
-
-            if ($this->getCurrentIndex()->isPhoneticSupported($languageCode)) {
-                $mapping['spelling_' . $languageCode]['fields']['phonetic_' . $languageCode] = array_merge(
-                    array('analyzer' => 'phonetic_' . $languageCode), $spellcheckBaseFieldProperties
+            $baseFieldProperties = array('type' => 'string', 'store' => false, 'fielddata' => array('format' => 'disabled'));
+            foreach (array('search', 'spelling', 'autocomplete') as $currentField) {
+                $currentIndexField = sprintf('%s_%s', $currentField, $languageCode);
+                $mapping[$currentIndexField]['type'] = 'multi_field';
+                $mapping[$currentIndexField]['fields'] = array(
+                    $currentIndexField => array_merge(array('analyzer' => $defaultAnalyzer), $baseFieldProperties),
+                    'whitespace'       => array_merge(array('analyzer' => 'whitespace'), $baseFieldProperties),
                 );
+
+                if ($currentField == 'autocomplete') {
+                    $mapping[$currentIndexField]['fields']['edge_ngram_front'] = array_merge(
+                        array('analyzer' => 'edge_ngram_front'), $baseFieldProperties
+                    );
+                }
+
+                if ($currentField == 'search') {
+                    $mapping[$currentIndexField]['fields']['shingle'] = array_merge(
+                        array('analyzer' => 'shingle'), $baseFieldProperties
+                    );
+                }
+
+                if ($this->getCurrentIndex()->isPhoneticSupported($languageCode)) {
+                    $mapping[$currentIndexField]['fields']['phonetic'] = array_merge(
+                        array('analyzer' => 'phonetic_' . $languageCode), $baseFieldProperties
+                    );
+                }
             }
         }
+
         return $mapping;
     }
 
@@ -272,7 +284,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
      * @return array string
      */
     protected function _getStringMapping(
-        $fieldName, $languageCode, $type = 'string', $sortable = false, $fuzzy = true, $facet = true, $autocomplete = true
+        $fieldName, $languageCode, $type = 'string', $sortable = false, $fuzzy = true, $facet = true, $autocomplete = true, $searchable = true
     ) {
         $mapping = array();
 
@@ -293,7 +305,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
             }
 
             if ($autocomplete == true) {
-                $mapping[$fieldName]['fields'][$fieldName]['copy_to'][] = 'autocomplete';
+                $mapping[$fieldName]['fields'][$fieldName]['copy_to'][] = 'autocomplete_' . $languageCode;
             }
         }
 
@@ -317,6 +329,10 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
                     $mapping[$fieldName]['fields'][$analyzer], $analyzersOptions[$analyzer]
                 );
             }
+        }
+
+        if ($searchable) {
+            $mapping[$fieldName]['fields'][$fieldName]['copy_to'][] = 'search_' . $languageCode;
         }
 
         return $mapping;
@@ -418,10 +434,12 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
     {
         $defaultSearchFields = array();
 
-        if (in_array($searchType, array(self::SEARCH_TYPE_NORMAL, self::SEARCH_TYPE_FUZZY, self::SEARCH_TYPE_PHONETIC))) {
-            $defaultSearchFields[] = 'spelling_' . $languageCode;
+        if (in_array($searchType, array(self::SEARCH_TYPE_FUZZY, self::SEARCH_TYPE_PHONETIC))) {
+            $defaultSearchFields = 'spelling_' . $languageCode;
+        } else if ($searchType == self::SEARCH_TYPE_NORMAL) {
+            $defaultSearchFields = 'search_' . $languageCode;
         } else if ($searchType == self::SEARCH_TYPE_AUTOCOMPLETE) {
-            $defaultSearchFields[] = 'autocomplete';
+            $defaultSearchFields = 'autocomplete_' . $languageCode;;
         }
         return $defaultSearchFields;
     }

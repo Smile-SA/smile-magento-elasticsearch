@@ -643,10 +643,13 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         }
 
         if (!isset($this->_searchFields[$searchType . $analyzer])) {
-
+            $defaultSearchField = $this->_getDefaultSearchFieldBySearchType($languageCode, $searchType);
+            if ($analyzer) {
+                $defaultSearchField = sprintf('%s.%s', $defaultSearchField, $analyzer);
+            }
             $mapping = $this->getMappingProperties();
-            $this->_searchFields[$searchType . $analyzer] = $this->_getDefaultSearchFieldBySearchType($languageCode, $searchType);
-            $hasDefaultField = !empty($this->_searchFields[$searchType]);
+            $this->_searchFields[$searchType . $analyzer][] = $defaultSearchField;
+            $hasDefaultField = !empty($this->_searchFields[$searchType . $analyzer]);
 
             $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
 
