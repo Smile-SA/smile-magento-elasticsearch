@@ -563,18 +563,12 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
      * @return  Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Adapter Self reference
      *
      * @throws Exception
+     *
+     * @deprecated use exectureBulk() instead
      */
     public function addDocuments(array $docs)
     {
-        try {
-            if (!empty($docs)) {
-                $bulkParams = array('body' => $docs);
-                $ret = $this->getClient()->bulk($bulkParams);
-            }
-        } catch (Exception $e) {
-            throw($e);
-        }
-
+        $this->executeBulk($docs);
         return $this;
     }
 
@@ -617,6 +611,58 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                     $indexDocumentCount = $indexDocumentCount + self::COPY_DATA_BULK_SIZE;
                 }
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Update document to index.
+     *
+     * @param string $id   Document Id
+     * @param array  $data Data indexed
+     * @param string $type Document type
+     *
+     * @return string Json representation of the bulk document
+     */
+    public function updateDocument($id, array $data = array(), $type = 'product')
+    {
+        $headerData = array(
+            '_index' => $this->getCurrentName(),
+            '_type'  => $type,
+            '_id'    => $id
+        );
+
+        if (isset($data['_parent'])) {
+            $headerData['_parent'] = $data['_parent'];
+        }
+
+        $headerRow = array('update' => $headerData);
+        $dataRow   = array('doc' => $data);
+
+        $result = array($headerRow, $dataRow);
+        return $result;
+    }
+
+    /**
+     * Bulk document insert
+     *
+     * @param array $docs Document prepared with createDoc/updateDoc methods
+     *
+     * @return Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Abstract Self reference
+     *
+     * @throws Exception
+     *
+     */
+    public function executeBulk(array $docs)
+    {
+        try {
+            if (!empty($docs)) {
+                $bulkParams = array('body' => $docs);
+                $ret = $this->getClient()->bulk($bulkParams);
+            }
+        } catch (Exception $e) {
+            throw($e);
         }
 
         return $this;
