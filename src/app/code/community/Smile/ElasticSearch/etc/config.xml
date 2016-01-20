@@ -21,7 +21,7 @@
 <config>
     <modules>
         <Smile_ElasticSearch>
-            <version>1.1.7</version>
+            <version>1.2.1</version>
         </Smile_ElasticSearch>
     </modules>
     <global>
@@ -32,6 +32,10 @@
             </smile_elasticsearch>
             <smile_elasticsearch_resource>
                 <class>Smile_ElasticSearch_Model_Resource</class>
+                <entities>
+                    <!-- Shortened table name was mandatory to have Magento creating trigger on it properly -->
+                    <search_term_product_position><table>smile_elasticsearch_search_position</table></search_term_product_position>
+                </entities>
             </smile_elasticsearch_resource>
             <enterprise_catalogsearch>
                 <rewrite>
@@ -68,6 +72,16 @@
                         <all>smile_elasticsearch/index_action_fulltext_refresh</all>
                     </action_model>
                 </catalogsearch_fulltext>
+
+                <search_term_product_position>
+                    <model>smile_elasticsearch/indexer_search_terms_position</model>
+                    <action_model>
+                        <changelog>smile_elasticsearch/index_action_search_terms_refresh_changelog</changelog>
+                        <all>smile_elasticsearch/index_action_search_terms_refresh</all>
+                    </action_model>
+                    <index_table>smile_elasticsearch_search_position</index_table>
+                    <sort_order>300</sort_order>
+                </search_term_product_position>
             </indexer>
         </index>
         <events>
@@ -112,6 +126,7 @@
                 </observers>
             </catalogsearch_fulltext_shell_reindex_after>
         </events>
+
         <smile_elasticsearch>
             <autocomplete>
                 <product>
@@ -125,12 +140,16 @@
             <mapping>
                 <product>
                     <model>smile_elasticsearch/engine_elasticsearch_mapping_product</model>
+                    <data_providers>
+                        <search_terms_position>smile_elasticsearch/engine_elasticsearch_mapping_dataProvider_terms_position</search_terms_position>
+                    </data_providers>
                 </product>
                 <category>
                     <model>smile_elasticsearch/engine_elasticsearch_mapping_category</model>
                 </category>
             </mapping>
         </smile_elasticsearch>
+
     </global>
     <admin>
         <routers>
@@ -160,6 +179,17 @@
                     </smile_elasticsearch>
                 </observers>
             </adminhtml_catalog_product_attribute_edit_prepare_form>
+
+            <!-- This event is in adminhtml only because otherwise products positions would be saved and indexed even
+                 when processing a search on the frontend -->
+            <catalogsearch_query_save_after>
+                <observers>
+                    <add_products_position_into_search_terms>
+                        <class>smile_elasticsearch/search_term_observer</class>
+                        <method>saveProductsPositions</method>
+                    </add_products_position_into_search_terms>
+                </observers>
+            </catalogsearch_query_save_after>
         </events>
         <translate>
             <modules>
@@ -206,6 +236,7 @@
                     </smile_elasticsearch>
                 </observers>
             </controller_action_predispatch_catalogsearch_result_index>
+
             <controller_action_predispatch_catalogsearch_advanced_result>
                 <observers>
                     <smile_elasticsearch>
@@ -214,6 +245,16 @@
                     </smile_elasticsearch>
                 </observers>
             </controller_action_predispatch_catalogsearch_advanced_result>
+
+            <smile_elasticsearch_query_assembled>
+                <observers>
+                    <add_search_terms_positions>
+                        <class>smile_elasticsearch/search_term_observer</class>
+                        <method>applyProductsPositions</method>
+                    </add_search_terms_positions>
+                </observers>
+            </smile_elasticsearch_query_assembled>
+
         </events>
         <routers>
             <catalogsearch>

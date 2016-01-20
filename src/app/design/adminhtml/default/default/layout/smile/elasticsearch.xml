@@ -27,4 +27,32 @@
             <block type="smile_elasticsearch/adminhtml_synonym_updateButton"/>
         </reference>
     </adminhtml_catalog_search_index>
+
+    <adminhtml_catalog_search_edit>
+
+        <reference name="left">
+            <block type="smile_elasticsearch/adminhtml_catalog_search_edit_tabs" name="product_tabs">
+                <action method="addTab">
+                    <name>catalog_search_main_config</name>
+                    <block>smile_elasticsearch/adminhtml_catalog_search_edit_tab_main</block>
+                </action>
+                <action method="addTab">
+                    <name>catalog_search_boost_config</name>
+                    <block>smile_elasticsearch/adminhtml_catalog_search_edit_tab_boost_preview</block>
+                </action>
+            </block>
+        </reference>
+
+        <reference name="content">
+            <action method="unsetChild"><child>catalog_search_edit</child></action>
+            <block type="smile_elasticsearch/adminhtml_catalog_search_edit" name="catalog_search_edit" />
+        </reference>
+
+    </adminhtml_catalog_search_edit>
+
+    <adminhtml_catalog_search_preview>
+        <block type="core/text_list" name="root" output="toHtml">
+            <block type="smile_elasticsearch/adminhtml_catalog_search_edit_tab_boost_preview" />
+        </block>
+    </adminhtml_catalog_search_preview>
 </layout>
