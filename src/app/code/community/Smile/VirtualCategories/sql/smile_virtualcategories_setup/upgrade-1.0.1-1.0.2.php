@@ -48,3 +48,5 @@ if (Mage::helper("smile_elasticsearch")->isEnterpriseSupportEnabled()) {
         )
     );
 }
+
+$installer->endSetup();
