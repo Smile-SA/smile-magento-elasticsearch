@@ -21,7 +21,7 @@
 <config>
     <modules>
         <Smile_VirtualCategories>
-            <version>1.0.0</version>
+            <version>1.0.2</version>
         </Smile_VirtualCategories>
     </modules>
     <global>
@@ -32,6 +32,11 @@
             </smile_virtualcategories>
             <smile_virtualcategories_resource>
                 <class>Smile_VirtualCategories_Model_Resource</class>
+                <entities>
+                    <category_product_position>
+                        <table>smile_virtualcategories_product_position</table>
+                    </category_product_position>
+                </entities>
             </smile_virtualcategories_resource>
         </models>
         <helpers>
@@ -58,6 +63,44 @@
                 </setup>
             </smile_virtualcategories_setup>
         </resources>
+
+        <smile_elasticsearch>
+            <mapping>
+                <product>
+                    <data_providers>
+                        <!-- Custom data provider for product positions in virtual categories -->
+                        <virtual_categories_products_position>smile_virtualcategories/engine_elasticsearch_mapping_dataProvider_virtualCategories_position</virtual_categories_products_position>
+                    </data_providers>
+                </product>
+            </mapping>
+        </smile_elasticsearch>
+
+        <events>
+            <smile_elasticsearch_query_assembled>
+                <observers>
+                    <apply_virtual_category_products_positions>
+                        <class>smile_virtualcategories/observer</class>
+                        <method>applyProductsPositions</method>
+                    </apply_virtual_category_products_positions>
+                </observers>
+            </smile_elasticsearch_query_assembled>
+        </events>
+
+        <index>
+            <indexer>
+                <!-- Indexer code is capped at 32 in index_process table -->
+                <virtual_categories_product_pos>
+                    <model>smile_virtualcategories/indexer_virtualCategories_product_position</model>
+                    <action_model>
+                        <changelog>smile_virtualcategories/index_action_virtualCategories_product_position_refresh_changelog</changelog>
+                        <all>smile_virtualcategories/index_action_virtualCategories_product_position_refresh</all>
+                    </action_model>
+                    <index_table>smile_virtualcategories_product_position</index_table>
+                    <sort_order>400</sort_order>
+                </virtual_categories_product_pos>
+            </indexer>
+        </index>
+
     </global>
     <admin>
         <routers>
@@ -80,6 +123,14 @@
                     </smile_virtualcategories>
                 </observers>
             </catalog_category_prepare_save>
+            <catalog_category_save_commit_after>
+                <observers>
+                    <smile_virtualcategories_save_custom_products_positions>
+                        <class>smile_virtualcategories/observer</class>
+                        <method>saveProductsPositions</method>
+                    </smile_virtualcategories_save_custom_products_positions>
+                </observers>
+            </catalog_category_save_commit_after>
         </events>
         <layout>
             <updates>
