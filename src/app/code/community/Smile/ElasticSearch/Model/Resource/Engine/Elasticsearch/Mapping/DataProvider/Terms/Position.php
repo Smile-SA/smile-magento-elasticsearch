@@ -43,8 +43,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_DataProvid
         // Populate matched products
         foreach ($productsPosition as $position) {
             $result[(int) $position["product_id"]]["search_terms_position"][] = array(
-                "query_id"         => (int) $position["query_id"],
-                "product_position" => (int) $position["position"],
+                "query_id"              => (int) $position["query_id"],
+                "term_product_position" => (int) $position["position"],
             );
         }
 
@@ -63,8 +63,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_DataProvid
         $mapping['properties']['search_terms_position'] = array(
             'type' => 'nested',
             'properties' => array(
-                'query_id'         => array('type' => 'long', 'fielddata' => array('format' => 'doc_values')),
-                'product_position' => array('type' => 'long', 'fielddata' => array('format' => 'doc_values'))
+                'query_id'              => array('type' => 'long', 'fielddata' => array('format' => 'doc_values')),
+                'term_product_position' => array('type' => 'long', 'fielddata' => array('format' => 'doc_values'))
             )
         );
 

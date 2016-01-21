@@ -43,7 +43,7 @@ class Smile_ElasticSearch_Model_Search_Term_Optimizer extends Varien_Object
                     'term' => array('query_id' => (int) $searchQuery->getId())
                 );
 
-                $sort = array("product_position" => $sortDefinition);
+                $sort = array("term_product_position" => $sortDefinition);
 
                 array_unshift($query['body']['sort'], $sort);
             }
