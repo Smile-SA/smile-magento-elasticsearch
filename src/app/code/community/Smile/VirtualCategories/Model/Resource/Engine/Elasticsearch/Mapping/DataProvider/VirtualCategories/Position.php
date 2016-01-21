@@ -39,8 +39,8 @@ class Smile_VirtualCategories_Model_Resource_Engine_Elasticsearch_Mapping_DataPr
         // Populate matched products
         foreach ($productsPosition as $position) {
             $result[(int) $position["product_id"]]["virtual_category_position"][] = array(
-                "virtual_category_id" => (int) $position["category_id"],
-                "product_position"    => (int) $position["position"],
+                "virtual_category_id"       => (int) $position["category_id"],
+                "category_product_position" => (int) $position["position"],
             );
         }
 
@@ -59,8 +59,8 @@ class Smile_VirtualCategories_Model_Resource_Engine_Elasticsearch_Mapping_DataPr
         $mapping['properties']['virtual_category_position'] = array(
             'type'       => 'nested',
             'properties' => array(
-                'virtual_category_id' => array('type' => 'long', 'fielddata' => array('format' => 'doc_values')),
-                'product_position'    => array('type' => 'long', 'fielddata' => array('format' => 'doc_values'))
+                'virtual_category_id'       => array('type' => 'long', 'fielddata' => array('format' => 'doc_values')),
+                'category_product_position' => array('type' => 'long', 'fielddata' => array('format' => 'doc_values'))
             )
         );
 
