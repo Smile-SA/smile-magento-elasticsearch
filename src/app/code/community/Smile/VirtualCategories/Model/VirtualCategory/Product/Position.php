@@ -40,7 +40,7 @@ class Smile_VirtualCategories_Model_VirtualCategory_Product_Position extends Var
                     'term' => array('virtual_category_id' => (int) $category->getId())
                 );
 
-                $sort = array("product_position" => $sortDefinition);
+                $sort = array("category_product_position" => $sortDefinition);
 
                 array_unshift($query['body']['sort'], $sort);
             }
