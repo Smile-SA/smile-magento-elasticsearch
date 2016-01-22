@@ -383,5 +383,10 @@
                 <max_size>3</max_size>
             </category_autocomplete>
         </elasticsearch_advanced_search_settings>
+        <index_management>
+            <index_options>
+                <search_terms_products_position>1</search_terms_products_position>
+            </index_options>
+        </index_management>
     </default>
 </config>
