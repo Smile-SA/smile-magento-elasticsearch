@@ -37,34 +37,39 @@ class Smile_VirtualCategories_Model_Resource_Catalog_VirtualCategory_Product_Pos
      */
     public function saveProductsPositions($positions, $category = null)
     {
-        if (count($positions) && ($category->getId())) {
+        if ($category->getId()) {
             $categoryId = $category->getId();
             $storeId    = $category->getStoreId();
 
-            $data = array();
-
-            foreach ($positions as $productId => $position) {
-                $data[] = array(
-                    "category_id" => $categoryId,
-                    "product_id"  => $productId,
-                    "store_id"    => $storeId,
-                    "position"    => $position
-                );
-            }
-
-            $this->_getWriteAdapter()->insertOnDuplicate(
-                $this->getMainTable(),
-                $data,
-                array_keys(current($data))
+            $deleteCondition = array(
+                "category_id = ?" => $categoryId,
+                "store_id = ?"    => $storeId,
             );
+
+            if (count($positions)) {
+                $data = array();
+
+                foreach ($positions as $productId => $position) {
+                    $data[] = array(
+                        "category_id" => $categoryId,
+                        "product_id"  => $productId,
+                        "store_id"    => $storeId,
+                        "position"    => $position
+                    );
+                }
+
+                $this->_getWriteAdapter()->insertOnDuplicate(
+                    $this->getMainTable(),
+                    $data,
+                    array_keys(current($data))
+                );
+
+                $deleteCondition["product_id NOT IN (?)"] = array_keys($positions);
+            }
 
             $this->_getWriteAdapter()->delete(
                 $this->getMainTable(),
-                array(
-                    "category_id = ?"       => $categoryId,
-                    "store_id = ?"          => $storeId,
-                    "product_id NOT IN (?)" => array_keys($positions)
-                )
+                $deleteCondition
             );
         }
     }
