@@ -481,5 +481,24 @@
                 </category_autocomplete>
             </groups>
         </elasticsearch_advanced_search_settings>
+
+       <index_management>
+           <groups>
+               <index_options>
+                   <fields>
+                       <search_terms_products_position translate="label" module="smile_elasticsearch">
+                           <label>Search Terms products positions Index</label>
+                           <frontend_type>select</frontend_type>
+                           <source_model>enterprise_index/system_config_source_update</source_model>
+                           <sort_order>1600</sort_order>
+                           <show_in_default>1</show_in_default>
+                           <show_in_website>0</show_in_website>
+                           <show_in_store>0</show_in_store>
+                       </search_terms_products_position>
+                   </fields>
+               </index_options>
+           </groups>
+       </index_management>
+
     </sections>
 </config>
