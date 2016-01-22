@@ -18,7 +18,7 @@
 <config>
     <tabs>
         <smile_searchandisingsuite translate="label" module="smile_searchandisingsuite">
-            <label>Smile Searchandasing Suite</label>
+            <label>Smile Searchandising Suite</label>
             <sort_order>200</sort_order>
         </smile_searchandisingsuite>
     </tabs>
