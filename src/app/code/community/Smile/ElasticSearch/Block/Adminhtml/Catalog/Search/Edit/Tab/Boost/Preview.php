@@ -65,7 +65,7 @@ class Smile_ElasticSearch_Block_Adminhtml_Catalog_Search_Edit_Tab_Boost_Preview
      */
     public function canShowTab()
     {
-        return $this->getQuery()->getId();
+        return ($this->getQuery()->getId() && Mage::helper("smile_elasticsearch")->isActiveEngine());
     }
 
     /**
@@ -75,7 +75,7 @@ class Smile_ElasticSearch_Block_Adminhtml_Catalog_Search_Edit_Tab_Boost_Preview
      */
     public function isHidden()
     {
-        return !$this->getQuery()->getId();
+        return (!$this->getQuery()->getId() || !Mage::helper("smile_elasticsearch")->isActiveEngine());
     }
 
     /**
