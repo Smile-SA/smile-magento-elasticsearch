@@ -234,7 +234,7 @@ JAVASCRIPT;
             ->getEngine()
             ->getResultCollection();
 
-        $allowedVisibilities = Mage::getSingleton('catalog/product_visibility')->getVisibleInSearchIds();
+        $allowedVisibilities = Mage::getSingleton('catalog/product_visibility')->getVisibleInCatalogIds();
         $allowedStatuses = Mage::getSingleton('catalog/product_status')->getVisibleStatusIds();
 
         $query = $collection->getSearchEngineQuery()
