@@ -257,7 +257,9 @@ class Smile_ElasticSearch_Block_Adminhtml_Catalog_Search_Edit_Tab_Boost_Preview
         $query->setQueryType("product_search_layer");
 
         // Mimic query assembling, because ->search() is never really called on it
-        $eventData = new Varien_Object(array('query' => $query->getRawQuery(), 'query_type' => $query->getQueryType()));
+        $eventData = new Varien_Object(
+            array('query' => $query->getRawQuery(), 'query_type' => $query->getQueryType(), 'store_id' => $this->getStoreId())
+        );
         Mage::dispatchEvent('smile_elasticsearch_query_assembled', array('query_data' => $eventData));
 
         $query = $eventData->getQuery();
