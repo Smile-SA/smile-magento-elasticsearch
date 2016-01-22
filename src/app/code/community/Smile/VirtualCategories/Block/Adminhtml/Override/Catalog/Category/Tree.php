@@ -106,7 +106,7 @@ class Smile_VirtualCategories_Block_Adminhtml_Override_Catalog_Category_Tree ext
 
             $categoriesNodes = array();
             foreach ($categories as $category) {
-                $categoriesNodes[$category->getId()] = $this->_getNodeJson($category->getData());
+                $categoriesNodes[] = $this->_getNodeJson($category->getData());
             }
 
             if (!empty($categories)) {
