@@ -253,7 +253,15 @@ JAVASCRIPT;
 
         $query = $query->setLanguageCode(Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store));
 
-        return $query->getRawQuery();
+        $query->setQueryType("category_products_layer");
+
+        // Mimic query assembling, because ->search() is never really called on it
+        $eventData = new Varien_Object(array('query' => $query->getRawQuery(), 'query_type' => $query->getQueryType()));
+        Mage::dispatchEvent('smile_elasticsearch_query_assembled', array('query_data' => $eventData));
+
+        $query = $eventData->getQuery();
+
+        return $query;
     }
 
     /**
