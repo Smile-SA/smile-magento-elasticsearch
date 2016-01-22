@@ -39,32 +39,35 @@ class Smile_ElasticSearch_Model_Resource_Search_Term_Product_Position extends Ma
      */
     public function saveProductsPositions($positions, $query = null)
     {
-        if (count($positions) && ($query->getId())) {
+        if ($query->getId()) {
             $queryId = $query->getId();
 
-            $data = array();
+            $deleteCondition = array("query_id = ?" => $queryId);
 
-            foreach ($positions as $productId => $position) {
-                $data[] = array(
-                    "query_id"   => $queryId,
-                    "product_id" => $productId,
-                    "position"   => $position
-                );
+            if (count($positions)) {
+                $data = array();
+
+                foreach ($positions as $productId => $position) {
+                    $data[] = array(
+                        "query_id"   => $queryId,
+                        "product_id" => $productId,
+                        "position"   => $position
+                    );
+                }
+
+                $this->_getWriteAdapter()
+                    ->insertOnDuplicate(
+                        $this->getMainTable(),
+                        $data,
+                        array_keys(current($data))
+                    );
+
+                $deleteCondition["product_id NOT IN (?)"] = array_keys($positions);
             }
-
-            $this->_getWriteAdapter()
-                ->insertOnDuplicate(
-                    $this->getMainTable(),
-                    $data,
-                    array_keys(current($data))
-                );
 
             $this->_getWriteAdapter()->delete(
                 $this->getMainTable(),
-                array(
-                    "query_id = ?"          => $queryId,
-                    "product_id NOT IN (?)" => array_keys($positions)
-                )
+                $deleteCondition
             );
         }
     }
