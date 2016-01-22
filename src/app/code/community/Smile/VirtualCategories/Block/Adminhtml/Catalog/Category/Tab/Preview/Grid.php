@@ -1,6 +1,6 @@
 <?php
 /**
- * _______________________________
+ * Preview block for virtual categories
  *
  * DISCLAIMER
  *
@@ -8,7 +8,7 @@
  * versions in the future.
  *
  * @category  Smile
- * @package   Smile________________
+ * @package   Smile_VirtualCategories
  * @author    Romain Ruaud <romain.ruaud@smile.fr>
  * @copyright 2015 Smile
  * @license   Apache License Version 2.0

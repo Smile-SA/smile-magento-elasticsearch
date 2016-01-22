@@ -27,12 +27,18 @@ class Smile_VirtualCategories_Block_Adminhtml_Override_Catalog_Category_Tabs ext
     {
         parent::_prepareLayout();
 
-        $tab = $this->_tabs['products'];
-        $blockName = 'smile_virtualcategories/adminhtml_catalog_category_tab_product';
-        $newTab = $this->getLayout()
-            ->createBlock($blockName, 'category.products.tab', array('products_grid' => $this->getTabContent($tab)));
+        if (Mage::helper("smile_elasticsearch")->isActiveEngine()) {
+            $tab       = $this->_tabs['products'];
+            $blockName = 'smile_virtualcategories/adminhtml_catalog_category_tab_product';
+            $newTab    = $this->getLayout()
+                ->createBlock(
+                    $blockName,
+                    'category.products.tab',
+                    array('products_grid' => $this->getTabContent($tab))
+                );
 
-        $tab->setContent($newTab->toHtml());
+            $tab->setContent($newTab->toHtml());
+        }
 
         return $this;
     }
