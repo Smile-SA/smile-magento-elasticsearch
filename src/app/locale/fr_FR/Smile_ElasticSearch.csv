@@ -77,3 +77,4 @@ Ex: Brand facet will be displayed only if 90% of the product have a brand.,Ex: L
 "Phrase match boost value","Valeur du boost sur les phrases"
 "Search Terms products positions Indexer","Positions des produits dans les résultats de recherche"
 "Computes custom positions for products by search terms.","Indexe les positions attribuées aux produits dans les résultats de recherche."
+"Search Terms products positions Index","Index des positions des produits dans les résultats de recherche"

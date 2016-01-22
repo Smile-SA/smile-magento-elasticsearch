@@ -42,19 +42,29 @@ class Smile_ElasticSearch_Model_Search_Term_Observer
 
         $resourceModel->saveProductsPositions($filteredPositions, $searchTerm);
 
+        $productIdsToReindex = array_unique(array_merge($previousProducts, array_keys($filteredPositions)));
+
         // If Enterprise version, Mview index will handle editing, otherwise, process reindex
         if (!Mage::helper("smile_elasticsearch")->isEnterpriseSupportEnabled()) {
 
             Mage::getSingleton('index/indexer')->processEntityAction(
-                $searchTerm->setProductIds(
-                    array_unique(
-                        array_merge($previousProducts, array_keys($filteredPositions))
-                    )
-                ),
+                $searchTerm->setProductIds($productIdsToReindex),
                 Smile_ElasticSearch_Model_Indexer_Search_Terms_Position::ENTITY,
                 Mage_Index_Model_Event::TYPE_SAVE
             );
 
+        } else {
+
+            $helper = Mage::helper('smile_elasticsearch/index');
+
+            if ($helper->isLiveProductPositionInSearchReindexEnabled()) {
+
+                $client = Mage::getModel('enterprise_mview/client');
+                $client->init(Mage::helper('enterprise_index')->getIndexerConfigValue('search_term_product_position', 'index_table'));
+                $arguments = array('value' => $productIdsToReindex);
+                $client->execute('smile_elasticsearch/index_action_search_terms_refresh_row', $arguments);
+
+            }
         }
     }
 
