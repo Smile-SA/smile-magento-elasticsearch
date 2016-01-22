@@ -252,8 +252,15 @@ class Smile_ElasticSearch_Block_Adminhtml_Catalog_Search_Edit_Tab_Boost_Preview
             ->addFilter('terms', array('store_id' => $this->getStoreId()))
             ->addFilter('terms', array('visibility' => $allowedVisibilities))
             ->addFilter('terms', array('status' => $allowedStatuses))
-            ->setLanguageCode(Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store))
-            ->getRawQuery();
+            ->setLanguageCode(Mage::helper('smile_elasticsearch')->getLanguageCodeByStore($store));
+
+        $query->setQueryType("product_search_layer");
+
+        // Mimic query assembling, because ->search() is never really called on it
+        $eventData = new Varien_Object(array('query' => $query->getRawQuery(), 'query_type' => $query->getQueryType()));
+        Mage::dispatchEvent('smile_elasticsearch_query_assembled', array('query_data' => $eventData));
+
+        $query = $eventData->getQuery();
 
         return $query;
     }
