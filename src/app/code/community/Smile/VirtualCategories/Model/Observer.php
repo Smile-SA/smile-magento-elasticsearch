@@ -130,19 +130,31 @@ class Smile_VirtualCategories_Model_Observer
 
         $resourceModel->saveProductsPositions($filteredPositions, $category);
 
+        $productIdsToReindex = array_unique(array_merge($previousProducts, array_keys($filteredPositions)));
+
         // If Enterprise version, Mview index will handle editing, otherwise, process reindex
         if (!Mage::helper("smile_elasticsearch")->isEnterpriseSupportEnabled()) {
 
             Mage::getSingleton('index/indexer')->processEntityAction(
-                $category->setVirtualProductIds(
-                    array_unique(
-                        array_merge($previousProducts, array_keys($filteredPositions))
-                    )
-                ),
+                $category->setVirtualProductIds($productIdsToReindex),
                 Mage_Catalog_Model_Category::ENTITY,
                 Mage_Index_Model_Event::TYPE_SAVE
             );
 
+        } else {
+
+            $helper = Mage::helper('smile_virtualcategories/index');
+
+            if ($helper->isLiveProductPositionInVirtualCategoriesReindexEnabled()) {
+
+                $client = Mage::getModel('enterprise_mview/client');
+                $client->init(
+                    Mage::helper('enterprise_index')->getIndexerConfigValue('virtual_categories_product_pos', 'index_table')
+                );
+                $arguments = array('value' => $productIdsToReindex);
+                $client->execute('smile_virtualcategories/index_action_virtualCategories_product_position_refresh_row', $arguments);
+
+            }
         }
     }
 

@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Module configuration
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * This work is a fork of Johann Reinke <johann@bubblecode.net> previous module
+ * available at https://github.com/jreinke/magento-elasticsearch
+ *
+ * @category  Smile
+ * @package   Smile_VirtualCategories
+ * @author    Romain Ruaud <romain.ruaud@smile.fr>
+ * @copyright 2015 Smile
+ * @license   Apache License Version 2.0
+ */
+ -->
+<config>
+
+    <sections>
+        <index_management>
+            <groups>
+                <index_options>
+                    <fields>
+                        <virtual_categories_products_position translate="label" module="smile_elasticsearch">
+                            <label>Virtual Categories products positions Index</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>enterprise_index/system_config_source_update</source_model>
+                            <sort_order>1800</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </virtual_categories_products_position>
+                    </fields>
+                </index_options>
+            </groups>
+        </index_management>
+    </sections>
+
+</config>
