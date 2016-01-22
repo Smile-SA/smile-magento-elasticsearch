@@ -1,0 +1,100 @@
+<?php
+    /**
+     * Product list rule fieldset rendering.
+     *
+     * DISCLAIMER
+     *
+     * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+     * versions in the future.
+     *
+     * @category  Smile
+     * @package   Smile_VirtualCategories
+     * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
+     * @copyright 2013 Smile
+     * @license   Apache License Version 2.0
+     */?>
+<?php $_element = $this->getElement() ?>
+<div class="rule-tree">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-edit-form fieldset-legend"><?php echo $_element->getLegend() ?></h4>
+    </div>
+    <fieldset id="<?php echo $_element->getHtmlId() ?>" <?php echo $_element->serialize(array('class')) ?>>
+        <?php if ($_element->getComment()) : ?>
+            <p class="comment"><?php echo $this->escapeHtml($_element->getComment()) ?></p>
+        <?php endif; ?>
+        <?php echo $_element->getChildrenHtml() ?>
+
+        <div class="box" id="dashboard_diagram_totals">
+            <div class="entry-edit">
+                <table cellpadding="3px" cellspacing="10px" style="width:100%">
+
+                    <col width="50"/>
+                    <col width="50"/>
+                    <tbody>
+                    <tr>
+                        <td>
+                            <strong><?php echo $this->__('Preview :'); ?></strong>
+                        </td>
+                        <!--<td>
+                        <button class="button" onclick="return SmileVirtualCategoryPreview.refresh();"><?php echo $this->__('Refresh');?></button>
+                    </td>-->
+                    </tr>
+                    </tbody>
+                </table>
+
+                <div id="preview-result"><?php echo $this->getVirtualProductsGridHtml(); ?></div>
+            </div>
+        </div>
+
+    </fieldset>
+</div>
+<script type="text/javascript">
+
+    if (VarienRulesForm.prototype.oldHideParamInputField == undefined) {
+        VarienRulesForm.prototype.oldHideParamInputField = VarienRulesForm.prototype.hideParamInputField;
+        VarienRulesForm.prototype.hideParamInputField = function (container, event) {
+            this.oldHideParamInputField(container, event);
+            if (!container.hasClassName('rule-param-new-child')) {
+                var label = Element.down(container, '.label');
+                if ((label.innerHTML !== "...") && (label.innerHTML !== "")) {
+                    SmileVirtualCategoryPreview.refresh();
+                }
+            }
+        };
+    }
+
+    if (VarienRulesForm.prototype.oldRemoveRuleEntry == undefined) {
+        VarienRulesForm.prototype.oldRemoveRuleEntry = VarienRulesForm.prototype.removeRuleEntry;
+        VarienRulesForm.prototype.removeRuleEntry = function (container, event) {
+            this.oldRemoveRuleEntry(container, event);
+            SmileVirtualCategoryPreview.refresh();
+        };
+    }
+
+    <?php echo $_element->getHtmlId() ?> = new VarienRulesForm('<?php echo $_element->getHtmlId() ?>', '<?php echo $this->getNewChildUrl() ?>');
+
+    <?php if ($_element->getReadonly()) : ?>
+    <?php echo $_element->getHtmlId() ?>.setReadonly(true);
+    <?php endif; ?>
+
+</script>
+
+<script type="text/javascript">
+    SmileVirtualCategoryPreview = {
+        params     : {},
+        previewUrl : "<?php echo Mage::helper('core')->jsQuoteEscape($this->getPreviewUrl()); ?>",
+        refreshParams: function() {
+            if ($('store_switcher')) {
+                SmileVirtualCategoryPreview.params.storeId = $('store_switcher').value;
+            }
+        },
+        refresh: function() {
+            SmileVirtualCategoryPreview.refreshParams();
+            var previewUrl   = SmileVirtualCategoryPreview.previewUrl;
+            var updateParams = {method: "POST", parameters: $('category_edit_form').serialize(), evalScripts: true};
+            new Ajax.Updater('preview-result', previewUrl, updateParams);
+
+            return false;
+        }
+    }
+</script>

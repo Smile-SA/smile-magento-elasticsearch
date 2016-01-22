@@ -97,7 +97,9 @@ class Smile_VirtualCategories_Block_Adminhtml_Catalog_Category_Tab_Product exten
 
         $virtualProductsGrid = $this->getVirtualProductsGrid();
         $renderer = Mage::getBlockSingleton('adminhtml/widget_form_renderer_fieldset')
-            ->setTemplate('smile/virtualcategories/category/rule_fieldset.phtml')
+            // Legacy rule_fieldset.phtml is used by another module
+            // @TODO v1.4 refactor this
+            ->setTemplate('smile/virtualcategories/category/preview/rule_fieldset.phtml')
             ->setNewChildUrl($url)
             ->setPreviewUrl($virtualProductsGrid->getGridUrl())
             ->setVirtualProductsGridHtml($virtualProductsGrid->toHtml());
