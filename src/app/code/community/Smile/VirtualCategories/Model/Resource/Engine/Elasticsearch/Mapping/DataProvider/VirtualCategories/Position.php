@@ -1,6 +1,6 @@
 <?php
 /**
- * _______________________________
+ * Data provider used to add product positions in virtual categories into the index
  *
  * DISCLAIMER
  *
