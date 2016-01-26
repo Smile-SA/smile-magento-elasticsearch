@@ -37,16 +37,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
         return $this->getSearchFields(Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_AUTOCOMPLETE);
     }
 
-    protected function _getDefaultSubField()
-    {
-        return 'edge_ngram_front';
-    }
-
-    protected function _getDefaultAnalyzer()
-    {
-        return 'whitespace';
-    }
-
     /**
      * Build the query part for correctly spelled query part.
      *
@@ -63,8 +53,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
             'tie_breaker' => 1,
             'fields' => $this->_getWeightedSearchFields(),
             'analyzer' => 'whitespace',
-            'minimum_should_match' => "100%",
-            'cutoff_frequency' => $this->_getCutOffFrequencyConfig()
+            'minimum_should_match' => "100%"
         );
 
         $query = array('multi_match' => $weightedMultiMatchQuery);
@@ -117,71 +106,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
     }
 
     /**
-     * Build the fulltext query.
-     *
-     * @param string $textQuery    Text submitted by the user.
-     * @param int    $spellingType Type of spelling applied.
-     *
-     * @return array
-     */
-    protected function _buildFulltextQuery($textQuery, $spellingType)
-    {
-        $query = parent::_buildFulltextQuery($textQuery, $spellingType);
-        //echo json_encode($query); die;
-        return $query;
-        /*$query = array();
-        $searchFields = array_merge(
-            $this->getSearchFields(
-                Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_AUTOCOMPLETE
-            ),
-            $this->getSearchFields(
-                Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL, 'whitespace'
-            )
-        );
-
-        $phraseBoostValue = $this->_getPhraseMatchBoost();
-        $baseMatchQuery = array(
-            'fields'               => $searchFields,
-            'analyzer'             => 'whitespace',
-            'minimum_should_match' => $this->_getMinimumShouldMatch(),
-            'query'                => $textQuery
-        );
-
-        if ($spellingType != self::SPELLING_TYPE_FUZZY) {
-            $minimumShouldMatch = $this->_getMinimumShouldMatch();
-            if ($spellingType == self::SPELLING_TYPE_MOST_FUZZY) {
-                $minimumShouldMatch = 1;
-            }
-            $query['bool']['must'][] = array(
-                'multi_match' => array_merge(
-                    $baseMatchQuery,
-                    array('type' => 'most_fields', 'minimum_should_match' => $minimumShouldMatch)
-                )
-            );
-            if ($phraseBoostValue !== false) {
-                $query['bool']['should'][] = array(
-                    'multi_match' => array_merge(
-                        $baseMatchQuery,
-                        array('type' => 'phrase', 'boost' => $phraseBoostValue)
-                    )
-                );
-            }
-        }
-
-        $fuzzinessConfig = $this->_getFuzzinessConfig($this->getLanguageCode());
-        if ($spellingType != self::SPELLING_TYPE_EXACT && $fuzzinessConfig != false) {
-            $query['bool']['must'][] = array(
-                'multi_match' => array_merge(
-                    $fuzzinessConfig,
-                    $baseMatchQuery,
-                    array('type' => 'most_fields', 'minimum_should_match' => '100%')
-                )
-            );
-        }
-        return $query;*/
-    }
-
-    /**
      * Retrieve fuzziness configuration for fulltext queries. False if fuzziness is disabled.
      *
      * @param string $languageCode Current language code.
@@ -197,13 +121,35 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
             );
 
             $fuzzinessConfig = array(
-                'fields'         => $fuzzySearchFields,
-                'fuzziness'      => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'autocomplete_fuzziness_value'),
-                'prefix_length'  => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'autocomplete_fuzziness_prefix_length'),
-                'max_expansions' => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'autocomplete_fuzziness_max_expansions'),
+                'fields'           => $fuzzySearchFields,
+                'fuzziness'        => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'autocomplete_fuzziness_value'),
+                'prefix_length'    => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'autocomplete_fuzziness_prefix_length'),
+                'max_expansions'   => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'autocomplete_fuzziness_max_expansions'),
+                'analyzer'         => 'whitespace'
             );
         }
         return $fuzzinessConfig;
     }
 
+    /**
+     * Build the query part for incorrect spelling matching.
+     *
+     * @param string $textQuery    Text submitted by the user.
+     * @param int    $spellingType Type of spelling applied.
+     *
+     * @return string
+     */
+    protected function _getFuzzyQueryMatch($textQuery, $spellingType)
+    {
+        $fuzzyQuery = array();
+
+        $matchQuery = array('query' => $textQuery, 'type' => 'best_fields', 'minimum_should_match' => "100%");
+
+        $fuzzinessConfig = $this->_getFuzzinessConfig();
+        if ($fuzzinessConfig !== false) {
+            $fuzzyQuery = array('multi_match' => array_merge($matchQuery, $fuzzinessConfig));
+        }
+
+        return $fuzzyQuery;
+    }
 }

@@ -238,7 +238,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
         foreach ($this->_stores as $store) {
             $languageCode = $this->_helper->getLanguageCodeByStore($store);
             $defaultAnalyzer = 'analyzer_' . $languageCode;
-            $baseFieldProperties = array('type' => 'string', 'store' => false, 'fielddata' => array('format' => 'disabled'));
+            $baseFieldProperties = array('type' => 'string', 'store' => false);//, 'fielddata' => array('format' => 'disabled'));
             foreach (array('search', 'spelling', 'autocomplete') as $currentField) {
                 $currentIndexField = sprintf('%s_%s', $currentField, $languageCode);
                 $mapping[$currentIndexField]['type'] = 'multi_field';
