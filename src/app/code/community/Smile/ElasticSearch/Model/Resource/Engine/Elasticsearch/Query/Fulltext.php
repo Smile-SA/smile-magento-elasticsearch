@@ -34,6 +34,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
      */
     protected static $_assembledQueries = array();
 
+    protected static $_spellcheck = array();
+
     /**
      * @var string
      */
@@ -163,10 +165,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                 if ($spellingType == self::SPELLING_TYPE_MOST_FUZZY) {
                     $clause = 'should';
                 }
-                $query['bool'][$clause][] = $this->_addPhraseOptimizations($exactMacthQuery, $textQuery, $spellingType);
+                $query['bool'][$clause][] = $exactMacthQuery;
             }
         }
-
+        $query = $this->_addPhraseOptimizations($query, $textQuery, $spellingType);
         return $query;
     }
 
@@ -178,16 +180,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     public function _getWeightedSearchFields()
     {
         return $this->getSearchFields(Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL);
-    }
-
-    protected function _getDefaultSubField()
-    {
-        return false;
-    }
-
-    protected function _getDefaultAnalyzer()
-    {
-        return false;
     }
 
     /**
@@ -205,23 +197,16 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
             'query' => $textQuery , 'type' => 'best_fields', 'tie_breaker' => 1, 'fields' => $this->_getWeightedSearchFields()
         );
 
-        if ($this->_getDefaultAnalyzer()) {
-            $weightedMultiMatchQuery['analyzer'] = $this->_getDefaultAnalyzer();
-        }
-
         if ($spellingType == self::SPELLING_TYPE_PURE_STOPWORDS) {
             $weightedMultiMatchQuery['minimum_should_match'] = "100%";
             $query = array('multi_match' => $weightedMultiMatchQuery);
         } else {
-            $cutoffFrequencyConfig = $this->_getCutOffFrequencyConfig();
-            $weightedMultiMatchQuery['cutoff_frequency'] = $cutoffFrequencyConfig;
             if ($spellingType == self::SPELLING_TYPE_MOST_FUZZY) {
                 $query = array('multi_match' => $weightedMultiMatchQuery);
             } else {
+                $cutoffFrequencyConfig = $this->_getCutOffFrequencyConfig();
+                $weightedMultiMatchQuery['cutoff_frequency'] = $cutoffFrequencyConfig;
                 $defaultSearchField = $this->_getDefaultSearchField();
-                if ($this->_getDefaultSubField()) {
-                    $defaultSearchField = $defaultSearchField . '.' . $this->_getDefaultSubField();
-                }
                 $filterQuery = array('query' => $textQuery, 'cutoff_frequency' => $cutoffFrequencyConfig);
                 $filterQuery['minimum_should_match'] = array('low_freq' => $this->_getMinimumShouldMatch());
                 $query = array(
@@ -243,19 +228,30 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         if ($phraseBoostValue !== false) {
 
             $defaultSearchField = $this->_getDefaultSearchField();
+            $optimizationFunctions = array();
 
             if (str_word_count($textQuery) > 1) {
                 $qs = array('query' => $textQuery, 'default_field' => $defaultSearchField . '.shingle');
                 $qsFilter = array('query' => array('query_string' => $qs));
-                $optimizationFunction = array('filter' => $qsFilter, 'boost_factor' => $phraseBoostValue);
-            } else if ($spellingType != self::SPELLING_TYPE_PURE_STOPWORDS) {
-                $qs = array('query' => $textQuery, 'default_field' => $defaultSearchField . '.whitespace');
-                $qsFilter = array('query' => array('query_string' => $qs));
-                $optimizationFunction = array('filter' => $qsFilter, 'boost_factor' => $phraseBoostValue);
+                $optimizationFunctions[] = array('filter' => $qsFilter, 'boost_factor' => $phraseBoostValue);
             }
 
-            if ($optimizationFunction !== false) {
-                $query = array('function_score' => array('query' => $query, 'functions' => array($optimizationFunction)));
+            if (!in_array($spellingType, array(self::SPELLING_TYPE_PURE_STOPWORDS, self::SPELLING_TYPE_FUZZY))) {
+                $qs = array('query' => $textQuery, 'cutoff_frequency' => $this->_getCutOffFrequencyConfig());
+                $qsFilter = array('query' => array('common' => array($defaultSearchField . '.whitespace' => $qs)));
+                $optimizationFunctions[] = array('filter' => $qsFilter, 'boost_factor' => $phraseBoostValue);
+            }
+
+            if (isset(self::$_spellcheck[$textQuery])) {
+                foreach (self::$_spellcheck[$textQuery] as $currentTerm) {
+                    $qs = array('query' => $currentTerm, 'default_field' => $defaultSearchField);
+                    $qsFilter = array('query' => array('query_string' => $qs));
+                    $optimizationFunctions[] = array('filter' => $qsFilter, 'boost_factor' => $phraseBoostValue);
+                }
+            }
+
+            if (!empty($optimizationFunctions)) {
+                $query = array('function_score' => array('query' => $query, 'functions' => $optimizationFunctions));
             }
         }
 
@@ -264,9 +260,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
 
     protected function _getFuzzySearchFields()
     {
-        return $this->getSearchFields(
+        $fuzzySearchFields =  $this->getSearchFields(
             Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL, 'whitespace'
         );
+        $fuzzySearchFields[] = $this->_getDefaultSearchField() . '.shingle';
+        return $fuzzySearchFields;
     }
     /**
      * Retrieve fuzziness configuration for fulltext queries. False if fuzziness is disabled.
@@ -281,6 +279,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         if ($fuzzinessConfig) {
             $fuzzySearchFields = $this->_getFuzzySearchFields();
             $fuzzinessConfig = array(
+                'analyzer'         => 'whitespace',
                 'fields'           => $fuzzySearchFields,
                 'fuzziness'        => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'fuzziness_value'),
                 'prefix_length'    => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'fuzziness_prefix_length'),
@@ -353,7 +352,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
 
         $phoneticConfig = $this->_getPhoneticConfig();
         if ($phoneticConfig !== false) {
-            //$fuzzyQuery['bool']['should'][] = array('multi_match' => array_merge($matchQuery, $phoneticConfig));
+            $fuzzyQuery['bool']['should'][] = array('multi_match' => array_merge($matchQuery, $phoneticConfig));
         }
 
         if (!isset($fuzzyQuery['bool'])) {
@@ -388,6 +387,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                 $result = self::SPELLING_TYPE_MOST_FUZZY;
             }
             self::$_analyzedQueries[$textQuery] = $result;
+
+            if (in_array($result, array($result = self::SPELLING_TYPE_MOST_EXACT, self::SPELLING_TYPE_MOST_FUZZY))) {
+                $this->_addSuggestedTerms($textQuery, $queryTermStats);
+            }
         }
 
         return self::$_analyzedQueries[$textQuery];
@@ -459,5 +462,36 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         }
 
         return $queryTermStats;
+    }
+
+    protected function _addSuggestedTerms($textQuery, $queryTermStats) {
+        if (!isset(self::$_spellcheck[$textQuery])) {
+            $currentIndex = $this->getAdapter()->getCurrentIndex()->getCurrentName();
+            $suggestQuery = array('index' => $currentIndex);
+            $suggestQuery['body']['text'] = $textQuery;
+            $suggestQuery['body']['phrase_suggest']['phrase'] = array(
+                'field'      => $this->_getSpellingBaseField(),
+                'size'       => 3,
+                'max_errors' => max(1, $queryTermStats['missing']),
+                'real_word_error_likelihood' => 0.95,
+                'confidence' => 2,
+                'highlight' => array('pre_tag' => '{{', 'post_tag' => '}}')
+            );
+
+            Varien_Profiler::start('ES:EXECUTE:SUGGESTER');
+            $suggesterResponse = $this->getClient()->suggest($suggestQuery);
+            Varien_Profiler::stop('ES:EXECUTE:SUGGESTER');
+            $suggetedTerms = array();
+            foreach ($suggesterResponse['phrase_suggest'] as $suggestions) {
+                foreach ($suggestions['options'] as $currentSuggestion) {
+                    $matches = array();
+                    if (preg_match_all("|[\\{]{2}(.*)[\\}]{2}|U", $currentSuggestion['highlighted'] , $matches)) {
+                        $suggetedTerms = array_merge($suggetedTerms, $matches[1]);
+                    }
+                }
+            }
+
+            self::$_spellcheck[$textQuery] = $suggetedTerms;
+        }
     }
 }
