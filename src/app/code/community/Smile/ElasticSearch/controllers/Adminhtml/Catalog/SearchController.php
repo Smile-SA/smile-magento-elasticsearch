@@ -119,7 +119,7 @@ class Smile_ElasticSearch_Adminhtml_Catalog_SearchController extends Mage_Adminh
             $this->_redirect('*/*/edit', array('id' => $queryId));
         } else {
             $this->_getSession()->addSuccess(
-                Mage::helper('smile_searchoptimizer')->__('Search Term has been saved.')
+                Mage::helper('smile_elasticsearch')->__('Search Term has been saved.')
             );
 
             if ($this->getRequest()->getParam('back')) {

@@ -66,7 +66,7 @@ class Smile_ElasticSearch_Model_Index_Action_Search_Terms_Refresh
     /**
      * Refresh the search terms products position index : just rebuild data from this data provider
      *
-     * @return Smile_SearchOptimizer_Model_Index_Action_Search_Terms_Refresh
+     * @return Smile_ElasticSearch_Model_Index_Action_Search_Terms_Refresh
      *
      * @throws Enterprise_Index_Model_Action_Exception
      */
