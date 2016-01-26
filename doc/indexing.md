@@ -1,6 +1,91 @@
 # Indexing external content example
 
+## Usage of data providers to append external content to products
 
+### Main concept
+
+You can append external data/content to products during indexation via the usage of Data Providers
+
+You can declare your Data provider in your configuration file like this :
+
+``` xml
+    <global>
+        <smile_elasticsearch>
+            <mapping>
+                <product>
+                    <data_providers>                        
+                        <search_terms_position>smile_elasticsearch/engine_elasticsearch_mapping_dataProvider_terms_position</search_terms_position>
+                    </data_providers>
+                </product>
+            </mapping>
+        </smile_elasticsearch>
+    </global>
+```
+
+Your DataProvider class must extend *Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_DataProvider_Abstract* and implement following methods :
+
+* getMappingProperties() : will return custom fields defined by your module to append to ES mapping
+* getEntitiesData($storeId, $entityIds) : will return your custom data for products, and a given store
+
+### Exemple of a dataProvider which append a custom field on products :
+  
+First step is to add this field into the mapping via getMappingProperties()  
+  
+```php
+  public function getMappingProperties()
+  {
+      $mapping = array(
+          "properties" => array(
+              "my_custom_field" => array('type' => 'long', 'doc_values' => true)
+          )
+      );      
+
+      return $mapping;
+  }
+```
+
+Then implement the getEntitiesData() method. You must return an array indexed by the product entityId(s)
+
+```php
+public function getEntitiesData($storeId, $entityIds)
+    {
+        $result = array();
+        
+        // This piece of code is totally dummy, and is here as an exemple
+        // We suppose there is an external data source with logic to retrieve product data
+        $externalDataSource = $this->_getExternalDataSource();
+        $externalData       = $externalDataSource->getDataForProducts($entityIds);
+        
+        foreach ($externalData as $data) {
+            $result[$data->entityId] = array("my_custom_field" => $data->externalCustomField);
+        }
+        
+        return $result;
+    }
+```
+
+### Custom indexing of data coming from Data Providers
+
+You can process partial or full indexation of external data added by your data providers, for a given bunch of product Ids, and eventually a store.
+
+
+```php
+$engine       = Mage::helper('catalogsearch')->getEngine();
+$mapping      = $engine->getCurrentIndex()->getMapping('product');
+$dataProvider = $mapping->getDataProvider('virtual_categories_products_position'); // This is the internal code of the data provider
+
+// $storeId can be null
+// $productIds is an array of product Ids, if empty, data will be reindexed for all products
+$dataProvider->updateAllData($storeId, $productIds);
+```
+
+### Other examples
+
+Here are dataProviders already existing into the Elastic Suite :
+
+* Custom positions for products in search results
+* Custom positions for products in virtual categories
+* Popularity data added to products from external source
 
 ## Example of indexing content into Magento (ex CMS Page):
 
