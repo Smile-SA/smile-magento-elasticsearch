@@ -78,7 +78,7 @@ class Smile_VirtualCategories_Model_Indexer_VirtualCategories_Product_Position e
      */
     public function reindex($category)
     {
-        /** Reindex all data from search terms custom positions index */
+        /** Reindex all data from virtual categories products positions index */
         $engine       = Mage::helper('catalogsearch')->getEngine();
         $mapping      = $engine->getCurrentIndex()->getMapping('product');
         $dataprovider = $mapping->getDataProvider('virtual_categories_products_position');

@@ -52,7 +52,7 @@ public function getEntitiesData($storeId, $entityIds)
         $result = array();
         
         // This piece of code is totally dummy, and is here as an exemple
-        // We suppose ther is an external data source with logic to retrieve product data
+        // We suppose there is an external data source with logic to retrieve product data
         $externalDataSource = $this->_getExternalDataSource();
         $externalData       = $externalDataSource->getDataForProducts($entityIds);
         
@@ -62,6 +62,21 @@ public function getEntitiesData($storeId, $entityIds)
         
         return $result;
     }
+```
+
+### Custom indexing of data coming from Data Providers
+
+You can process partial or full indexation of external data added by your data providers, for a given bunch of product Ids, and eventually a store.
+
+
+```php
+$engine       = Mage::helper('catalogsearch')->getEngine();
+$mapping      = $engine->getCurrentIndex()->getMapping('product');
+$dataProvider = $mapping->getDataProvider('virtual_categories_products_position'); // This is the internal code of the data provider
+
+// $storeId can be null
+// $productIds is an array of product Ids, if empty, data will be reindexed for all products
+$dataProvider->updateAllData($storeId, $productIds);
 ```
 
 ### Other examples
