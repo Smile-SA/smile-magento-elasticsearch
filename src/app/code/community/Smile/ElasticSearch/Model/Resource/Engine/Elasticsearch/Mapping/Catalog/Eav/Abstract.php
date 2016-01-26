@@ -92,7 +92,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $attributeCode = $attribute->getAttributeCode();
             $type = $this->_getAttributeType($attribute);
 
-            $isFacet = (bool) ($attribute->getIsFilterable() || $attribute->getIsFilterableInSearch());
+            $isFacet = (bool) ($attribute->getIsFilterable() || $attribute->getIsFilterableInSearch() || $attribute->getIsUsedForPriceRules());
             $isFuzzy = (bool) $attribute->getIsFuzzinessEnabled();
             $usedForSortBy = (bool) $attribute->getUsedForSortBy();
             $isAutocomplete = (bool) ($attribute->getIsUsedInAutocomplete() || $attribute->getIsDisplayedInAutocomplete());
@@ -355,12 +355,22 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     {
         if ($this->_attributesById === null) {
             $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
+
             $attributes = Mage::getResourceModel($this->_attributeCollectionModel)
                 ->setEntityTypeFilter($entityType->getEntityTypeId());
 
-            if (method_exists($attributes, 'addToIndexFilter')) {
-                $attributes->addToIndexFilter(true);
-            }
+            $conditions = array(
+                'additional_table.is_searchable = 1',
+                'additional_table.is_visible_in_advanced_search = 1',
+                'additional_table.is_filterable > 0',
+                'additional_table.is_filterable_in_search = 1',
+                'additional_table.used_for_sort_by = 1',
+                'additional_table.is_used_for_price_rules',
+                $this->getConnection()->quoteInto('main_table.attribute_code = ?', 'status'),
+                $this->getConnection()->quoteInto('main_table.attribute_code = ?', 'visibility'),
+            );
+
+            $attributes->getSelect()->where(sprintf('(%s)', implode(' OR ', $conditions)));
 
             $this->_attributesById = array();
 
