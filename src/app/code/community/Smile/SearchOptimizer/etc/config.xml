@@ -18,7 +18,7 @@
 <config>
     <modules>
         <Smile_SearchOptimizer>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
         </Smile_SearchOptimizer>
     </modules>
     <global>
@@ -61,14 +61,6 @@
             </indexer>
         </index>
         <events>
-            <search_engine_product_mapping_properties>
-                <observers>
-                    <add_popularity_field_to_mapping>
-                        <class>smile_searchoptimizer/observer</class>
-                        <method>addPopularityFieldToMapping</method>
-                    </add_popularity_field_to_mapping>
-                </observers>
-            </search_engine_product_mapping_properties>
             <smile_elasticsearch_index_install_before>
                 <observers>
                     <create_searchoptimizers_percolators>
@@ -92,7 +84,36 @@
                 <popularity>smile_searchoptimizer/optimizer_popularity</popularity>
             </optimizer_models>
         </smile_searchoptimizer>
+
+        <smile_elasticsearch>
+            <mapping>
+                <product>
+                    <!-- Custom data provider for product popularity data -->
+                    <data_providers>
+                        <popularity>smile_searchoptimizer/engine_elasticsearch_mapping_dataProvider_popularity</popularity>
+                    </data_providers>
+                </product>
+            </mapping>
+        </smile_elasticsearch>
+
+        <index>
+            <indexer>
+                <recommendations>
+                    <model>smile_searchoptimizer/indexer_recommendations</model>
+                    <action_model>
+                        <!-- DUMMY but mandatory to not break Enterprise_Index_Model_Observer::refreshIndex() -->
+                        <changelog>smile_searchoptimizer/index_action_recommendations_refresh_changelog</changelog>
+                        <all>smile_searchoptimizer/index_action_recommendations_refresh</all>
+                    </action_model>
+                    <!-- DUMMY : There is no real table for this indexer -->
+                    <index_table>recommendations</index_table>
+                    <sort_order>200</sort_order>
+                </recommendations>
+            </indexer>
+        </index>
+
     </global>
+
     <adminhtml>
         <layout>
             <updates>
@@ -111,6 +132,7 @@
             </modules>
         </translate>
     </adminhtml>
+
     <admin>
         <routers>
             <adminhtml>
@@ -122,4 +144,12 @@
             </adminhtml>
         </routers>
     </admin>
+
+    <default>
+        <elasticsearch_advanced_search_settings>
+            <behavioral_optimizers>
+                <recommender_index_alias>magento-recommender</recommender_index_alias>
+            </behavioral_optimizers>
+        </elasticsearch_advanced_search_settings>
+    </default>
 </config>

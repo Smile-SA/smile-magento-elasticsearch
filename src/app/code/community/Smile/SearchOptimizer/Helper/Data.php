@@ -19,4 +19,18 @@
 class Smile_SearchOptimizer_Helper_Data extends Mage_Core_Helper_Abstract
 {
 
+    /**
+     * Alias location in configuration
+     */
+    const RECOMMENDER_ALIAS_CONFIG_PATH = "elasticsearch_advanced_search_settings/behavioral_optimizers/recommender_index_alias";
+
+    /**
+     * Retrieve Recommender Index
+     *
+     * @return mixed
+     */
+    public function getRecommenderIndex()
+    {
+        return Mage::getStoreConfig(self::RECOMMENDER_ALIAS_CONFIG_PATH);
+    }
 }
