@@ -140,7 +140,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
         $value = 'no_selection';
         $attribute = 'image';
         $operator = '!=';
-        return $this->_getSearchQuery($attribute, $value, $operator, $excludedCategories);
+        return sprintf('((%s) AND (%s))', 'image:*', $this->_getSearchQuery($attribute, $value, $operator, $excludedCategories));
     }
 
     /**
@@ -232,11 +232,17 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
     /**
      * Return the ES field name to build filter.
      *
+     * @param string $attribute Attribute to be translated.
+     *
      * @return string
      */
-    public function getFilterField()
+    public function getFilterField($attribute = null)
     {
-        $fieldName = $this->getMapping()->getFieldName($this->getAttribute(), $this->getLocaleCode(), 'filter');
+        if ($attribute == null) {
+            $attribute = $this->getAttribute();
+        }
+
+        $fieldName = $this->getMapping()->getFieldName($attribute, $this->getLocaleCode(), 'filter');
 
         if ($this->getAttribute() == 'price' || $this->getAttribute() == 'has_discount') {
             $store = $this->getStore();
