@@ -34,12 +34,12 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
     {
         $result = array();
 
-        $recommenderIndex = $this->_getRecommenderIndex();
+        $popularityIndex = $this->_getPopularityIndex();
 
-        if ($recommenderIndex !== null) {
+        if ($popularityIndex !== null) {
             /** @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch $engine */
             $engine = Mage::helper('catalogsearch')->getEngine();
-            if ($engine->getClient()->indices()->exists(array('index' => (string) $recommenderIndex))) {
+            if ($engine->getClient()->indices()->exists(array('index' => (string) $popularityIndex))) {
 
                 $query = $this->_getPopularityEventQuery($storeId, $entityIds);
                 $data  = $engine->getClient()->search($query);
@@ -59,13 +59,13 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
     }
 
     /**
-     * Retrieve recommendation index alias
+     * Retrieve Popularity index alias
      *
      * @return mixed
      */
-    protected function _getRecommenderIndex()
+    protected function _getPopularityIndex()
     {
-        return Mage::helper("smile_searchoptimizer")->getRecommenderIndex();
+        return Mage::helper("smile_searchoptimizer")->getPopularityIndex();
     }
 
     /**
@@ -78,7 +78,7 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
      */
     protected function _getPopularityEventQuery($storeId, $entityIds)
     {
-        $recommenderIndex = $this->_getRecommenderIndex();
+        $popularityIndex = $this->_getPopularityIndex();
 
         $fields = array(
             "event.eventEntity",
@@ -87,7 +87,7 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
             "popularity"
         );
 
-        $query = array('index' => (string) $recommenderIndex);
+        $query = array('index' => (string) $popularityIndex);
 
         $query['size'] = count($entityIds) * self::MAXIMUM_MATCHES_PER_PRODUCT;
 
@@ -103,7 +103,7 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
     }
 
     /**
-     * Prepare behavioral data to insert on product index, based on data coming from recommendation index
+     * Prepare behavioral data to insert on product index, based on data coming from popularity index
      *
      * @param array $fields The item fields
      *

@@ -13,7 +13,7 @@
  * @copyright 2015 Smile
  * @license   Apache License Version 2.0
  */
-class Smile_SearchOptimizer_Model_Recommender_Index_Api_V2 extends Smile_SearchOptimizer_Model_Recommender_Index_Api
+class Smile_SearchOptimizer_Model_Popularity_Index_Api_V2 extends Smile_SearchOptimizer_Model_Popularity_Index_Api
 {
 
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Register recommendations into the search index
+ * Register popularity into the search index
  *
  * DISCLAIMER
  *
@@ -13,22 +13,22 @@
  * @copyright 2015 Smile
  * @license   Apache License Version 2.0
  */
-class Smile_SearchOptimizer_Model_Indexer_Recommendations extends Mage_Index_Model_Indexer_Abstract
+class Smile_SearchOptimizer_Model_Indexer_Popularity extends Mage_Index_Model_Indexer_Abstract
 {
     /**
      * Dummy table name, needed to process correct Mview reindex
      */
-    const DUMMY_TABLE_NAME   = "recommendations";
+    const DUMMY_TABLE_NAME   = "popularity";
 
     /**
      * Metadata view name, used to identify data related to this index
      */
-    const METADATA_VIEW_NAME = "recommendations";
+    const METADATA_VIEW_NAME = "popularity";
 
     /**
      * Metadata group code, used to identify data related to this index
      */
-    const METADATA_GROUP_CODE = "recommendations";
+    const METADATA_GROUP_CODE = "popularity";
 
     /**
      * Retrieve Indexer name
@@ -37,7 +37,7 @@ class Smile_SearchOptimizer_Model_Indexer_Recommendations extends Mage_Index_Mod
      */
     public function getName()
     {
-        return Mage::helper('smile_searchoptimizer')->__('Recommendations Indexer');
+        return Mage::helper('smile_searchoptimizer')->__('Popularity Indexer');
     }
 
     /**
@@ -81,7 +81,7 @@ class Smile_SearchOptimizer_Model_Indexer_Recommendations extends Mage_Index_Mod
      */
     public function reindexAll()
     {
-        /** Reindex all data from recommendations index */
+        /** Reindex all data from popularity index */
         $engine       = Mage::helper('catalogsearch')->getEngine();
         $mapping      = $engine->getCurrentIndex()->getMapping('product');
         $dataprovider = $mapping->getDataProvider('popularity');

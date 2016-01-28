@@ -1,6 +1,6 @@
 <?php
 /**
- * Recommendations refresh indexer.
+ * Popularity refresh indexer.
  * Dummy implementation for changelog, to ensure not breaking Enterprise_Index_Model_Observer::refreshIndex()
  *
  * DISCLAIMER
@@ -14,13 +14,13 @@
  * @copyright 2015 Smile
  * @license   Apache License Version 2.0
  */
-class Smile_SearchOptimizer_Model_Index_Action_Recommendations_Refresh_Changelog
+class Smile_SearchOptimizer_Model_Index_Action_Popularity_Refresh_Changelog
     extends Enterprise_Mview_Model_Action_Mview_Refresh_Changelog
 {
     /**
      * Refresh rows by ids from changelog.
      *
-     * @return Smile_SearchOptimizer_Model_Index_Action_Recommendations_Refresh_Changelog self reference
+     * @return Smile_SearchOptimizer_Model_Index_Action_Popularity_Refresh_Changelog self reference
      */
     public function execute()
     {

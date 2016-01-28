@@ -1,6 +1,6 @@
 <?php
 /**
- * Recommendations refresh indexer.
+ * Popularity refresh indexer.
  *
  * DISCLAIMER
  *
@@ -13,7 +13,7 @@
  * @copyright 2015 Smile
  * @license   Apache License Version 2.0
  */
-class Smile_SearchOptimizer_Model_Index_Action_Recommendations_Refresh
+class Smile_SearchOptimizer_Model_Index_Action_Popularity_Refresh
     implements Enterprise_Mview_Model_Action_Interface
 {
     /**
@@ -38,9 +38,9 @@ class Smile_SearchOptimizer_Model_Index_Action_Recommendations_Refresh
     protected $_factory;
 
     /**
-     * The recommendation indexer
+     * The popularity indexer
      *
-     * @var Smile_SearchOptimizer_Model_Indexer_Recommendations
+     * @var Smile_SearchOptimizer_Model_Indexer_Popularity
      */
     protected $_indexer;
 
@@ -57,13 +57,13 @@ class Smile_SearchOptimizer_Model_Index_Action_Recommendations_Refresh
         $this->_metadata = $args['metadata'];
         $this->_app      = !empty($args['app']) ? $args['app'] : Mage::app();
         $this->_factory  = $args['factory'];
-        $this->_indexer  = $this->_factory->getSingleton('smile_searchoptimizer/indexer_recommendations');
+        $this->_indexer  = $this->_factory->getSingleton('smile_searchoptimizer/indexer_popularity');
     }
 
     /**
-     * Refresh the recommendations index : just rebuild data from this data provider
+     * Refresh the popularity index : just rebuild data from this data provider
      *
-     * @return Smile_SearchOptimizer_Model_Index_Action_Recommendations_Refresh
+     * @return Smile_SearchOptimizer_Model_Index_Action_Popularity_Refresh
      *
      * @throws Enterprise_Index_Model_Action_Exception
      */

@@ -9,45 +9,38 @@
             <import namespace="http://schemas.xmlsoap.org/soap/encoding/"
                     schemaLocation="http://schemas.xmlsoap.org/soap/encoding/"/>
 
-            <complexType name="recommendationIndexSwitchResult">
+            <complexType name="popularityIndexSwitchResult">
                 <all>
                     <element name="alias" type="xsd:string" />
                     <element name="index_name" type="xsd:string" />
                     <element name="status" type="xsd:string" />
                     <element name="code" type="xsd:int" />
-                    <!--<element name="deleted_indexes" type="typens:ArrayOfString" />-->
                 </all>
             </complexType>
-
-            <!--<complexType name='ArrayOfString'>
-                <sequence>
-                    <element name='index' type='xsd:string' maxOccurs='unbounded'/>
-                </sequence>
-            </complexType>-->
 
         </schema>
     </types>
 
-    <message name="recommendationIndexSwitchRequest">
+    <message name="popularityIndexSwitchRequest">
         <part name="sessionId" type="xsd:string" />
         <part name="indexName" type="xsd:string" />
     </message>
 
-    <message name="recommendationIndexSwitchResponse">
-        <part name="result" type="typens:recommendationIndexSwitchResult" />
+    <message name="popularityIndexSwitchResponse">
+        <part name="result" type="typens:popularityIndexSwitchResult" />
     </message>
 
     <portType name="{{var wsdl.handler}}PortType">
-        <operation name="recommendationIndexSwitch">
-            <documentation>Switch recommendation index</documentation>
-            <input message="typens:recommendationIndexSwitchRequest" />
-            <output message="typens:recommendationIndexSwitchResponse" />
+        <operation name="popularityIndexSwitch">
+            <documentation>Switch popularity index</documentation>
+            <input message="typens:popularityIndexSwitchRequest" />
+            <output message="typens:popularityIndexSwitchResponse" />
         </operation>
     </portType>
 
     <binding name="{{var wsdl.handler}}Binding" type="typens:{{var wsdl.handler}}PortType">
         <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http" />
-        <operation name="recommendationIndexSwitch">
+        <operation name="popularityIndexSwitch">
             <soap:operation soapAction="urn:{{var wsdl.handler}}Action" />
             <input>
                 <soap:body namespace="urn:{{var wsdl.name}}" use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" />

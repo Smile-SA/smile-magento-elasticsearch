@@ -1,6 +1,6 @@
 <?php
 /**
- * Add an Mview metadata group for recommendations indexes
+ * Add an Mview metadata group for popularity indexes
  *
  * DISCLAIMER
  *
@@ -20,10 +20,10 @@ $installer->startSetup();
 
 if (Mage::helper("smile_elasticsearch")->isEnterpriseSupportEnabled()) {
     Mage::getModel('enterprise_mview/metadata')
-        ->setViewName(Smile_SearchOptimizer_Model_Indexer_Recommendations::METADATA_VIEW_NAME)
-        ->setTableName(Smile_SearchOptimizer_Model_Indexer_Recommendations::DUMMY_TABLE_NAME)
+        ->setViewName(Smile_SearchOptimizer_Model_Indexer_Popularity::METADATA_VIEW_NAME)
+        ->setTableName(Smile_SearchOptimizer_Model_Indexer_Popularity::DUMMY_TABLE_NAME)
         ->setKeyColumn(null)
-        ->setGroupCode(Smile_SearchOptimizer_Model_Indexer_Recommendations::METADATA_GROUP_CODE)
+        ->setGroupCode(Smile_SearchOptimizer_Model_Indexer_Popularity::METADATA_GROUP_CODE)
         ->setStatus(Enterprise_Mview_Model_Metadata::STATUS_INVALID)
         ->save();
 }
