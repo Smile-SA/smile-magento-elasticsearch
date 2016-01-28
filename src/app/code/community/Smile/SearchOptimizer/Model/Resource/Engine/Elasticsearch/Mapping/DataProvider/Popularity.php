@@ -146,4 +146,120 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
 
         return $mapping;
     }
+
+    /**
+     * Return the current real name of the popularity index
+     *
+     * @return string
+     */
+    public function getCurrentPopularityIndex()
+    {
+        /** @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch $engine */
+        $engine  = Mage::helper('catalogsearch')->getEngine();
+        $indices = $engine->getClient()->indices();
+        $alias   = Mage::helper("smile_searchoptimizer")->getPopularityIndex();
+
+        $currentIndexes = array();
+
+        $allIndices = $indices->getMapping(array('index'=> $alias));
+
+        foreach (array_keys($allIndices) as $index) {
+            $currentIndexes[] = $index;
+        }
+
+        return end($currentIndexes);
+    }
+
+    /**
+     * Return the horodated part of the index name
+     *
+     * @return mixed
+     */
+    public function getIndexDateTime()
+    {
+        $currentIndexName = $this->getCurrentPopularityIndex();
+        $alias            = Mage::helper("smile_searchoptimizer")->getPopularityIndex();
+        $indexDateTime    = preg_replace("/[^0-9]/", "", str_replace($alias, "", $currentIndexName));
+
+        return $indexDateTime;
+    }
+
+    /**
+     * Update only data that has changed on the index
+     *
+     * @param Zend_Date $date the last changed version date
+     *
+     * @return void Nothing
+     */
+    public function updateChangedData($date)
+    {
+        $entityIds = $this->_getUpdatedEntityIds($date);
+        if (count($entityIds)) {
+            $this->updateAllData(null, $entityIds);
+        }
+    }
+
+    /**
+     * Retrieve all products ids that has changed on the popularity index
+     *
+     * @param Zend_Date $date the last changed version date
+     *
+     * @return array
+     */
+    protected function _getUpdatedEntityIds($date)
+    {
+        $result = array();
+
+        $popularityIndex = $this->_getPopularityIndex();
+
+        if ($popularityIndex !== null) {
+            /** @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch $engine */
+            $engine = Mage::helper('catalogsearch')->getEngine();
+            if ($engine->getClient()->indices()->exists(array('index' => (string) $popularityIndex))) {
+
+                $query = $this->_getHasChangedQuery($date);
+                $data  = $engine->getClient()->search($query);
+
+                if (isset($data['hits']) && ($data['hits']['total'] > 0)) {
+                    foreach ($data['hits']['hits'] as $item) {
+                        $result[] = (int) current($item['fields']['event.eventEntity']);
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Build the query to retrieve event popularity for given entity Ids
+     *
+     * @param Zend_Date $indexDateTime the last known index datetime
+     *
+     * @return array
+     */
+    protected function _getHasChangedQuery($indexDateTime)
+    {
+        $popularityIndex = $this->_getPopularityIndex();
+
+        $fields = array("event.eventEntity");
+
+        $query = array('index' => (string) $popularityIndex);
+
+        $query['body']['query']['bool']['must'] = array(
+            array(
+                'range' => array(
+                    'event.updated_at' => array(
+                        "gte" => $indexDateTime->toString(Varien_Date::DATETIME_INTERNAL_FORMAT)
+                    )
+                )
+            ),
+        );
+
+        $query['body']['fields'] = $fields;
+
+        Mage::log(json_encode($query), null, "system.log", true);
+
+        return $query;
+    }
 }

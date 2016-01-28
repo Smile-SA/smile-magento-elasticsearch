@@ -82,9 +82,44 @@ class Smile_SearchOptimizer_Model_Indexer_Popularity extends Mage_Index_Model_In
     public function reindexAll()
     {
         /** Reindex all data from popularity index */
+        $dataProvider = $this->_getDataProvider();
+        $dataProvider->updateAllData();
+    }
+
+    /**
+     * Reindex products that have changed in the external popularity index.
+     *
+     * @param Zend_Date $lastVersionId The last known version index
+     *
+     * @return void
+     */
+    public function reindexPartial($lastVersionId)
+    {
+        $dataProvider = $this->_getDataProvider();
+        $dataProvider->updateChangedData($lastVersionId);
+    }
+
+    /**
+     * Retrieve the data provider associated to popularity data
+     *
+     * @return Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProvider_Popularity
+     */
+    protected function _getDataProvider()
+    {
         $engine       = Mage::helper('catalogsearch')->getEngine();
         $mapping      = $engine->getCurrentIndex()->getMapping('product');
-        $dataprovider = $mapping->getDataProvider('popularity');
-        $dataprovider->updateAllData();
+        $dataProvider = $mapping->getDataProvider('popularity');
+
+        return $dataProvider;
+    }
+
+    /**
+     * Retrieve current external index name
+     *
+     * @return int
+     */
+    public function getVersionId()
+    {
+        return $this->_getDataProvider()->getIndexDateTime();
     }
 }
