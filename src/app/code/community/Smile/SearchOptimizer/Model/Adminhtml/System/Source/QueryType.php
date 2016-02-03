@@ -45,10 +45,16 @@ class Smile_SearchOptimizer_Model_Adminhtml_System_Source_QueryType
     public function toOptionArray($isMultiselect=false)
     {
         if ($this->_options === null) {
+
             foreach ($this->_baseOptions as $currentOption) {
                 $currentOption['label'] = Mage::helper('smile_searchoptimizer')->__($currentOption['label']);
                 $this->_options[] = $currentOption;
             }
+
+            $eventData = new Varien_Object(array('options' => $this->_options));
+            Mage::dispatchEvent("smile_searchoptimizer_prepare_query_type_list", array("query_types" => $eventData));
+            $this->_options = $eventData->getOptions();
+
         }
         $options = $this->_options;
         if ($isMultiselect == false) {
