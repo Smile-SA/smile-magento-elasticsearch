@@ -93,10 +93,10 @@ class Smile_SearchOptimizer_Model_Indexer_Popularity extends Mage_Index_Model_In
      *
      * @return void
      */
-    public function reindexPartial($lastVersionId)
+    public function reindexChangelog($lastVersionId)
     {
         $dataProvider = $this->_getDataProvider();
-        $dataProvider->updateChangedData($lastVersionId);
+        $dataProvider->updateChangeLog($lastVersionId);
     }
 
     /**
@@ -111,15 +111,5 @@ class Smile_SearchOptimizer_Model_Indexer_Popularity extends Mage_Index_Model_In
         $dataProvider = $mapping->getDataProvider('popularity');
 
         return $dataProvider;
-    }
-
-    /**
-     * Retrieve current external index name
-     *
-     * @return int
-     */
-    public function getVersionId()
-    {
-        return $this->_getDataProvider()->getIndexDateTime();
     }
 }

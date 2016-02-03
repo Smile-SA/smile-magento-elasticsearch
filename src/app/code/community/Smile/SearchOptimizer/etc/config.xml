@@ -148,7 +148,7 @@
     <default>
         <elasticsearch_advanced_search_settings>
             <behavioral_optimizers>
-                <popularity_index_alias>magento-recommender</popularity_index_alias>
+                <popularity_index_alias>finedata</popularity_index_alias>
             </behavioral_optimizers>
         </elasticsearch_advanced_search_settings>
     </default>

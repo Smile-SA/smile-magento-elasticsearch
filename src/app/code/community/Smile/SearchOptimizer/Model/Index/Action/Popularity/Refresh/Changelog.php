@@ -30,15 +30,22 @@ class Smile_SearchOptimizer_Model_Index_Action_Popularity_Refresh_Changelog
 
         $lastVersionDate = new Zend_Date($this->_metadata->getVersionId(), Zend_Date::TIMESTAMP);
 
-        // Let the index process all data
-        $this->_indexer->reindexPartial($lastVersionDate);
+        try {
+            // Let the index process all data
+            $this->_indexer->reindexChangelog($lastVersionDate);
 
-        $currentDate = new Zend_Date();
-        $this->_metadata->setVersionId($currentDate->getTimestamp());
+            $currentDate = new Zend_Date();
+            //$this->_metadata->setVersionId($currentDate->getTimestamp());
+        } catch (Exception $exception) {
+            Mage::logException($exception);
+            $this->_metadata->setInvalidStatus();
+        }
 
         if ($this->_metadata->getStatus() == Enterprise_Mview_Model_Metadata::STATUS_IN_PROGRESS) {
-            $this->_metadata->setValidStatus()->save();
+            $this->_metadata->setValidStatus();
         }
+
+        $this->_metadata->save();
 
         return $this;
     }

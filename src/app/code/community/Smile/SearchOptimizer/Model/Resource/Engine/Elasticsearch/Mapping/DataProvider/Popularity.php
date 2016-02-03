@@ -18,9 +18,9 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_DataProvider_Abstract
 {
     /**
-     * Number of maximum matched per product : 2 because there is "view" and "buy"
+     * The chunk size to build aggregation on
      */
-    const MAXIMUM_MATCHES_PER_PRODUCT = 2;
+    const CHUNK_SIZE = 10;
 
     /**
      * Retrieve popularity data for entities
@@ -32,28 +32,36 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
      */
     public function getEntitiesData($storeId, $entityIds)
     {
-        $result = array();
-
+        $result          = array();
         $popularityIndex = $this->_getPopularityIndex();
+        $engine          = Mage::helper('catalogsearch')->getEngine();
 
-        if ($popularityIndex !== null) {
-            /** @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch $engine */
-            $engine = Mage::helper('catalogsearch')->getEngine();
-            if ($engine->getClient()->indices()->exists(array('index' => (string) $popularityIndex))) {
+        if (($popularityIndex !== null) && ($engine->getClient()->indices()->exists(array('index' => (string) $popularityIndex)))) {
 
-                $query = $this->_getPopularityEventQuery($storeId, $entityIds);
+            $offset = 0;
+            while ($offset < count($entityIds)) {
+
+                $productIds = array_slice($entityIds, $offset, self::CHUNK_SIZE, true);
+                $offset     = $offset + self::CHUNK_SIZE;
+                $productIds = $this->_skuFromEntityId($productIds);
+
+                $query = $this->_getPopularityEventQuery(array_values($productIds));
                 $data  = $engine->getClient()->search($query);
 
-                if (isset($data['hits']) && ($data['hits']['total'] > 0)) {
-                    foreach ($data['hits']['hits'] as $item) {
-                        $updateData = $this->_prepareBehavioralData($item['fields']);
-                        if (!empty($updateData) && (isset($item['fields']['event.eventEntity']))) {
-                            $result[current($item['fields']['event.eventEntity'])] = $updateData;
+                if (isset($data['aggregations']) && (isset($data['aggregations']['by_event_type']))) {
+                    foreach ($data['aggregations']['by_event_type']['buckets'] as $item) {
+                        $updateData = $this->_prepareBehavioralData($item);
+                        foreach ($updateData as $sku => $productData) {
+                            $entityId = array_search($sku, $productIds);
+                            $result[$productIds[$sku]] = array_merge($productData, $result[$entityId]);
                         }
                     }
                 }
             }
         }
+
+        echo "----------- RESULT ----------\n\n\n";
+        print_r($result);
 
         return $result;
     }
@@ -71,33 +79,36 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
     /**
      * Build the query to retrieve event popularity for given entity Ids
      *
-     * @param int   $storeId   The store id
      * @param array $entityIds The entity ids
      *
      * @return array
      */
-    protected function _getPopularityEventQuery($storeId, $entityIds)
+    protected function _getPopularityEventQuery($entityIds)
     {
         $popularityIndex = $this->_getPopularityIndex();
 
-        $fields = array(
-            "event.eventEntity",
-            "event.actionType",
-            "event.eventStoreId",
-            "popularity"
-        );
-
         $query = array('index' => (string) $popularityIndex);
 
-        $query['size'] = count($entityIds) * self::MAXIMUM_MATCHES_PER_PRODUCT;
-
         $query['body']['query']['bool']['must'] = array(
-            array('term' => array('event.eventType' => 'product')),
-            array('term' => array('event.eventStoreId' => $storeId)),
-            array('terms' => array('event.eventEntity' => $entityIds))
+            array('term' => array('entity_type' => 'product')),
+            array('terms' => array('entity_id'  => $entityIds))
         );
 
-        $query['body']['fields'] = $fields;
+        $query['body']['aggregations']['by_event_type'] = array(
+            'terms' => array(
+                'field' => 'event_type',
+                'size'  => 0
+            ),
+            'aggregations' => array(
+                "by_sku" => array(
+                    "terms" => array("field" => "entity_id")
+                )
+            )
+        );
+
+        Mage::log("------------ POPULARITY -------------", null, "system.log", true);
+        Mage::log($entityIds, null, "system.log", true);
+        Mage::log(json_encode($query), null, "system.log", true);
 
         return $query;
     }
@@ -105,27 +116,33 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
     /**
      * Prepare behavioral data to insert on product index, based on data coming from popularity index
      *
-     * @param array $fields The item fields
+     * @param array $item The item fields from aggregation
      *
      * @return array
      */
-    protected function _prepareBehavioralData($fields)
+    protected function _prepareBehavioralData($item)
     {
         $data = array();
 
-        if (isset($fields["event.actionType"]) && isset($fields["popularity"])) {
-            if (current($fields["event.actionType"]) && current($fields["popularity"])) {
+        if (isset($item["key"])) {
+            $actionType = $item["key"];
+            if (isset($item["by_sku"])) {
+                foreach ($item["by_sku"]["buckets"] as $bucket) {
 
-                $popularity = current($fields["popularity"]);
-                $actionType = current($fields["event.actionType"]);
+                    $popularity = $bucket["doc_count"];
+                    $sku        = $bucket["key"];
 
-                if ($actionType == "view") {
-                    $data["_optimizer_view_count"] = $popularity;
-                } elseif ($actionType == "buy") {
-                    $data["_optimizer_sale_count"] = $popularity;
+                    if ($actionType == "view") {
+                        $data[$sku]["_optimizer_view_count"] = $popularity;
+                    } elseif ($actionType == "buy") {
+                        $data[$sku]["_optimizer_sale_count"] = $popularity;
+                    }
                 }
             }
         }
+
+        echo "----------- PREPARE BEHAVIORAL DATA ----------\n\n\n";
+        print_r($data);
 
         return $data;
     }
@@ -171,31 +188,17 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
     }
 
     /**
-     * Return the horodated part of the index name
-     *
-     * @return mixed
-     */
-    public function getIndexDateTime()
-    {
-        $currentIndexName = $this->getCurrentPopularityIndex();
-        $alias            = Mage::helper("smile_searchoptimizer")->getPopularityIndex();
-        $indexDateTime    = preg_replace("/[^0-9]/", "", str_replace($alias, "", $currentIndexName));
-
-        return $indexDateTime;
-    }
-
-    /**
      * Update only data that has changed on the index
      *
      * @param Zend_Date $date the last changed version date
      *
      * @return void Nothing
      */
-    public function updateChangedData($date)
+    public function updateChangeLog($date)
     {
         $entityIds = $this->_getUpdatedEntityIds($date);
         if (count($entityIds)) {
-            $this->updateAllData(null, $entityIds);
+            $this->updateAllData(null, array_values($entityIds));
         }
     }
 
@@ -220,15 +223,72 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
                 $query = $this->_getHasChangedQuery($date);
                 $data  = $engine->getClient()->search($query);
 
-                if (isset($data['hits']) && ($data['hits']['total'] > 0)) {
-                    foreach ($data['hits']['hits'] as $item) {
-                        $result[] = (int) current($item['fields']['event.eventEntity']);
+                if (isset($data['aggregations']) && (isset($data['aggregations']['product_skus']))) {
+                    foreach ($data['aggregations']['product_skus']['buckets'] as $item) {
+                        $result[] = $item['key'];
                     }
                 }
             }
         }
 
+        $result = $this->_entityIdFromSku($result);
+
+        echo "----------- HAS CHANGED ----------\n\n\n";
+        print_r($result);
+
         return $result;
+    }
+
+    /**
+     * Fetch product entity ids from their Skus
+     *
+     * @param array $skus the SKUs
+     *
+     * @return array The entity Ids
+     */
+    protected function _entityIdFromSku($skus)
+    {
+        $entityIds = array();
+
+        if (count($skus)) {
+            // Since entity_id is SKU on finedata index, we have to map products entity_id (The magento one)
+            $readAdapter = Mage::getSingleton('core/resource')->getConnection("read");
+            $select      = $readAdapter->select()
+                ->from(Mage::getSingleton('core/resource')->getTableName("catalog/product"), array('entity_id', 'sku'))
+                ->where("sku IN (?)", $skus);
+            $data = $readAdapter->fetchAll($select);
+            foreach ($data as $productData) {
+                $entityIds[$productData["sku"]] = $productData["entity_id"];
+            }
+        }
+
+        return $entityIds;
+    }
+
+    /**
+     * Fetch product entity ids from their Skus
+     *
+     * @param array $entityIds the entity Ids
+     *
+     * @return array The entity Ids
+     */
+    protected function _skuFromEntityId($entityIds)
+    {
+        $skus = array();
+
+        if (count($entityIds)) {
+            $readAdapter = Mage::getSingleton('core/resource')->getConnection("read");
+            $select      = $readAdapter->select()
+                ->from(Mage::getSingleton('core/resource')->getTableName("catalog/product"), array('entity_id', 'sku'))
+                ->where('entity_id IN (?)', array_map("intval", $entityIds));
+            $data = $readAdapter->fetchAll($select);
+
+            foreach ($data as $productData) {
+                $skus[$productData["entity_id"]] = $productData["sku"];
+            }
+        }
+
+        return $skus;
     }
 
     /**
@@ -242,22 +302,30 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
     {
         $popularityIndex = $this->_getPopularityIndex();
 
-        $fields = array("event.eventEntity");
+        $fields = array("entity_id");
 
         $query = array('index' => (string) $popularityIndex);
 
         $query['body']['query']['bool']['must'] = array(
             array(
                 'range' => array(
-                    'event.updated_at' => array(
-                        "gte" => $indexDateTime->toString(Varien_Date::DATETIME_INTERNAL_FORMAT)
+                    'event_date' => array(
+                        "gte"    => $indexDateTime->toString(Varien_Date::DATETIME_INTERNAL_FORMAT),
+                        "format" => Varien_Date::DATETIME_INTERNAL_FORMAT
                     )
                 )
             ),
+            array('term' => array('event.entity_type' => 'product'))
+        );
+
+        $query['body']['aggregations']['product_skus']['terms'] = array(
+            'field' => 'entity_id',
+            'size'  => 0
         );
 
         $query['body']['fields'] = $fields;
 
+        Mage::log("------ HAS CHANGED ------", null, "system.log", true);
         Mage::log(json_encode($query), null, "system.log", true);
 
         return $query;
