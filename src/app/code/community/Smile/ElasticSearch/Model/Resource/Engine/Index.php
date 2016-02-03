@@ -124,8 +124,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
 
                 $select->from(array('r' => $this->getTable('rating/rating_vote_aggregated')))
                     ->where('r.entity_pk_value IN (?)', $productIds)
-                    ->where('r.rating_id = ?', $indexedRatingId)
-                    ->where('store_id = ?', $storeId);
+                    ->where('r.rating_id = ?', (int) $indexedRatingId)
+                    ->where('store_id = ?', (int) $storeId);
 
                 foreach ($adapter->fetchAll($select) as $row) {
                     $productId = $row['entity_pk_value'];
@@ -155,11 +155,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         $nameAttr = $this->_getCategoryNameAttribute();
         $joinDefaultNameCond = $adapter->quoteInto(
             'cat.category_id = d_name.entity_id AND d_name.attribute_id = ? AND d_name.store_id = 0',
-            $nameAttr->getAttributeId()
+            (int) $nameAttr->getAttributeId()
         );
         $joinStoreNameCond = $adapter->quoteInto(
-            'cat.category_id = s_name.entity_id AND s_name.attribute_id = ? AND s_name.store_id = ' . $storeId,
-            $nameAttr->getAttributeId()
+            'cat.category_id = s_name.entity_id AND s_name.attribute_id = ? AND s_name.store_id = ' . (int) $storeId,
+            (int) $nameAttr->getAttributeId()
         );
 
         $select = $adapter->select()
@@ -167,7 +167,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
             ->join(array('d_name' => $nameAttr->getBackendTable()), $joinDefaultNameCond, array())
             ->joinLeft(array('s_name' => $nameAttr->getBackendTable()), $joinStoreNameCond, array())
             ->where('cat.product_id IN (?)', $productIds)
-            ->where('cat.store_id = ?', $storeId)
+            ->where('cat.store_id = ?', (int) $storeId)
             ->group('cat.product_id');
 
         $helper = Mage::getResourceHelper('core');

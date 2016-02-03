@@ -199,10 +199,10 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         if (is_null($storeId)) {
             $storeIds = array_keys($this->_stores);
             foreach ($storeIds as $storeId) {
-                $this->_rebuildStoreIndex($storeId, $ids);
+                $this->_rebuildStoreIndex((int) $storeId, $ids);
             }
         } else {
-            $this->_rebuildStoreIndex($storeId, $ids);
+            $this->_rebuildStoreIndex((int) $storeId, $ids);
         }
 
         $this->getCurrentIndex()->refresh();
@@ -242,6 +242,10 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      */
     protected function _rebuildStoreIndex($storeId, $entityIds = null)
     {
+        if (is_array($entityIds)) {
+            $entityIds = array_map('intval', $entityIds);
+        }
+
         $store = Mage::app()->getStore($storeId);
         $websiteId = $store->getWebsiteId();
 
@@ -252,7 +256,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
 
         foreach ($attributesById as $attribute) {
             if ($this->_canIndexAttribute($attribute) && $attribute->getBackendType() != 'static') {
-                $dynamicFields[$attribute->getBackendTable()][] = $attribute->getAttributeId();
+                $dynamicFields[$attribute->getBackendTable()][] = (int) $attribute->getAttributeId();
             }
         }
 
