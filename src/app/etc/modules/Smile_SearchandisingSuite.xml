@@ -26,6 +26,14 @@
             </depends>
         </Enterprise_Search>
 
+        <OnTap_Merchandiser>
+            <active>false</active>
+            <codePool>core</codePool>
+            <depends>
+                <Mage_CatalogSearch/>
+            </depends>
+        </OnTap_Merchandiser>
+
         <Smile_SearchandisingSuite>
             <active>true</active>
             <codePool>community</codePool>
