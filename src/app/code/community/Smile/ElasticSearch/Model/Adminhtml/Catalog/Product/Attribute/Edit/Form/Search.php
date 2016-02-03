@@ -145,6 +145,10 @@ class Smile_ElasticSearch_Model_Adminhtml_Catalog_Product_Attribute_Edit_Form_Se
                         'label' => Mage::helper('smile_elasticsearch')->__('Result count'),
                     ),
                     array(
+                        'value' => Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute::SORT_ORDER_ADMIN,
+                        'label' => Mage::helper('smile_elasticsearch')->__('Admin sort'),
+                    ),
+                    array(
                         'value' => Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute::SORT_ORDER_TERM,
                         'label' => Mage::helper('smile_elasticsearch')->__('Name'),
                     ),
