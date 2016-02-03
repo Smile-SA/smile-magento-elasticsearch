@@ -32,6 +32,7 @@ Ex: Brand facet will be displayed only if 90% of the product have a brand.,Ex: L
 "Facet sort order","Ordre de tri de la facette"
 "Result count","Nombre de résultat",
 "Name","Nom"
+"Admin sort","Tri administrateur"
 "Relevance","Pertinence"
 "%d / 5 and more","%d / 5 et plus"
 "Advanced search settings","Paramètres avancés de la recherche"
