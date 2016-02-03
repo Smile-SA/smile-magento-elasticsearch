@@ -65,8 +65,13 @@ class Smile_SearchOptimizer_Model_Observer
         if (!isset($query['search_type']) || $query['search_type'] != 'count') {
             $optimizers = Mage::getResourceModel('smile_searchoptimizer/optimizer_collection')
                 ->addIsActiveFilter()
-                ->addStoreFilter(Mage::app()->getStore())
                 ->addQueryTypeFilter($queryType);
+
+            if ($storeId = $data->getStoreId()) {
+                $optimizers->addStoreFilter($storeId);
+            } else {
+                $optimizers->addStoreFilter(Mage::app()->getStore());
+            }
 
             foreach ($optimizers as $currentOptimizer) {
                 $query = $currentOptimizer->applyOptimizer($query);
