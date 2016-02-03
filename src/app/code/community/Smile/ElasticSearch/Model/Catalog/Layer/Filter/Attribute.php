@@ -37,6 +37,11 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     /**
      * @var string
      */
+    const SORT_ORDER_ADMIN = 'admin';
+
+    /**
+     * @var string
+     */
     const SORT_ORDER_RELEVANCE = "_score";
 
     /**
@@ -65,14 +70,21 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
         $options = array(
             'size'  => $this->_getFacetMaxSize(),
         );
-        if ($this->_getFacetSortOrder() == self::SORT_ORDER_RELEVANCE) {
+
+        $facetSortOrder = $this->_getFacetSortOrder();
+
+        if (!in_array($facetSortOrder, array(self::SORT_ORDER_RELEVANCE, self::SORT_ORDER_COUNT, self::SORT_ORDER_TERM))) {
+            $facetSortOrder = self::SORT_ORDER_COUNT;
+        }
+
+        if ($facetSortOrder == self::SORT_ORDER_RELEVANCE) {
             $options['key_field'] = $this->_getFilterField();
             $options['value_script'] = self::SORT_ORDER_RELEVANCE;
             $options['order'] = self::TERM_STAT_AGGREGATOR;
             $facetType = "termsStats";
         } else {
             $options['field'] = $this->_getFilterField();
-            $options['order'] = $this->_getFacetSortOrder();
+            $options['order'] = $facetSortOrder;
         }
 
         $options = $this->_addSuggestFacetFilter($options);
@@ -281,6 +293,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
                     'count' => (int) $count,
                 );
             }
+
             if ($this->getSuggestConfig() == null) {
                 foreach ($this->_rawFilter as $value) {
                     if (!isset($data[$value])) {
@@ -289,12 +302,38 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
                 }
             }
 
+            if ($this->_getFacetSortOrder() == self::SORT_ORDER_ADMIN && $attribute->getSource()) {
+                $data = $this->_applyAdminSort($data);
+            }
+
             $data = array_values($data);
         }
 
         return $data;
     }
 
+
+    /**
+     * Sort of the facet result according admin sort.
+     *
+     * @param array $data
+     *
+     * @return array
+     */
+    protected function _applyAdminSort($data)
+    {
+        $attribute = $this->getAttributeModel();
+        $options   = $attribute->getSource()->getAllOptions();
+        $sortedData   = array();
+
+        foreach ($options as $currentOption) {
+            if (isset($data[$currentOption['label']])) {
+                $sortedData[$currentOption['label']] = $data[$currentOption['label']];
+            }
+        }
+
+        return $sortedData;
+    }
 
     /**
      * Checks if given filter is valid before being applied to product collection.
