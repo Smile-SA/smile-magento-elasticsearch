@@ -540,9 +540,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     public function createDocument($id, array $data = array(), $type = 'product')
     {
         $headerData = array(
-            '_index' => $this->getCurrentName(),
-            '_type'  => $type,
-            '_id'    => $id
+            '_index'   => $this->getCurrentName(),
+            '_type'    => $type,
+            '_id'      => $id,
+            '_routing' => $id,
         );
 
         if (isset($data['_parent'])) {
@@ -629,9 +630,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     public function updateDocument($id, array $data = array(), $type = 'product')
     {
         $headerData = array(
-            '_index' => $this->getCurrentName(),
-            '_type'  => $type,
-            '_id'    => $id
+            '_index'   => $this->getCurrentName(),
+            '_type'    => $type,
+            '_id'      => $id,
+            '_routing' => $id,
         );
 
         if (isset($data['_parent'])) {
