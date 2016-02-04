@@ -388,9 +388,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
             }
             self::$_analyzedQueries[$textQuery] = $result;
 
-            if (in_array($result, array($result = self::SPELLING_TYPE_MOST_EXACT, self::SPELLING_TYPE_MOST_FUZZY))) {
-                $this->_addSuggestedTerms($textQuery, $queryTermStats);
-            }
         }
 
         return self::$_analyzedQueries[$textQuery];
@@ -430,20 +427,22 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
 
         foreach ($analyzers as $currentAnalyzer) {
             $currentField = $currentAnalyzer == 'none' ? $baseField : sprintf('%s.%s', $baseField, $currentAnalyzer);
-            $currentTermVector = $termVectResponse['term_vectors'][$currentField];
-            foreach ($currentTermVector['terms'] as $currentTerm => $termVector) {
-                foreach ($termVector['tokens'] as $token) {
-                    $positionKey = sprintf("%s_%s", $token['start_offset'], $token['end_offset']);
-                    $frequency = 0;
-                    if (isset($termVector['doc_freq'])) {
-                        $frequency = $termVector['doc_freq'] / $indexTotalDocs;
-                        $terms[$positionKey]['analyzers'][] = $currentTerm;
-                        $terms[$positionKey]['analyzers'][] = $currentAnalyzer;
+            if (isset($termVectResponse['term_vectors'][$currentField])) {
+                $currentTermVector = $termVectResponse['term_vectors'][$currentField];
+                foreach ($currentTermVector['terms'] as $currentTerm => $termVector) {
+                    foreach ($termVector['tokens'] as $token) {
+                        $positionKey = sprintf("%s_%s", $token['start_offset'], $token['end_offset']);
+                        $frequency = 0;
+                        if (isset($termVector['doc_freq'])) {
+                            $frequency = $termVector['doc_freq'] / $indexTotalDocs;
+                            $terms[$positionKey]['analyzers'][] = $currentTerm;
+                            $terms[$positionKey]['analyzers'][] = $currentAnalyzer;
+                        }
+                        if (isset($term[$positionKey]) && isset($term[$positionKey]['frequency'])) {
+                            $frequency = max($terms[$positionKey]['frequency'], $frequency);
+                        }
+                        $terms[$positionKey]['frequency'] = $frequency;
                     }
-                    if (isset($term[$positionKey]) && isset($term[$positionKey]['frequency'])) {
-                        $frequency = max($terms[$positionKey]['frequency'], $frequency);
-                    }
-                    $terms[$positionKey]['frequency'] = $frequency;
                 }
             }
         }
@@ -462,36 +461,5 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         }
 
         return $queryTermStats;
-    }
-
-    protected function _addSuggestedTerms($textQuery, $queryTermStats) {
-        if (!isset(self::$_spellcheck[$textQuery])) {
-            $currentIndex = $this->getAdapter()->getCurrentIndex()->getCurrentName();
-            $suggestQuery = array('index' => $currentIndex);
-            $suggestQuery['body']['text'] = $textQuery;
-            $suggestQuery['body']['phrase_suggest']['phrase'] = array(
-                'field'      => $this->_getSpellingBaseField(),
-                'size'       => 3,
-                'max_errors' => max(1, $queryTermStats['missing']),
-                'real_word_error_likelihood' => 0.95,
-                'confidence' => 2,
-                'highlight' => array('pre_tag' => '{{', 'post_tag' => '}}')
-            );
-
-            Varien_Profiler::start('ES:EXECUTE:SUGGESTER');
-            $suggesterResponse = $this->getClient()->suggest($suggestQuery);
-            Varien_Profiler::stop('ES:EXECUTE:SUGGESTER');
-            $suggetedTerms = array();
-            foreach ($suggesterResponse['phrase_suggest'] as $suggestions) {
-                foreach ($suggestions['options'] as $currentSuggestion) {
-                    $matches = array();
-                    if (preg_match_all("|[\\{]{2}(.*)[\\}]{2}|U", $currentSuggestion['highlighted'] , $matches)) {
-                        $suggetedTerms = array_merge($suggetedTerms, $matches[1]);
-                    }
-                }
-            }
-
-            self::$_spellcheck[$textQuery] = $suggetedTerms;
-        }
     }
 }
