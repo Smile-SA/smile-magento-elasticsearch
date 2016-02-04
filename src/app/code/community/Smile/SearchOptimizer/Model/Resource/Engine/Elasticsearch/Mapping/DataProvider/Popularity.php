@@ -53,15 +53,12 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
                         $updateData = $this->_prepareBehavioralData($item);
                         foreach ($updateData as $sku => $productData) {
                             $entityId = array_search($sku, $productIds);
-                            $result[$productIds[$sku]] = array_merge($productData, $result[$entityId]);
+                            $result[$entityId] = array_merge((array) $result[$entityId], $productData);
                         }
                     }
                 }
             }
         }
-
-        echo "----------- RESULT ----------\n\n\n";
-        print_r($result);
 
         return $result;
     }
@@ -106,10 +103,6 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
             )
         );
 
-        Mage::log("------------ POPULARITY -------------", null, "system.log", true);
-        Mage::log($entityIds, null, "system.log", true);
-        Mage::log(json_encode($query), null, "system.log", true);
-
         return $query;
     }
 
@@ -140,9 +133,6 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
                 }
             }
         }
-
-        echo "----------- PREPARE BEHAVIORAL DATA ----------\n\n\n";
-        print_r($data);
 
         return $data;
     }
@@ -233,9 +223,6 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
 
         $result = $this->_entityIdFromSku($result);
 
-        echo "----------- HAS CHANGED ----------\n\n\n";
-        print_r($result);
-
         return $result;
     }
 
@@ -324,9 +311,6 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
         );
 
         $query['body']['fields'] = $fields;
-
-        Mage::log("------ HAS CHANGED ------", null, "system.log", true);
-        Mage::log(json_encode($query), null, "system.log", true);
 
         return $query;
     }

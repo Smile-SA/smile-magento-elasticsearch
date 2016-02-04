@@ -18,9 +18,9 @@ class Smile_SearchOptimizer_Model_Index_Action_Popularity_Refresh_Changelog
     extends Smile_SearchOptimizer_Model_Index_Action_Popularity_Refresh
 {
     /**
-     * Refresh the popularity index : just rebuild data from this data provider
+     * Refresh the popularity index : just rebuild data from this data provider for the products that did change
      *
-     * @return Smile_SearchOptimizer_Model_Index_Action_Popularity_Refresh
+     * @return Smile_SearchOptimizer_Model_Index_Action_Popularity_Refresh_Changelog
      *
      * @throws Enterprise_Index_Model_Action_Exception
      */
@@ -31,11 +31,12 @@ class Smile_SearchOptimizer_Model_Index_Action_Popularity_Refresh_Changelog
         $lastVersionDate = new Zend_Date($this->_metadata->getVersionId(), Zend_Date::TIMESTAMP);
 
         try {
-            // Let the index process all data
+            // Let the index process data that has changed since the last index
             $this->_indexer->reindexChangelog($lastVersionDate);
 
             $currentDate = new Zend_Date();
-            //$this->_metadata->setVersionId($currentDate->getTimestamp());
+            $this->_metadata->setVersionId($currentDate->getTimestamp());
+
         } catch (Exception $exception) {
             Mage::logException($exception);
             $this->_metadata->setInvalidStatus();
