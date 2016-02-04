@@ -120,7 +120,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
                 array('website' => $this->getTable('catalog/product_website')),
                 $adapter->quoteInto(
                     'website.product_id=e.entity_id AND website.website_id=?',
-                    $websiteId
+                    (int) $websiteId
                 ),
                 array()
             )
@@ -128,7 +128,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
                 array('stock_status' => $this->getTable('cataloginventory/stock_status')),
                 $adapter->quoteInto(
                     'stock_status.product_id=e.entity_id AND stock_status.website_id=?',
-                    $websiteId
+                    (int) $websiteId
                 ),
                 array('in_stock' => new Zend_Db_Expr("COALESCE(stock_status.stock_status, 0)"))
             );
@@ -137,7 +137,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
             $select->where('e.entity_id IN(?)', $ids);
         }
 
-        $select->where('e.entity_id>?', $lastId)
+        $select->where('e.entity_id>?', (int) $lastId)
             ->limit($limit)
             ->order('e.entity_id');
 
@@ -163,7 +163,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
         $result = array();
         $values = $adapter->fetchAll($select);
         foreach ($values as $value) {
-            $result[$value['entity_id']] = $value;
+            $result[(int) $value['entity_id']] = $value;
         }
 
         return array_map(array($this, '_fixBaseFieldTypes'), $result);
@@ -241,7 +241,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
                         array('main' => $this->getTable($relation->getTable())),
                         array($relation->getParentFieldName(), $relation->getChildFieldName())
                     )
-                    ->where("main.{$relation->getParentFieldName()} in (?)", $entityIds);
+                    ->where("main.{$relation->getParentFieldName()} IN (?)", $entityIds);
 
                 if (!is_null($relation->getWhere())) {
                     $select->where($relation->getWhere());
@@ -257,7 +257,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
                 foreach ($data as $link) {
                     $parentId = $link[$relation->getParentFieldName()];
                     $childId  = $link[$relation->getChildFieldName()];
-                    $children[$parentId][] = $childId;
+                    $children[$parentId][] = (int) $childId;
                 }
             }
         }

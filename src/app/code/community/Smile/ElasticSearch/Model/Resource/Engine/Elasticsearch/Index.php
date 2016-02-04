@@ -185,7 +185,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     protected function _getSettings()
     {
         $indexSettings = array(
-            'number_of_replicas'               => (int) $this->getConfig('number_of_replicas'),
+            'number_of_replicas'               => 0,
             "refresh_interval"                 => self::FULL_REINDEX_REFRESH_INTERVAL,
             "merge.policy.merge_factor"        => self::FULL_REINDEX_MERGE_FACTOR,
             "merge.scheduler.max_thread_count" => 1
@@ -476,6 +476,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
                 array(
                     'index' => $this->getCurrentName(),
                     'body'  => array(
+                        'number_of_replicas'        => (int) $this->getConfig('number_of_replicas'),
                         "refresh_interval"          => self::DIFF_REINDEX_REFRESH_INTERVAL,
                         "merge.policy.merge_factor" => self::DIFF_REINDEX_MERGE_FACTOR,
                     )
@@ -539,9 +540,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     public function createDocument($id, array $data = array(), $type = 'product')
     {
         $headerData = array(
-            '_index' => $this->getCurrentName(),
-            '_type'  => $type,
-            '_id'    => $id
+            '_index'   => $this->getCurrentName(),
+            '_type'    => $type,
+            '_id'      => $id,
+            '_routing' => $id,
         );
 
         if (isset($data['_parent'])) {
@@ -628,9 +630,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     public function updateDocument($id, array $data = array(), $type = 'product')
     {
         $headerData = array(
-            '_index' => $this->getCurrentName(),
-            '_type'  => $type,
-            '_id'    => $id
+            '_index'   => $this->getCurrentName(),
+            '_type'    => $type,
+            '_id'      => $id,
+            '_routing' => $id,
         );
 
         if (isset($data['_parent'])) {
