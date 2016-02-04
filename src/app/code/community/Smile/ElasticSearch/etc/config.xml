@@ -283,17 +283,17 @@
                 <elasticsearch_analysis_index_settings>
                     <analyzer>
                         <whitespace>
-                            <tokenizer>whitespace</tokenizer>
+                            <tokenizer>standard</tokenizer>
                             <filter>word_delimiter,lowercase,ascii_folding,trim,synonym</filter>
                             <char_filter>html_strip</char_filter>
                         </whitespace>
                         <shingle>
-                            <tokenizer>whitespace</tokenizer>
+                            <tokenizer>standard</tokenizer>
                             <filter>word_delimiter,lowercase,ascii_folding,trim,synonym,shingle</filter>
                             <char_filter>html_strip</char_filter>
                         </shingle>
                         <edge_ngram_front>
-                            <tokenizer>whitespace</tokenizer>
+                            <tokenizer>standard</tokenizer>
                             <filter>word_delimiter,ascii_folding,lowercase,trim,edge_ngram_front</filter>
                             <char_filter>html_strip</char_filter>
                         </edge_ngram_front>
