@@ -34,8 +34,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
      */
     protected static $_assembledQueries = array();
 
-    protected static $_spellcheck = array();
-
     /**
      * @var string
      */
@@ -102,28 +100,50 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     /**
      * Return the configuration of the cutoff frequency
      *
-     * @return array
+     * @return float
      */
     protected function _getCutOffFrequencyConfig()
     {
         return 0.15;
     }
 
+    /**
+     * Default field used in standard search.
+     *
+     * @return string
+     */
     protected function _getDefaultSearchField()
     {
         return 'search_' . $this->getLanguageCode();
     }
 
-    public function _getWeightedSearchFields()
+    /**
+     * Returns the list of fields used in standard search with their respective weights.
+     *
+     * @return array
+     */
+    protected function _getWeightedSearchFields()
     {
         return $this->getSearchFields(Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL);
     }
 
-    protected function _getSpellingBaseField() {
+    /**
+     * Default field used in standard search spellechecking
+     *
+     * @return string
+     */
+    protected function _getSpellingBaseField()
+    {
         return 'spelling_' . $this->getLanguageCode();
     }
 
-    protected function _getSpellingAnalayzers() {
+    /**
+     * List of analyzers used by the spellchecker.
+     *
+     * @return array
+     */
+    protected function _getSpellingAnalayzers()
+    {
         return array('whitespace', 'none');
     }
 
@@ -230,6 +250,15 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         return $query;
     }
 
+    /**
+     * Append phrase optimization to the user query.
+     *
+     * @param array  $query        Query to be optimized.
+     * @param strint $textQuery    Text submitted by the user.
+     * @param int    $spellingType Type of spelling applied.
+     *
+     * @return array
+     */
     protected function _addPhraseOptimizations($query, $textQuery, $spellingType)
     {
         $phraseBoostValue = $this->_getPhraseMatchBoost();
@@ -251,14 +280,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                 $optimizationFunctions[] = array('filter' => $qsFilter, 'boost_factor' => $phraseBoostValue);
             }
 
-            if (isset(self::$_spellcheck[$textQuery])) {
-                foreach (self::$_spellcheck[$textQuery] as $currentTerm) {
-                    $qs = array('query' => $currentTerm, 'default_field' => $defaultSearchField);
-                    $qsFilter = array('query' => array('query_string' => $qs));
-                    $optimizationFunctions[] = array('filter' => $qsFilter, 'boost_factor' => $phraseBoostValue);
-                }
-            }
-
             if (!empty($optimizationFunctions)) {
                 $query = array('function_score' => array('query' => $query, 'functions' => $optimizationFunctions));
             }
@@ -267,6 +288,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         return $query;
     }
 
+    /**
+     * Retrieve the list of fields used in fuzzy search (weighted).
+     *
+     * @return array
+     */
     protected function _getFuzzySearchFields()
     {
         $fuzzySearchFields =  $this->getSearchFields(
@@ -277,8 +303,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     }
     /**
      * Retrieve fuzziness configuration for fulltext queries. False if fuzziness is disabled.
-     *
-     * @param string $languageCode Current language code.
      *
      * @return array|boolean
      */
@@ -300,6 +324,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         return $fuzzinessConfig;
     }
 
+    /**
+     * Retrieve the list of fields used in phonetic search (weighted).
+     *
+     * @return array
+     */
     protected function _getPhoneticSearchFields()
     {
         return $this->getSearchFields(
@@ -309,8 +338,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
 
     /**
      * Retrieve phonetic configuration for fulltext queries. False if phonetic search is disabled.
-     *
-     * @param string $languageCode Current language code.
      *
      * @return array|boolean
      */
@@ -405,7 +432,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     }
 
     /**
-     *
+     * Retrieve statistics on spelling of the user isssued query.
      *
      * @param string $textQuery Query issued by the customer.
      *
@@ -435,6 +462,15 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         return $queryTermStats;
     }
 
+    /**
+     * Read terms stats usign term vectors API
+     *
+     * @param string $textQuery Text query to be analyzed
+     * @param string $field     Field to be analyzed
+     * @param array  $analyzers Used analyzers
+     *
+     * @return array
+     */
     protected function _getTermVectors($textQuery, $field, $analyzers)
     {
         // Build term vector query
@@ -501,9 +537,18 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         return $response;
     }
 
+    /**
+     * Ensure the spelling type as result. Else reduce the constraint by applying SPELLING_TYPE_MOST_EXACT spelling type.
+     *
+     * @param string $textQuery    Text query to be analyzed.
+     * @param int    $spellingType Spelling type before fix.
+     *
+     * @return string
+     */
     protected function _fixSpellingType($textQuery, $spellingType)
     {
-        if (in_array($spellingType, array(self::SPELLING_TYPE_PURE_STOPWORDS, self::SPELLING_TYPE_EXACT, self::SPELLING_TYPE_MOST_EXACT))) {
+        $spellingTypesUsed = array(self::SPELLING_TYPE_PURE_STOPWORDS, self::SPELLING_TYPE_EXACT, self::SPELLING_TYPE_MOST_EXACT);
+        if (in_array($spellingType, $spellingTypesUsed)) {
             $defaultSearchField = current($this->_getWeightedSearchFields());
             $cutoffFrequency    = $this->_getCutOffFrequencyConfig();
             $minimumShouldMatch = $this->_getMinimumShouldMatch();

@@ -93,7 +93,8 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $type = $this->_getAttributeType($attribute);
 
             $isSearchable = (bool) $attribute->getIsSearchable() && $attribute->getSearchWeight() > 0;
-            $isFacet = (bool) ($attribute->getIsFilterable() || $attribute->getIsFilterableInSearch() || $attribute->getIsUsedForPromoRules());
+            $isFilterable = $attribute->getIsFilterable() || $attribute->getIsFilterableInSearch();
+            $isFacet = (bool) ($isFilterable || $attribute->getIsUsedForPromoRules());
             $isFuzzy = (bool) $attribute->getIsFuzzinessEnabled() && $isSearchable;
             $usedForSortBy = (bool) $attribute->getUsedForSortBy();
             $isAutocomplete = (bool) ($attribute->getIsUsedInAutocomplete() || $attribute->getIsDisplayedInAutocomplete());

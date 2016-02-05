@@ -238,7 +238,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
         foreach ($this->_stores as $store) {
             $languageCode = $this->_helper->getLanguageCodeByStore($store);
             $defaultAnalyzer = 'analyzer_' . $languageCode;
-            $baseFieldProperties = array('type' => 'string', 'store' => false);//, 'fielddata' => array('format' => 'disabled'));
+            $baseFieldProperties = array('type' => 'string', 'store' => false, 'fielddata' => array('format' => 'disabled'));
             foreach (array('search', 'spelling', 'autocomplete') as $currentField) {
                 $currentIndexField = sprintf('%s_%s', $currentField, $languageCode);
                 $mapping[$currentIndexField]['type'] = 'multi_field';
@@ -280,11 +280,13 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
      * @param bool   $fuzzy        Can the attribute be used in fuzzy searches.
      * @param bool   $facet        Can the attribute be used as a facet.
      * @param bool   $autocomplete Can the attribute be used in autocomplete.
+     * @param bool   $searchable   Can the attribute be used in search.
      *
      * @return array string
      */
     protected function _getStringMapping(
-        $fieldName, $languageCode, $type = 'string', $sortable = false, $fuzzy = true, $facet = true, $autocomplete = true, $searchable = true
+        $fieldName, $languageCode, $type = 'string', $sortable = false,
+        $fuzzy = true, $facet = true, $autocomplete = true, $searchable = true
     ) {
         $mapping = array();
 
@@ -439,7 +441,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
         } else if ($searchType == self::SEARCH_TYPE_NORMAL) {
             $defaultSearchFields = 'search_' . $languageCode;
         } else if ($searchType == self::SEARCH_TYPE_AUTOCOMPLETE) {
-            $defaultSearchFields = 'autocomplete_' . $languageCode;;
+            $defaultSearchFields = 'autocomplete_' . $languageCode;
         }
         return $defaultSearchFields;
     }
