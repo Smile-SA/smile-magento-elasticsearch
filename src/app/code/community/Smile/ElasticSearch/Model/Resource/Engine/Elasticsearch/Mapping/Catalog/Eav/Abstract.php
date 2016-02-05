@@ -609,7 +609,9 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 foreach ($storeIds as $storeId) {
                     $attribute->setStoreId($storeId);
 
-                    if ($attribute->getFrontendInput() == "boolean") {
+                    if (($attribute->getFrontendInput() == "boolean")
+                        && ($attribute->getSourceModel() == 'eav/entity_attribute_source_boolean')
+                    ) {
                         $appEmulation = Mage::getSingleton('core/app_emulation');
                         $initialEnvironment = $appEmulation->startEnvironmentEmulation(
                             $storeId,
