@@ -1,6 +1,7 @@
 <?php
 /**
  * Append Missing foreign key to catalog_product_entity on virtual categories product positions
+ * Also delete useless indexes previously created
  *
  * DISCLAIMER
  *
@@ -19,6 +20,16 @@ $installer = $this;
 $installer->startSetup();
 
 $tableName = $installer->getTable('smile_virtualcategories/category_product_position');
+
+$installer->getConnection()->dropIndex(
+    $tableName,
+    $installer->getIdxName('smile_virtualcategories/category_product_position', array('category_id'))
+);
+
+$installer->getConnection()->dropIndex(
+    $tableName,
+    $installer->getIdxName('smile_virtualcategories/category_product_position', array('product_id'))
+);
 
 $installer->getConnection()->addForeignKey(
     $installer->getFkName(
