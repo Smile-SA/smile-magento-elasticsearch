@@ -52,37 +52,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
             'type' => 'best_fields',
             'tie_breaker' => 1,
             'fields' => $this->_getWeightedSearchFields(),
-            'analyzer' => 'analyzer_' . $this->getLanguageCode(),
-            'minimum_should_match' => "100%"
+            'analyzer' => 'analyzer_' . $this->getLanguageCode()
         );
 
-        $query = array('multi_match' => $weightedMultiMatchQuery);
-
-        return $query;
-    }
-
-    /**
-      * Build the fulltext query condition for the query.
-      *
-      * @return array
-      */
-    protected function _prepareFulltextCondition()
-    {
-        $query = array('match_all' => array());
-
-        if ($this->_fulltextQuery && is_string($this->_fulltextQuery)) {
-            $spellingType = $this->_analyzeSpelling($this->_fulltextQuery);
-
-            if ($spellingType == self::SPELLING_TYPE_FUZZY) {
-                $this->_isSpellChecked = true;
-            }
-
-            if (!isset(self::$_assembledQueries[$this->_fulltextQuery])) {
-                self::$_assembledQueries[$this->_fulltextQuery] = $this->_buildFulltextQuery($this->_fulltextQuery, $spellingType);
-            }
-
-            $query = self::$_assembledQueries[$this->_fulltextQuery];
+        if ($spellingType != self::SPELLING_TYPE_MOST_FUZZY) {
+            $weightedMultiMatchQuery['minimum_should_match'] = "100%";
         }
+
+        $query = array('multi_match' => $weightedMultiMatchQuery);
 
         return $query;
     }
@@ -146,10 +123,37 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
         $matchQuery = array('query' => $textQuery, 'type' => 'best_fields', 'minimum_should_match' => "100%");
 
         $fuzzinessConfig = $this->_getFuzzinessConfig();
+
         if ($fuzzinessConfig !== false) {
             $fuzzyQuery = array('multi_match' => array_merge($matchQuery, $fuzzinessConfig));
         }
 
         return $fuzzyQuery;
+    }
+
+    protected function _fixSpellingType($textQuery, $spellingType)
+    {
+        if (in_array($spellingType, array(self::SPELLING_TYPE_PURE_STOPWORDS, self::SPELLING_TYPE_EXACT, self::SPELLING_TYPE_MOST_EXACT))) {
+            $defaultSearchField = current($this->_getWeightedSearchFields());
+            $minimumShouldMatch = "100%";
+            $index              = $this->getAdapter()->getCurrentIndex()->getCurrentName();
+            $type               = $this->getType();
+
+            $searchParams = array('index' => $index, 'type' => $type, 'search_type' => 'count');
+
+            $queryType = 'match';
+
+            $searchParams['body']['query'][$queryType][$defaultSearchField]['query'] = $textQuery;
+            $searchParams['body']['query'][$queryType][$defaultSearchField]['analyzer'] = 'analyzer_' . $this->getLanguageCode();
+            $searchParams['body']['query'][$queryType][$defaultSearchField]['minimum_should_match'] = $minimumShouldMatch;
+
+            $searchResponse = $this->getClient()->search($searchParams);
+
+            if (isset($searchResponse['hits']) && $searchResponse['hits']['total'] == 0) {
+                $spellingType = self::SPELLING_TYPE_MOST_FUZZY;
+            }
+        }
+
+        return $spellingType;
     }
 }

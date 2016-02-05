@@ -109,6 +109,24 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         return 0.15;
     }
 
+    protected function _getDefaultSearchField()
+    {
+        return 'search_' . $this->getLanguageCode();
+    }
+
+    public function _getWeightedSearchFields()
+    {
+        return $this->getSearchFields(Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL);
+    }
+
+    protected function _getSpellingBaseField() {
+        return 'spelling_' . $this->getLanguageCode();
+    }
+
+    protected function _getSpellingAnalayzers() {
+        return array('whitespace', 'none');
+    }
+
     /**
       * Build the fulltext query condition for the query.
       *
@@ -169,17 +187,8 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
             }
         }
         $query = $this->_addPhraseOptimizations($query, $textQuery, $spellingType);
+
         return $query;
-    }
-
-    protected function _getDefaultSearchField()
-    {
-        return 'search_' . $this->getLanguageCode();
-    }
-
-    public function _getWeightedSearchFields()
-    {
-        return $this->getSearchFields(Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_NORMAL);
     }
 
     /**
@@ -376,50 +385,23 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         if (!isset(self::$_analyzedQueries[$textQuery])) {
             $queryTermStats = $this->_getQueryTermStats($textQuery);
 
-            $result = self::SPELLING_TYPE_FUZZY;
+            $spellingType = self::SPELLING_TYPE_FUZZY;
             if ($queryTermStats['total'] == $queryTermStats['stop']) {
-                $result = self::SPELLING_TYPE_PURE_STOPWORDS;
+                $spellingType = self::SPELLING_TYPE_PURE_STOPWORDS;
             } else if ($queryTermStats['total'] == $queryTermStats['stop'] + $queryTermStats['exact']) {
-                $result = self::SPELLING_TYPE_EXACT;
+                $spellingType = self::SPELLING_TYPE_EXACT;
             } else if ($queryTermStats['missing'] == 0) {
-                $result = self::SPELLING_TYPE_MOST_EXACT;
+                $spellingType = self::SPELLING_TYPE_MOST_EXACT;
             } else if ($queryTermStats['total'] - $queryTermStats['missing'] > 0) {
-                $result = self::SPELLING_TYPE_MOST_FUZZY;
+                $spellingType = self::SPELLING_TYPE_MOST_FUZZY;
             }
 
-            if (in_array($result, array(self::SPELLING_TYPE_EXACT, self::SPELLING_TYPE_MOST_EXACT))) {
-                $defaultSearchField = $this->_getDefaultSearchField();
+            $spellingType = $this->_fixSpellingType($textQuery, $spellingType);
 
-                $query = array(
-                    'query' => $textQuery,
-                    'cutoff_frequency' => $this->_getCutOffFrequencyConfig(),
-                    'minimum_should_match' => $this->_getMinimumShouldMatch(),
-                );
-                $searchParams = array(
-                    'index' => $this->getAdapter()->getCurrentIndex()->getCurrentName(),
-                    'type'  => $this->getType(),
-                    'body'  => array('query' => array('common' => array($defaultSearchField => $query))),
-                    'search_type' => 'count',
-                );
-                $searchResponse = $this->getClient()->search($searchParams);
-
-                if (isset($searchResponse['hits']) && $searchResponse['hits']['total'] == 0) {
-                    $result = self::SPELLING_TYPE_MOST_FUZZY;
-                }
-            }
-
-            self::$_analyzedQueries[$textQuery] = $result;
+            self::$_analyzedQueries[$textQuery] = $spellingType;
         }
 
         return self::$_analyzedQueries[$textQuery];
-    }
-
-    protected function _getSpellingBaseField() {
-        return 'spelling_' . $this->getLanguageCode();
-    }
-
-    protected function _getSpellingAnalayzers() {
-        return array('whitespace', 'none');
     }
 
     /**
@@ -486,17 +468,23 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
             if (in_array($analyzer, $analyzers)) {
                 // Keep only required analyzers and parse them
                 foreach ($fieldData['terms'] as $term => $termStats) {
+                    $termMinFrequency = false;
                     foreach ($termStats['tokens'] as $token) {
                         // Read the current token data
                         $positionKey  = sprintf("%s_%s", $token['start_offset'], $token['end_offset']);
                         $frequency    = isset($termStats['doc_freq']) ? $termStats['doc_freq'] / $indexTotalDocs : 0;
                         $addAnalyzer  = (bool) ($frequency > 0);
 
+                        if ($termMinFrequency !== false) {
+                            $frequency = min($termMinFrequency, $frequency);
+                        }
+                        $termMinFrequency = $frequency;
+
                         // Keep data set by a previous analyzer if the frequency is higher or the text is longer
                         if (isset($response[$positionKey])) {
                             $currentValue = $response[$positionKey];
-                            $frequency = max($currentValue['frequency'], $frequency);
-                            $term      = strlen($currentValue['term']) > strlen($term) ? $currentValue['term'] : $term;
+                            $frequency    = max($currentValue['frequency'], $frequency);
+                            $term         = $term;
                         }
 
                         // Put everything into the response
@@ -511,5 +499,36 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         }
 
         return $response;
+    }
+
+    protected function _fixSpellingType($textQuery, $spellingType)
+    {
+        if (in_array($spellingType, array(self::SPELLING_TYPE_PURE_STOPWORDS, self::SPELLING_TYPE_EXACT, self::SPELLING_TYPE_MOST_EXACT))) {
+            $defaultSearchField = current($this->_getWeightedSearchFields());
+            $cutoffFrequency    = $this->_getCutOffFrequencyConfig();
+            $minimumShouldMatch = $this->_getMinimumShouldMatch();
+            $index              = $this->getAdapter()->getCurrentIndex()->getCurrentName();
+            $type               = $this->getType();
+
+            $searchParams = array('index' => $index, 'type' => $type, 'search_type' => 'count');
+
+            $queryType = 'match';
+
+            if ($spellingType != self::SPELLING_TYPE_PURE_STOPWORDS) {
+                $queryType = 'common';
+                $searchParams['body']['query'][$queryType][$defaultSearchField]['cutoff_frequency'] = $cutoffFrequency;
+            }
+
+            $searchParams['body']['query'][$queryType][$defaultSearchField]['query'] = $textQuery;
+            $searchParams['body']['query'][$queryType][$defaultSearchField]['minimum_should_match'] = $minimumShouldMatch;
+
+            $searchResponse = $this->getClient()->search($searchParams);
+
+            if (isset($searchResponse['hits']) && $searchResponse['hits']['total'] == 0) {
+                $spellingType = self::SPELLING_TYPE_MOST_FUZZY;
+            }
+        }
+
+        return $spellingType;
     }
 }
