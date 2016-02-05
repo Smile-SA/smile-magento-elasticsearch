@@ -312,7 +312,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         if ($fuzzinessConfig) {
             $fuzzySearchFields = $this->_getFuzzySearchFields();
             $fuzzinessConfig = array(
-                'analyzer'         => 'whitespace',
                 'fields'           => $fuzzySearchFields,
                 'fuzziness'        => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'fuzziness_value'),
                 'prefix_length'    => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'fuzziness_prefix_length'),
