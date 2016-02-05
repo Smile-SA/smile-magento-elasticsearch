@@ -106,7 +106,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
      */
     protected function _getCutOffFrequencyConfig()
     {
-        return 0.07;
+        return 0.15;
     }
 
     /**
@@ -386,8 +386,29 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
             } else if ($queryTermStats['total'] - $queryTermStats['missing'] > 0) {
                 $result = self::SPELLING_TYPE_MOST_FUZZY;
             }
-            self::$_analyzedQueries[$textQuery] = $result;
 
+            if (in_array($result, array(self::SPELLING_TYPE_EXACT, self::SPELLING_TYPE_MOST_EXACT))) {
+                $defaultSearchField = $this->_getDefaultSearchField();
+
+                $query = array(
+                    'query' => $textQuery,
+                    'cutoff_frequency' => $this->_getCutOffFrequencyConfig(),
+                    'minimum_should_match' => $this->_getMinimumShouldMatch(),
+                );
+                $searchParams = array(
+                    'index' => $this->getAdapter()->getCurrentIndex()->getCurrentName(),
+                    'type'  => $this->getType(),
+                    'body'  => array('query' => array('common' => array($defaultSearchField => $query))),
+                    'search_type' => 'count',
+                );
+                $searchResponse = $this->getClient()->search($searchParams);
+
+                if (isset($searchResponse['hits']) && $searchResponse['hits']['total'] == 0) {
+                    $result = self::SPELLING_TYPE_MOST_FUZZY;
+                }
+            }
+
+            self::$_analyzedQueries[$textQuery] = $result;
         }
 
         return self::$_analyzedQueries[$textQuery];
@@ -413,42 +434,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         $baseField = $this->_getSpellingBaseField();
         $analyzers = $this->_getSpellingAnalayzers();
 
-        $currentIndex = $this->getAdapter()->getCurrentIndex()->getCurrentName();
+        $termVectResponse = $this->_getTermVectors($textQuery, $baseField, $analyzers);
 
-        $termVectorQuery = array('index' => $currentIndex, 'type' => $this->getType(), 'id' => '', 'term_statistics'  => true);
-        $termVectorQuery['body']['doc'] = array($baseField => $textQuery);
-        Varien_Profiler::start('ES:EXECUTE:SPELLING_QUERY');
-        $indexStatResponse = $this->getAdapter()->getCurrentIndex()->getStatus();
-        $termVectResponse  = $this->getClient()->termvector($termVectorQuery);
-        Varien_Profiler::stop('ES:EXECUTE:SPELLING_QUERY');
-        $terms = array();
+        $queryTermStats = array('stop' => 0, 'exact' => 0, 'standard' => 0, 'missing' => 0, 'total' => count($termVectResponse));
 
-        $indexTotalDocs = (int) $indexStatResponse['total']['docs']['count'];
-
-        foreach ($analyzers as $currentAnalyzer) {
-            $currentField = $currentAnalyzer == 'none' ? $baseField : sprintf('%s.%s', $baseField, $currentAnalyzer);
-            if (isset($termVectResponse['term_vectors'][$currentField])) {
-                $currentTermVector = $termVectResponse['term_vectors'][$currentField];
-                foreach ($currentTermVector['terms'] as $currentTerm => $termVector) {
-                    foreach ($termVector['tokens'] as $token) {
-                        $positionKey = sprintf("%s_%s", $token['start_offset'], $token['end_offset']);
-                        $frequency = 0;
-                        if (isset($termVector['doc_freq'])) {
-                            $frequency = $termVector['doc_freq'] / $indexTotalDocs;
-                            $terms[$positionKey]['analyzers'][] = $currentTerm;
-                            $terms[$positionKey]['analyzers'][] = $currentAnalyzer;
-                        }
-                        if (isset($term[$positionKey]) && isset($term[$positionKey]['frequency'])) {
-                            $frequency = max($terms[$positionKey]['frequency'], $frequency);
-                        }
-                        $terms[$positionKey]['frequency'] = $frequency;
-                    }
-                }
-            }
-        }
-        $queryTermStats = array('stop' => 0, 'exact' => 0, 'standard' => 0, 'missing' => 0, 'total' => count($terms));
-
-        foreach ($terms as $term) {
+        foreach ($termVectResponse as $term) {
             if ($term['frequency'] == 0) {
                 $queryTermStats['missing']++;
             } else if ($term['frequency'] > $this->_getCutOffFrequencyConfig()) {
@@ -461,5 +451,65 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         }
 
         return $queryTermStats;
+    }
+
+    protected function _getTermVectors($textQuery, $field, $analyzers)
+    {
+        // Build term vector query
+        $currentIndex = $this->getAdapter()->getCurrentIndex()->getCurrentName();
+        $termVectorQuery = array('index' => $currentIndex, 'type' => $this->getType(), 'id' => '', 'term_statistics'  => true);
+        $termVectorQuery['body']['doc'] = array($field => $textQuery);
+
+        // Run the term vector query and get index status
+        Varien_Profiler::start('ES:EXECUTE:SPELLING_QUERY');
+        $indexStatResponse = $this->getAdapter()->getCurrentIndex()->getStatus();
+        $termVectorResponse  = $this->getClient()->termvector($termVectorQuery);
+        Varien_Profiler::stop('ES:EXECUTE:SPELLING_QUERY');
+
+        // Get total number of doc in the index : used to recompute doc_freq as a ratio
+        // Warning : cutoff_frequency does not use the number of doc by type
+        $indexTotalDocs = (int) $indexStatResponse['total']['docs']['count'];
+
+        // Parse the response
+
+        $response = array();
+
+        foreach ($termVectorResponse['term_vectors'] as $fieldName => $fieldData) {
+
+            // Get the fieldname and the analyzer from the real fieldname (formatted as fieldname.analyzer)
+            list ($fieldName, $analyzer) = explode('.', $fieldName);
+
+            if ($analyzer == null) {
+                $analyzer = "none";
+            }
+
+            if (in_array($analyzer, $analyzers)) {
+                // Keep only required analyzers and parse them
+                foreach ($fieldData['terms'] as $term => $termStats) {
+                    foreach ($termStats['tokens'] as $token) {
+                        // Read the current token data
+                        $positionKey  = sprintf("%s_%s", $token['start_offset'], $token['end_offset']);
+                        $frequency    = isset($termStats['doc_freq']) ? $termStats['doc_freq'] / $indexTotalDocs : 0;
+                        $addAnalyzer  = (bool) ($frequency > 0);
+
+                        // Keep data set by a previous analyzer if the frequency is higher or the text is longer
+                        if (isset($response[$positionKey])) {
+                            $currentValue = $response[$positionKey];
+                            $frequency = max($currentValue['frequency'], $frequency);
+                            $term      = strlen($currentValue['term']) > strlen($term) ? $currentValue['term'] : $term;
+                        }
+
+                        // Put everything into the response
+                        $response[$positionKey]['term'] = $term;
+                        $response[$positionKey]['frequency'] = $frequency;
+                        if ($addAnalyzer == true) {
+                            $response[$positionKey]['analyzers'][] = $analyzer;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $response;
     }
 }
