@@ -283,12 +283,17 @@
                 <elasticsearch_analysis_index_settings>
                     <analyzer>
                         <whitespace>
-                            <tokenizer>whitespace</tokenizer>
+                            <tokenizer>standard</tokenizer>
                             <filter>word_delimiter,lowercase,ascii_folding,trim,synonym</filter>
                             <char_filter>html_strip</char_filter>
                         </whitespace>
+                        <shingle>
+                            <tokenizer>standard</tokenizer>
+                            <filter>word_delimiter,lowercase,ascii_folding,trim,synonym,shingle</filter>
+                            <char_filter>html_strip</char_filter>
+                        </shingle>
                         <edge_ngram_front>
-                            <tokenizer>whitespace</tokenizer>
+                            <tokenizer>standard</tokenizer>
                             <filter>word_delimiter,ascii_folding,lowercase,trim,edge_ngram_front</filter>
                             <char_filter>html_strip</char_filter>
                         </edge_ngram_front>
@@ -310,6 +315,12 @@
                             <pattern>\s</pattern>
                             <replacement></replacement>
                         </strip_whitespaces>
+                        <shingle>
+                            <type>shingle</type>
+                            <min_shingle_size>2</min_shingle_size>
+                            <max_shingle_size>2</max_shingle_size>
+                            <output_unigrams>0</output_unigrams>
+                        </shingle>
                         <edge_ngram_front>
                             <type>edgeNGram</type>
                             <min_gram>1</min_gram>
@@ -361,14 +372,15 @@
                 <enable_phrase_match>1</enable_phrase_match>
                 <phrase_match_boost_value>10</phrase_match_boost_value>
                 <enable_phonetic_search_fuzziness>1</enable_phonetic_search_fuzziness>
-                <phonetic_search_fuzziness_value>0.5</phonetic_search_fuzziness_value>
+                <phonetic_search_fuzziness_value>0.9</phonetic_search_fuzziness_value>
                 <phonetic_search_fuzziness_prefix_length>1</phonetic_search_fuzziness_prefix_length>
                 <phonetic_search_fuzziness_max_expansions>2</phonetic_search_fuzziness_max_expansions>
                 <autocomplete_enable_fuzziness>1</autocomplete_enable_fuzziness>
-                <autocomplete_fuzziness_value>0.25</autocomplete_fuzziness_value>
+                <autocomplete_fuzziness_value>0.5</autocomplete_fuzziness_value>
                 <autocomplete_fuzziness_prefix_length>1</autocomplete_fuzziness_prefix_length>
-                <autocomplete_fuzziness_max_expansions>10</autocomplete_fuzziness_max_expansions>
+                <autocomplete_fuzziness_max_expansions>20</autocomplete_fuzziness_max_expansions>
                 <search_minimum_should_match><![CDATA[2<75% 6<50%]]></search_minimum_should_match>
+                <cutoff_frequency>0.15</cutoff_frequency>
             </fulltext_relevancy>
             <popular_terms_autocomplete>
                 <max_size>3</max_size>

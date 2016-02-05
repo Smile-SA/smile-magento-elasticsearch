@@ -93,7 +93,8 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $type = $this->_getAttributeType($attribute);
 
             $isSearchable = (bool) $attribute->getIsSearchable() && $attribute->getSearchWeight() > 0;
-            $isFacet = (bool) ($attribute->getIsFilterable() || $attribute->getIsFilterableInSearch() || $attribute->getIsUsedForPromoRules());
+            $isFilterable = $attribute->getIsFilterable() || $attribute->getIsFilterableInSearch();
+            $isFacet = (bool) ($isFilterable || $attribute->getIsUsedForPromoRules());
             $isFuzzy = (bool) $attribute->getIsFuzzinessEnabled() && $isSearchable;
             $usedForSortBy = (bool) $attribute->getUsedForSortBy();
             $isAutocomplete = (bool) ($attribute->getIsUsedInAutocomplete() || $attribute->getIsDisplayedInAutocomplete());
@@ -643,10 +644,13 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         }
 
         if (!isset($this->_searchFields[$searchType . $analyzer])) {
-
+            $defaultSearchField = $this->_getDefaultSearchFieldBySearchType($languageCode, $searchType);
+            if ($analyzer) {
+                $defaultSearchField = sprintf('%s.%s', $defaultSearchField, $analyzer);
+            }
             $mapping = $this->getMappingProperties();
-            $this->_searchFields[$searchType . $analyzer] = $this->_getDefaultSearchFieldBySearchType($languageCode, $searchType);
-            $hasDefaultField = !empty($this->_searchFields[$searchType]);
+            $this->_searchFields[$searchType . $analyzer][] = $defaultSearchField;
+            $hasDefaultField = !empty($this->_searchFields[$searchType . $analyzer]);
 
             $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
 

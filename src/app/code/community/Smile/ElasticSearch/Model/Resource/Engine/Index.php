@@ -30,7 +30,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
      */
     protected  $_categoryNameAttribute = null;
 
-
     /**
      * @var array
      */
