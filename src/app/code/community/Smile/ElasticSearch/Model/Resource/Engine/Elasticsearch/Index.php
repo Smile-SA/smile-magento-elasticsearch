@@ -142,7 +142,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         $indexName = $this->getCurrentName();
         $statQuery = array('index' => $indexName);
         $indexStatResponse = $this->getClient()->indices()->stats($statQuery);
-        
+
         if (isset($indexStatResponse['indices'])) {
             $result = current($indexStatResponse['indices']);
         }
@@ -253,7 +253,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
         $indexSettings['analysis']['analyzer']['analyzer_' . $languageCode] = array(
             'type' => 'custom',
             'tokenizer' => 'whitespace',
-            'filter' => array( 'word_delimiter', 'length', 'lowercase', 'asciifolding', 'synonym'),
+            'filter' => array( 'word_delimiter', 'length', 'lowercase', 'ascii_folding', 'synonym'),
             'char_filter' => array('html_strip')
         );
 
