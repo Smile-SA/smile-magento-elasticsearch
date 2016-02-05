@@ -52,7 +52,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
             'type' => 'best_fields',
             'tie_breaker' => 1,
             'fields' => $this->_getWeightedSearchFields(),
-            'analyzer' => 'whitespace',
+            'analyzer' => 'analyzer_' . $this->getLanguageCode(),
             'minimum_should_match' => "100%"
         );
 
