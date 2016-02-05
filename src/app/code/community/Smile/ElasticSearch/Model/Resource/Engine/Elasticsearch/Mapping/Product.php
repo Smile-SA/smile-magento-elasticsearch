@@ -298,6 +298,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Product
                         }
 
                         if ($isAttributeIndexed && $value != null) {
+                            if (!is_array($value) && ($attribute->getFrontendInput() == "multiselect")) {
+                                $value = explode(',', $value);
+                            }
                             if (!isset($entityAttributes[$parentId][$attributeId])) {
                                 $entityAttributes[$parentId][$attributeId] =  $value;
                             } else {
