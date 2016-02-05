@@ -316,7 +316,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     /**
      * Sort of the facet result according admin sort.
      *
-     * @param array $data
+     * @param array $data Data loaded with the search engine.
      *
      * @return array
      */

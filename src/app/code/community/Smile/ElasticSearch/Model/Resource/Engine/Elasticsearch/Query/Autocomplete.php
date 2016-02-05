@@ -19,22 +19,46 @@
 class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
     extends Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
 {
-    protected function _getSpellingBaseField() {
-        return 'autocomplete_' . $this->getLanguageCode();
-    }
-
-    protected function _getSpellingAnalayzers() {
-        return array('whitespace', 'none', 'edge_ngram_front');
-    }
-
+    /**
+     * Default field used in autocomplete.
+     *
+     * @return string
+     */
     protected function _getDefaultSearchField()
     {
         return 'autocomplete_' . $this->getLanguageCode();
     }
 
-    public function _getWeightedSearchFields()
+    /**
+     * Returns the list of fields used in autocomplete with their respective weights.
+     *
+     * @return array
+     */
+    protected function _getWeightedSearchFields()
     {
-        return $this->getSearchFields(Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_AUTOCOMPLETE);
+        return $this->getSearchFields(
+            Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_Abstract::SEARCH_TYPE_AUTOCOMPLETE
+        );
+    }
+
+    /**
+     * Default field used in autocomplete spellechecking
+     *
+     * @return string
+     */
+    protected function _getSpellingBaseField()
+    {
+        return $this->_getDefaultSearchField();
+    }
+
+    /**
+     * List of analyzers used by the spellchecker.
+     *
+     * @return array
+     */
+    protected function _getSpellingAnalayzers()
+    {
+        return array('whitespace', 'none', 'edge_ngram_front');
     }
 
     /**
@@ -64,6 +88,15 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
         return $query;
     }
 
+    /**
+     * Append phrase optimization to the user query.
+     *
+     * @param array  $query        Query to be optimized.
+     * @param strint $textQuery    Text submitted by the user.
+     * @param int    $spellingType Type of spelling applied.
+     *
+     * @return array
+     */
     protected function _addPhraseOptimizations($query, $textQuery, $spellingType)
     {
         $phraseBoostValue = $this->_getPhraseMatchBoost();
@@ -84,8 +117,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
 
     /**
      * Retrieve fuzziness configuration for fulltext queries. False if fuzziness is disabled.
-     *
-     * @param string $languageCode Current language code.
      *
      * @return array|boolean
      */
@@ -131,6 +162,14 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Autocomplete
         return $fuzzyQuery;
     }
 
+    /**
+     * Ensure the spelling type as result. Else reduce the constraint by applying SPELLING_TYPE_MOST_EXACT spelling type.
+     *
+     * @param string $textQuery    Text query to be analyzed.
+     * @param int    $spellingType Spelling type before fix.
+     *
+     * @return string
+     */
     protected function _fixSpellingType($textQuery, $spellingType)
     {
         if (in_array($spellingType, array(self::SPELLING_TYPE_PURE_STOPWORDS, self::SPELLING_TYPE_EXACT, self::SPELLING_TYPE_MOST_EXACT))) {

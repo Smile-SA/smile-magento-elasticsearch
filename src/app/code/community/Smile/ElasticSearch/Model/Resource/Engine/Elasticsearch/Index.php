@@ -134,7 +134,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Index
     }
 
     /**
+     * Retrieve status data on the current index.
+     * Access to the ES _status API.
      *
+     * @return array
      */
     public function getStatus()
     {
