@@ -102,9 +102,9 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
      *
      * @return float
      */
-    protected function _getCutOffFrequencyConfig()
+    protected function _getCutOffFrequency()
     {
-        return 0.15;
+        return (float) Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'cutoff_frequency');
     }
 
     /**
@@ -233,10 +233,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
             if ($spellingType == self::SPELLING_TYPE_MOST_FUZZY) {
                 $query = array('multi_match' => $weightedMultiMatchQuery);
             } else {
-                $cutoffFrequencyConfig = $this->_getCutOffFrequencyConfig();
-                $weightedMultiMatchQuery['cutoff_frequency'] = $cutoffFrequencyConfig;
+                $cutoffFrequency = $this->_getCutOffFrequency();
+                $weightedMultiMatchQuery['cutoff_frequency'] = $cutoffFrequency;
                 $defaultSearchField = $this->_getDefaultSearchField();
-                $filterQuery = array('query' => $textQuery, 'cutoff_frequency' => $cutoffFrequencyConfig);
+                $filterQuery = array('query' => $textQuery, 'cutoff_frequency' => $cutoffFrequency);
                 $filterQuery['minimum_should_match'] = array('low_freq' => $this->_getMinimumShouldMatch());
                 $query = array(
                     'filtered' => array(
@@ -275,7 +275,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
             }
 
             if (!in_array($spellingType, array(self::SPELLING_TYPE_PURE_STOPWORDS, self::SPELLING_TYPE_FUZZY))) {
-                $qs = array('query' => $textQuery, 'cutoff_frequency' => $this->_getCutOffFrequencyConfig());
+                $qs = array('query' => $textQuery, 'cutoff_frequency' => $this->_getCutOffFrequency());
                 $qsFilter = array('query' => array('common' => array($defaultSearchField . '.whitespace' => $qs)));
                 $optimizationFunctions[] = array('filter' => $qsFilter, 'boost_factor' => $phraseBoostValue);
             }
@@ -316,7 +316,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                 'fuzziness'        => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'fuzziness_value'),
                 'prefix_length'    => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'fuzziness_prefix_length'),
                 'max_expansions'   => Mage::getStoreConfig(self::RELEVANCY_SETTINGS_BASE_PATH . 'fuzziness_max_expansions'),
-                'cutoff_frequency' => $this->_getCutOffFrequencyConfig(),
+                'cutoff_frequency' => $this->_getCutOffFrequency(),
             );
         }
 
@@ -357,7 +357,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                     'fuzziness'        => Mage::getStoreConfig($configPrexfix . 'phonetic_search_fuzziness_value'),
                     'prefix_length'    => Mage::getStoreConfig($configPrexfix . 'phonetic_search_fuzziness_prefix_length'),
                     'max_expansions'   => Mage::getStoreConfig($configPrexfix . 'phonetic_search_fuzziness_max_expansions'),
-                    'cutoff_frequency' => $this->_getCutOffFrequencyConfig(),
+                    'cutoff_frequency' => $this->_getCutOffFrequency(),
                 );
                 $phoneticConfig = array_merge($phoneticConfig, $fuzzinessConfig);
             }
@@ -449,7 +449,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         foreach ($termVectResponse as $term) {
             if ($term['frequency'] == 0) {
                 $queryTermStats['missing']++;
-            } else if ($term['frequency'] > $this->_getCutOffFrequencyConfig()) {
+            } else if ($term['frequency'] > $this->_getCutOffFrequency()) {
                 $queryTermStats['stop']++;
             } else if (in_array('whitespace', $term['analyzers'])) {
                 $queryTermStats['exact']++;
@@ -549,7 +549,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         $spellingTypesUsed = array(self::SPELLING_TYPE_PURE_STOPWORDS, self::SPELLING_TYPE_EXACT, self::SPELLING_TYPE_MOST_EXACT);
         if (in_array($spellingType, $spellingTypesUsed)) {
             $defaultSearchField = current($this->_getWeightedSearchFields());
-            $cutoffFrequency    = $this->_getCutOffFrequencyConfig();
+            $cutoffFrequency    = $this->_getCutOffFrequency();
             $minimumShouldMatch = $this->_getMinimumShouldMatch();
             $index              = $this->getAdapter()->getCurrentIndex()->getCurrentName();
             $type               = $this->getType();

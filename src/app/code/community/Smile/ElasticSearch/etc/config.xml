@@ -380,6 +380,7 @@
                 <autocomplete_fuzziness_prefix_length>1</autocomplete_fuzziness_prefix_length>
                 <autocomplete_fuzziness_max_expansions>20</autocomplete_fuzziness_max_expansions>
                 <search_minimum_should_match><![CDATA[2<75% 6<50%]]></search_minimum_should_match>
+                <cutoff_frequency>0.15</cutoff_frequency>
             </fulltext_relevancy>
             <popular_terms_autocomplete>
                 <max_size>3</max_size>
