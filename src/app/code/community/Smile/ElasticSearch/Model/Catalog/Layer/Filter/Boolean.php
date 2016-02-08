@@ -27,4 +27,27 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Boolean extends Smile_Elast
     {
         return false;
     }
+
+    /**
+     * Retrieve items and transform the indexed value (attribute store label) to boolean Yes if needed
+     *
+     * @return array
+     */
+    public function getItems()
+    {
+        parent::getItems();
+
+        $storeIds       = $this->getStoreId();
+        $attributeModel = $this->getAttributeModel();
+        $source         = $attributeModel->getSource();
+
+        foreach ($this->_items as &$item) {
+            if ($item->getLabel() == $this->getAttributeModel()->getStoreLabel($storeIds)) {
+                $label = $source->getOptionText(Mage_Eav_Model_Entity_Attribute_Source_Boolean::VALUE_YES);
+                $item->setLabel($label);
+            }
+        }
+
+        return $this->_items;
+    }
 }
