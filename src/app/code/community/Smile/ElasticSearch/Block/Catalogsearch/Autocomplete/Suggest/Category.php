@@ -19,6 +19,24 @@
 class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Category extends Mage_Core_Block_Template
 {
     /**
+     * Constructor
+     * Set cache policy for this block
+     *
+     * @return Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Category
+     */
+    protected function _construct()
+    {
+        $this->addData(
+            array(
+                'cache_lifetime' => Mage_Core_Model_Cache::DEFAULT_LIFETIME,
+                'cache_tags'     => array(Mage_Catalog_Model_Category::CACHE_TAG),
+            )
+        );
+
+        parent::_construct();
+    }
+
+    /**
      * Block cache key
      *
      * @return string
@@ -26,26 +44,6 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Category exte
     public function getCacheKey()
     {
         return __CLASS__ . md5($this->_getQuery()) . '_' . Mage::app()->getStore()->getId();
-    }
-
-    /**
-     * Block cache lifetime
-     *
-     * @return int
-     */
-    public function getCacheLifetime()
-    {
-        return Mage_Core_Model_Cache::DEFAULT_LIFETIME;
-    }
-
-    /**
-     * Block cache tags
-     *
-     * @return array
-     */
-    public function getCacheTags()
-    {
-        return array(Mage_Catalog_Model_Category::CACHE_TAG);
     }
 
     /**
