@@ -27,4 +27,39 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Boolean extends Smile_Elast
     {
         return false;
     }
+
+    /**
+     * Create filter item object and transform the option numeric value to boolean label
+     *
+     * @param string $label Label of the filter value
+     * @param mixed  $value Value of the filter
+     * @param int    $count Number of result (default is 0)
+     *
+     * @return Mage_Catalog_Model_Layer_Filter_Item
+     */
+    protected function _createItem($label, $value, $count=0)
+    {
+        $attributeModel = $this->getAttributeModel();
+        $source         = $attributeModel->getSource();
+
+        if (is_numeric($label)) {
+            $label = $source->getOptionText((int) $value);
+        }
+
+        return parent::_createItem($label, $value, $count);
+    }
+
+    /**
+     * Returns attribute field name.
+     * Booleans are not processed on options_ field
+     *
+     * @return string
+     */
+    protected function _getFilterField()
+    {
+        $attribute = $this->getAttributeModel();
+        $fieldName = $attribute->getAttributeCode();
+
+        return $fieldName;
+    }
 }
