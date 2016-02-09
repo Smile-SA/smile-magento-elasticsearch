@@ -29,25 +29,37 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Boolean extends Smile_Elast
     }
 
     /**
-     * Retrieve items and transform the indexed value (attribute store label) to boolean Yes if needed
+     * Create filter item object and transform the option numeric value to boolean label
      *
-     * @return array
+     * @param string $label Label of the filter value
+     * @param mixed  $value Value of the filter
+     * @param int    $count Number of result (default is 0)
+     *
+     * @return Mage_Catalog_Model_Layer_Filter_Item
      */
-    public function getItems()
+    protected function _createItem($label, $value, $count=0)
     {
-        parent::getItems();
-
-        $storeIds       = $this->getStoreId();
         $attributeModel = $this->getAttributeModel();
         $source         = $attributeModel->getSource();
 
-        foreach ($this->_items as &$item) {
-            if ($item->getLabel() == $this->getAttributeModel()->getStoreLabel($storeIds)) {
-                $label = $source->getOptionText(Mage_Eav_Model_Entity_Attribute_Source_Boolean::VALUE_YES);
-                $item->setLabel($label);
-            }
+        if (is_numeric($label)) {
+            $label = $source->getOptionText((int) $value);
         }
 
-        return $this->_items;
+        return parent::_createItem($label, $value, $count);
+    }
+
+    /**
+     * Returns attribute field name.
+     * Booleans are not processed on options_ field
+     *
+     * @return string
+     */
+    protected function _getFilterField()
+    {
+        $attribute = $this->getAttributeModel();
+        $fieldName = $attribute->getAttributeCode();
+
+        return $fieldName;
     }
 }
