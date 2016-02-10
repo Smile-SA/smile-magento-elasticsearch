@@ -133,7 +133,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
 
                 foreach ($adapter->fetchAll($select) as $row) {
                     $productId = (int) $row['entity_pk_value'];
-                    $result[$productId]['rating_filter'] = (float) $row['percent'];
+                    $result[$productId]['rating_filter'] = (float) $row['percent_approved'];
                 }
             }
         }
