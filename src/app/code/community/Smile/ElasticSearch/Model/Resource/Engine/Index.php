@@ -31,6 +31,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
     protected  $_categoryNameAttribute = null;
 
     /**
+     * @var Mage_Eav_Model_Entity_Attribute_Abstract
+     */
+    protected $_useNameInSearchAttribute = null;
+
+    /**
      * @var array
      */
     protected  $_categoryNameCache = array();
@@ -183,7 +188,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         }
 
         // Append new categories into the cache of names
-        $storeCategoryName = $this->_loadCategoryNames(array_unique($loadedCategoryIds), $storeId);
+        $storeCategoryName = array_filter($this->_loadCategoryNames(array_unique($loadedCategoryIds), $storeId));
 
         foreach ($result as &$categoriesData) {
             // Fill the category_name field from the cache of names
@@ -234,23 +239,35 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
             $loadCategoryIds = array_diff($categoryIds, array_keys($this->_categoryNameCache[$storeId]));
         }
 
+        $loadCategoryIds = array_map('intval', $loadCategoryIds);
+
         if (!empty($loadCategoryIds)) {
 
             $rootCategoryId = (int) Mage::app()->getStore($storeId)->getRootCategoryId();
             $this->_categoryNameCache[$storeId][$rootCategoryId] = '';
 
-            $adapter  = $this->_getWriteAdapter();
-            $nameAttr = $this->_getCategoryNameAttribute();
+            $adapter     = $this->_getWriteAdapter();
+            $nameAttr    = $this->_getCategoryNameAttribute();
+            $useNameAttr = $this->_getUseNameInSearchAttribute();
 
             $select = $adapter->select()
-                ->from(array('default_value'  => $nameAttr->getBackendTable(), array('entity_id')))
+                ->from(array('default_value' => $nameAttr->getBackendTable()), array('entity_id'))
                 ->where('default_value.entity_id != ?', $rootCategoryId)
                 ->where('default_value.store_id = ?', 0)
                 ->where('default_value.attribute_id = ?', (int) $nameAttr->getAttributeId())
                 ->where('default_value.entity_id IN (?)', $loadCategoryIds);
 
+            $joinUseNameCond = sprintf(
+                "default_value.entity_id = use_name_default_value.entity_id" .
+                " AND use_name_default_value.attribute_id = %d AND use_name_default_value.store_id = %d",
+                (int) $useNameAttr->getAttributeId(),
+                0
+            );
+            $select->joinLeft(array('use_name_default_value' => $useNameAttr->getBackendTable()), $joinUseNameCond, array());
+
             if (Mage::app()->isSingleStoreMode()) {
                 $select->columns(array('name' => 'default_value.value'));
+                $select->columns(array('use_name' => 'COALESCE(use_name_default_value.value,1)'));
             } else {
                 $joinStoreNameCond = sprintf(
                     "default_value.entity_id = store_value.entity_id AND store_value.attribute_id = %d AND store_value.store_id = %d",
@@ -259,11 +276,24 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
                 );
                 $select->joinLeft(array('store_value' => $nameAttr->getBackendTable()), $joinStoreNameCond, array())
                     ->columns(array('name' => 'COALESCE(store_value.value,default_value.value)'));
+
+                $joinUseNameStoreCond = sprintf(
+                    "default_value.entity_id = use_name_store_value.entity_id" .
+                    " AND use_name_store_value.attribute_id = %d AND use_name_store_value.store_id = %d",
+                    (int) $useNameAttr->getAttributeId(),
+                    (int) $storeId
+                );
+                $select->joinLeft(array('use_name_store_value' => $useNameAttr->getBackendTable()), $joinUseNameStoreCond, array())
+                    ->columns(array('use_name' => 'COALESCE(use_name_store_value.value,use_name_default_value.value,1)'));
+
             }
 
             foreach ($adapter->fetchAll($select) as $row) {
                 $categoryId = (int) $row['entity_id'];
-                $this->_categoryNameCache[$storeId][$categoryId] = $row['name'];
+                $this->_categoryNameCache[$storeId][$categoryId] = '';
+                if ((bool) $row['use_name']) {
+                    $this->_categoryNameCache[$storeId][$categoryId] = $row['name'];
+                }
             }
         }
 
@@ -314,7 +344,6 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         return $result;
     }
 
-
     /**
      * Returns category name attribute
      *
@@ -327,5 +356,20 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
         }
 
         return $this->_categoryNameAttribute;
+    }
+
+    /**
+     * Returns category "use name in product search" attribute
+     *
+     * @return Mage_Eav_Model_Entity_Attribute_Abstract
+     */
+    protected function _getUseNameInSearchAttribute()
+    {
+        if ($this->_useNameInSearchAttribute === null) {
+            $this->_useNameInSearchAttribute = Mage::getModel('eav/entity_attribute')
+                ->loadByCode('catalog_category', 'used_in_product_search');
+        }
+
+        return $this->_useNameInSearchAttribute;
     }
 }

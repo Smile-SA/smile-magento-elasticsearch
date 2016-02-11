@@ -81,3 +81,5 @@ Ex: Brand facet will be displayed only if 90% of the product have a brand.,Ex: L
 "Search Terms products positions Index","Index des positions des produits dans les résultats de recherche"
 "Custom results positions","Positionnement manuel des produits"
 "Search Term has been saved.","Le terme de recherche a été sauvegardé"
+"If the category name is used for fulltext search on products.","Si cette option est placée à oui, le nom de la catégorie sera utilisé pour rechercher des produits"
+"Use category name in product search","Utiliser le nom de la catégorie dans la recherche"
