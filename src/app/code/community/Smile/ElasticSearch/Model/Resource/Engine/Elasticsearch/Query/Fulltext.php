@@ -494,7 +494,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
         foreach ($termVectorResponse['term_vectors'] as $fieldName => $fieldData) {
 
             // Get the fieldname and the analyzer from the real fieldname (formatted as fieldname.analyzer)
-            list ($fieldName, $analyzer) = explode('.', $fieldName);
+            list ($fieldName, $analyzer) = (strstr($fieldName, '.') ? explode('.', $fieldName) : array($fieldName, ''));
 
             if ($analyzer == null) {
                 $analyzer = "none";
