@@ -608,7 +608,20 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 $storeIds = array(0, $storeId);
                 foreach ($storeIds as $storeId) {
                     $attribute->setStoreId($storeId);
-                    $allOptions = $attribute->getSource()->getAllOptions(false);
+
+                    if (($attribute->getFrontendInput() == "boolean")
+                        && ($attribute->getSourceModel() == 'eav/entity_attribute_source_boolean')
+                    ) {
+                        $allOptions = array(
+                            array(
+                                'value' => Mage_Eav_Model_Entity_Attribute_Source_Boolean::VALUE_YES,
+                                'label' => $attribute->getStoreLabel($storeId)
+                            )
+                        );
+                    } else {
+                        $allOptions = $attribute->getSource()->getAllOptions(false);
+                    }
+
                     foreach ($allOptions as $key => $value) {
                         if (is_array($value) && isset($value['value'])) {
                             $options[$value['value']] = $value['label'];
