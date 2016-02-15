@@ -26,6 +26,24 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product exten
     const AUTOCOMPLETE_ATTRIBUTES_XPATH = 'global/smile_elasticsearch/autocomplete/product/attributes';
 
     /**
+     * Constructor
+     * Set cache policy for this block
+     *
+     * @return Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product
+     */
+    protected function _construct()
+    {
+        $this->addData(
+            array(
+                'cache_lifetime' => Mage_Core_Model_Cache::DEFAULT_LIFETIME,
+                'cache_tags'     => array(Mage_Catalog_Model_Product::CACHE_TAG),
+            )
+        );
+
+        parent::_construct();
+    }
+
+    /**
      * Block cache key
      *
      * @return string
@@ -33,26 +51,6 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Product exten
     public function getCacheKey()
     {
         return __CLASS__ . md5($this->_getQuery() . $this->getTemplate()) . '_' . Mage::app()->getStore()->getId();
-    }
-
-    /**
-     * Block cache lifetime
-     *
-     * @return int
-     */
-    public function getCacheLifetime()
-    {
-        return Mage_Core_Model_Cache::DEFAULT_LIFETIME;
-    }
-
-    /**
-     * Block cache tags
-     *
-     * @return array
-     */
-    public function getCacheTags()
-    {
-        return array(Mage_Catalog_Model_Product::CACHE_TAG);
     }
 
     /**

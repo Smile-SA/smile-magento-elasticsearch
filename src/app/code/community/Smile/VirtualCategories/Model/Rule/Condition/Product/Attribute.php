@@ -30,7 +30,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product_Attribute
      *
      * @var string
      */
-    protected $_isUsedForRuleProperty = array('is_filterable', 'is_filterable_in_search');
+    protected $_isUsedForRuleProperty = array('is_filterable', 'is_filterable_in_search', 'is_used_for_promo_rules');
 
     /**
      * List of all attributes.

@@ -47,7 +47,8 @@ Ex: Brand facet will be displayed only if 90% of the product have a brand.,Ex: B
 "Facet max. size","Facet max. size"
 "Max number of values returned by a facet query.","Max number of values returned by a facet query."
 "Facet sort order","Facet sort order"
-"Result count","Result count",
+"Result count","Result count"
+"Admin sort","Admin sort"
 "Name","Name"
 "%d / 5 and more","%d / 5 and more"
 "Advanced search settings","Advanced search settings"
