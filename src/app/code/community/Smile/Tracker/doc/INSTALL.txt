@@ -63,8 +63,8 @@ Use a different vhost:
           RewriteEngine on
           RewriteRule .* /hit.png
 
-          LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"" combined
-          CustomLog /var/log/smile_searchandising_suite/apache_raw_events/event.log combined
+          LogFormat "%h %l %u [%{%Y-%m-%d %T}t] \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"" timed_combined
+          CustomLog /var/log/smile_searchandising_suite/apache_raw_events/event.log timed_combined
 
       </VirtualHost>
       
