@@ -16,9 +16,11 @@ If you did use the install-es.sh script bundled with this package, Logstash shou
 
 In another case, to install Logstash on Debian :
 
-> wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
-> echo "deb http://packages.elastic.co/logstash/2.2/debian stable main" | sudo tee -a /etc/apt/sources.list
-> sudo apt-get update && sudo apt-get install logstash
+> $ wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+>
+> $ echo "deb http://packages.elastic.co/logstash/2.2/debian stable main" | sudo tee -a /etc/apt/sources.list
+>
+> $ sudo apt-get update && sudo apt-get install logstash
 
 For other distros take a look at : https://www.elastic.co/guide/en/logstash/current/package-repositories.html
 
@@ -53,15 +55,18 @@ You need to replace MAGENTO_ROOT on the sample configuration below by your Magen
 </VirtualHost>
 ```
 
-####Create log target folder
+#### Create log target folder
 
 Even if not mandatory, it is strongly advised that you create a separated directory to store the logs produced by the tracker :
 
+Following instruction need to be adapted if you don't use the same path as described upon.
+
 > mkdir -p /var/log/smile_searchandising_suite/apache_raw_events
 
-Following instructions need to be adapted if you don't use the same path as described upon.
 
 > **Note :**
+> * On multi-front servers, you have to append the VirtualHost on all frontal server, on consider redirecting the traffic for this domain on a dedicated server.
+> * On multi-front servers, you have to append logstash to all front server, or consider using a log collector policy to gather all logs into a same place.
 > * If using Varnish, you have to exclude the hit domain from the cache.
 > * If using SSL on your website, you will need **to duplicate this configuration on the SSL port (443)** in order your website respond to https://t.mysite.com correctly. **You will need a valid certificate for this domain.**
 > * Use the same domain name for SSL and non-SSL (a limitation into the tracking module does not allow different domain name).
