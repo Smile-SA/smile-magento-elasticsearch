@@ -1,0 +1,50 @@
+
+
+{
+  "template" : "finedata-*",
+  "settings" : {
+    "index.refresh_interval" : "30s",
+    "number_of_shards" : 3,
+    "number_of_replicas" : 0
+  },
+  "aliases" : {
+    "finedata" : {}
+  },
+  "mappings" : {
+    "_default_" : {
+      "_source" : {
+        "excludes" : ["tags"]
+      },
+      "properties" : {
+        "tags" : {"type": "string", "index": "no"}
+      },
+      "_all" : {"enabled" : true },
+      "dynamic_templates" : [
+        {
+          "string_fields" : {
+            "match" : "*",
+            "match_mapping_type" : "string",
+            "mapping" : { "type" : "string", "index" : "not_analyzed", "doc_values" : true, "omit_norms" : true }
+          }
+        }
+      ]
+    },
+    "event" : {
+      "_parent" : { "type": "session"}
+    },
+    "aggregated-events" : {
+
+    },
+    "session" : {
+      "properties" : {
+        "location" : {
+          "properties" : {
+            "coords" : { "type" : "geo_point" }
+          }
+        }
+      }
+    },
+    "user" : {}
+  }
+}
+
