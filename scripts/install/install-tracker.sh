@@ -27,6 +27,11 @@ sed -e "s/SMILE_ELASTICSUITE_TRACKER_TEMPLATE/\/etc\/logstash\/es-template.json/
 sed -e "s~SMILE_TRACKER_LOG_FILE~$TRACKER_LOG_FILE~" logstash-configuration/injest-events-input.conf.sample > /etc/logstash/conf.d/injest-events-input.conf
 cp -rfv logstash-configuration/injest-events-filter.conf.sample /etc/logstash/conf.d/injest-events-filter.conf
 
+# Ensure corrects ACL for logstash on files
+setfacl -m u:logstash:r /var/log/apache2/*
+setfacl -m u:logstash:r /var/log/smile_searchandising_suite/apache_raw_events/*
+setfacl -m u:logstash:r $TRACKER_LOG_FILE
+
 # Start Logstash and ensure it starts with the system
 service logstash restart
 update-rc.d logstash defaults
