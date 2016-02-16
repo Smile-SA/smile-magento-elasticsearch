@@ -9,6 +9,8 @@ output {
             upsert             => "%{[@metadata][upsert]}"
             # Template to define
             template           => "SMILE_ELASTICSUITE_TRACKER_TEMPLATE"
+            # Host also to define
+            hosts              => [HOSTS]
             template_name      => "finedata"
             template_overwrite => true
             flush_size         => 1000
@@ -24,6 +26,8 @@ output {
             upsert             => "%{[@metadata][upsert]}"
             # Template to define
             template           => "SMILE_ELASTICSUITE_TRACKER_TEMPLATE"
+            # Host also to define
+            hosts              => [HOSTS]
             template_name      => "finedata"
             template_overwrite => true
             flush_size         => 1000
@@ -37,6 +41,8 @@ output {
             parent             => "%{session_id}"
             # Template to define
             template           => "SMILE_ELASTICSUITE_TRACKER_TEMPLATE"
+            # Host also to define
+            hosts              => [HOSTS]
             template_name      => "finedata"
             template_overwrite => true
             flush_size         => 1000
