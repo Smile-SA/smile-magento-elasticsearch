@@ -30,7 +30,7 @@ cp -rfv logstash-configuration/injest-events-filter.conf.sample /etc/logstash/co
 # Ensure corrects ACL for logstash on files
 mkdir -p /var/log/smile_searchandising_suite/apache_raw_events/
 setfacl -m u:logstash:r /var/log/apache2/*
-setfacl -m u:logstash:r /var/log/smile_searchandising_suite/apache_raw_events/*
+setfacl -m u:logstash:r /var/log/smile_searchandising_suite/apache_raw_events/
 setfacl -m u:logstash:r $TRACKER_LOG_FILE
 
 # Start Logstash and ensure it starts with the system
