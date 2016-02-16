@@ -65,14 +65,16 @@ Install steps :
 * You can find the script into **scripts/install/install-tracker.sh**
 
 You need to specify the access log that logstash will listen to. The path to the access log is the one you provided previously in you VirtualHost.
+Second parameter is your ElasticSearch node locations, you can specify several nodes if this is your case.
+For production you should avoid specifying dedicated master nodes here, and prefer using data or client nodes here.
 
 Then you can run the installer :
 
 ```bash
-./install-tracker.sh /var/log/smile_searchandising_suite/apache_raw_events/event.log
+./install-tracker.sh /var/log/smile_searchandising_suite/apache_raw_events/event.log node1.fqdn:9200
 ```
 
-If you use the install-tracker.sh script bundled with this package, Logstash will be installed with default configuration.
+If you use the install-tracker.sh script bundled with this package, Logstash will be installed with default configuration. You can then go to next step.
 
 > **What is the installer doing ?**
 > The installer proceed to Logstash installation and all the required dependencies install from the ES official repositories.
@@ -93,7 +95,7 @@ If you did not use the script, you can install Logstash on Debian by following t
 
 For other distros take a look at : https://www.elastic.co/guide/en/logstash/current/package-repositories.html
 
-Then you will have to edit the sample configuration provided in logstash-configuration folder to fit with your current architecture.
+Then you will have to edit the sample configuration files provided in logstash-configuration folder to fit with your current architecture.
 
 ### Smile Tracker
 
