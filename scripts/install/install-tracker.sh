@@ -28,6 +28,7 @@ sed -e "s~SMILE_TRACKER_LOG_FILE~$TRACKER_LOG_FILE~" logstash-configuration/inje
 cp -rfv logstash-configuration/injest-events-filter.conf.sample /etc/logstash/conf.d/injest-events-filter.conf
 
 # Ensure corrects ACL for logstash on files
+mkdir -p /var/log/smile_searchandising_suite/apache_raw_events/
 setfacl -m u:logstash:r /var/log/apache2/*
 setfacl -m u:logstash:r /var/log/smile_searchandising_suite/apache_raw_events/*
 setfacl -m u:logstash:r $TRACKER_LOG_FILE
