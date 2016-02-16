@@ -8,22 +8,6 @@ This section explains how to configure this feature and extend the available mod
 Data collector
 --------------
 
-### Install Logstash
-
-Logstash (version >=2.1.1) is required for the data collector to work properly.
-
-If you did use the install-es.sh script bundled with this package, Logstash should already been installed with default configuration.
-
-In another case, to install Logstash on Debian :
-
-> $ wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
->
-> $ echo "deb http://packages.elastic.co/logstash/2.2/debian stable main" | sudo tee -a /etc/apt/sources.list
->
-> $ sudo apt-get update && sudo apt-get install logstash
-
-For other distros take a look at : https://www.elastic.co/guide/en/logstash/current/package-repositories.html
-
 ### Apache configuration
 
 You will need a new domain name to collect tracking.
@@ -49,8 +33,7 @@ You need to replace MAGENTO_ROOT on the sample configuration below by your Magen
     RewriteEngine on
     RewriteRule .* /hit.png
 
-    LogFormat "%h %l %u [%{%Y-%m-%d %T}t] \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"" timed_combined
-    CustomLog /var/log/smile_searchandising_suite/apache_raw_events/event.log timed_combined
+    CustomLog /var/log/smile_searchandising_suite/apache_raw_events/event.log combined
 
 </VirtualHost>
 ```
@@ -63,13 +46,54 @@ Following instruction need to be adapted if you don't use the same path as descr
 
 > mkdir -p /var/log/smile_searchandising_suite/apache_raw_events
 
-
 > **Note :**
 > * On multi-front servers, you have to append the VirtualHost on all frontal server, on consider redirecting the traffic for this domain on a dedicated server.
 > * On multi-front servers, you have to append logstash to all front server, or consider using a log collector policy to gather all logs into a same place.
 > * If using Varnish, you have to exclude the hit domain from the cache.
 > * If using SSL on your website, you will need **to duplicate this configuration on the SSL port (443)** in order your website respond to https://t.mysite.com correctly. **You will need a valid certificate for this domain.**
 > * Use the same domain name for SSL and non-SSL (a limitation into the tracking module does not allow different domain name).
+
+### Install Logstash
+
+Logstash (version >=2.1.1) is required for the data collector to work properly.
+
+The module comes with a script which can handle LogStash 2.1 install for you.
+
+Install steps :
+
+* Install the module into Magento
+* You can find the script into **scripts/install/install-tracker.sh**
+
+You need to specify the access log that logstash will listen to. The path to the access log is the one you provided previously in you VirtualHost.
+
+Then you can run the installer :
+
+```bash
+./install-tracker.sh /var/log/smile_searchandising_suite/apache_raw_events/event.log
+```
+
+If you use the install-tracker.sh script bundled with this package, Logstash will be installed with default configuration.
+
+> **What is the installer doing ?**
+> The installer proceed to Logstash installation and all the required dependencies install from the ES official repositories.
+>
+> It also applies configuration specifics :
+> * Set your specified access log file for listening to
+> * Set Logstash output to your ElasticSearch server
+> * Append correct ACLs to your access log file so Logstash is able to read them.
+>
+
+If you did not use the script, you can install Logstash on Debian by following this procedure :
+
+> $ wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+>
+> $ echo "deb http://packages.elastic.co/logstash/2.2/debian stable main" | sudo tee -a /etc/apt/sources.list
+>
+> $ sudo apt-get update && sudo apt-get install logstash
+
+For other distros take a look at : https://www.elastic.co/guide/en/logstash/current/package-repositories.html
+
+Then you will have to edit the sample configuration provided in logstash-configuration folder to fit with your current architecture.
 
 ### Smile Tracker
 
