@@ -16,7 +16,14 @@ filter {
         target => "trackingParams"
     }
 
-    date { match => ["time", "YYYY-MM-dd HH:mm:ss"] }
+    if (![trackingParams][session.vid]) {
+        drop {}
+    }
+
+    date { match => ["time", "dd/MMM/yyyy:HH:mm:ss Z", "YYYY-MM-dd HH:mm:ss"] }
+    ruby {
+        code=>"event['time'] =  event.sprintf('%{+YYYY-MM-dd HH:mm:ss}')"
+    }
 
     clone { clones => ["session", "event"] }
 
@@ -36,26 +43,35 @@ filter {
 
         if [type] == "session" {
 
-            useragent { source => "user_agent" target => "[@metadata][user_agent_parsed]" }
+            useragent { source => "user_agent" target => "user_agent_parsed" }
 
-            geoip { source => "ip_address" target => "[@metadata][geoip]" }
+            geoip { source => "ip_address" target => "geoip_parsed" }
 
             mutate {
                 add_field => {
-                    "[@metadata][type]"                          => "session"
-                    "[@metadata][upsert][session_id]"            => "%{[trackingParams][session.uid]}"
-                    "[@metadata][upsert][user_id]"               => "%{[trackingParams][session.vid]}"
-                    "[@metadata][upsert][session_start]"         => "%{@timestamp}"
-                    "[@metadata][upsert][session_end]"           => "%{@timestamp}"
-                    "[@metadata][upsert][device][os_name]"       => "%{[@metadata][user_agent_parsed][os]}"
-                    "[@metadata][upsert][device][browser_name]"  => "%{[@metadata][user_agent_parsed][name]}"
-                    "[@metadata][upsert][location][county_code]" => "%{[@metadata][geoip][country_code2]}"
-                    "session_end"                                => "%{@timestamp}"
+                    "[@metadata][type]"                           => "session"
+                    "[@metadata][upsert][session_id]"             => "%{[trackingParams][session.uid]}"
+                    "[@metadata][upsert][user_id]"                => "%{[trackingParams][session.vid]}"
+                    "[@metadata][upsert][session_start]"          => "%{@timestamp}"
+                    "[@metadata][upsert][session_end]"            => "%{@timestamp}"
+                    "[@metadata][upsert][device][os_name]"        => "%{[user_agent_parsed][os]}"
+                    "[@metadata][upsert][device][browser_name]"   => "%{[user_agent_parsed][name]}"
+                    "session_end"                                 => "%{@timestamp}"
                 }
-                rename => {
-                    "%{[@metadata][geoip][location]}" => "[@metadata][upsert][location][coords]"
+                remove_field => "user_agent_parsed"
+            }
+            if ([geoip_parsed][country_code2]) {
+                mutate {
+                    add_field => {
+                        "[@metadata][upsert][location][country_code]" => "%{[geoip_parsed][country_code2]}"
+                        "[@metadata][upsert][location][coords]"       => "%{[geoip_parsed][location]}"
+                    }
+                    remove_field => "geoip_parsed"
                 }
-           }
+            }
+            mutate {
+               remove_field => "geoip_parsed"
+            }
 
         } else {
 
