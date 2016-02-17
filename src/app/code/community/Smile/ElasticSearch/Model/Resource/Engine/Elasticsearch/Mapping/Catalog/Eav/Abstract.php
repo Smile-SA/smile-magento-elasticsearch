@@ -612,14 +612,12 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     if (($attribute->getFrontendInput() == "boolean")
                         && ($attribute->getSourceModel() == 'eav/entity_attribute_source_boolean')
                     ) {
-                        $appEmulation = Mage::getSingleton('core/app_emulation');
-                        $initialEnvironment = $appEmulation->startEnvironmentEmulation(
-                            $storeId,
-                            Mage_Core_Model_App_Area::AREA_FRONTEND,
-                            true
+                        $allOptions = array(
+                            array(
+                                'value' => Mage_Eav_Model_Entity_Attribute_Source_Boolean::VALUE_YES,
+                                'label' => $attribute->getStoreLabel($storeId)
+                            )
                         );
-                        $allOptions = Mage::getModel($attribute->getSourceModel())->getAllOptions(false);
-                        $appEmulation->stopEnvironmentEmulation($initialEnvironment);
                     } else {
                         $allOptions = $attribute->getSource()->getAllOptions(false);
                     }
