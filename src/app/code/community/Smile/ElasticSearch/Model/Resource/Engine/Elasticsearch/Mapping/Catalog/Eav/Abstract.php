@@ -92,8 +92,10 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $attributeCode = $attribute->getAttributeCode();
             $type = $this->_getAttributeType($attribute);
 
-            $isFacet = (bool) ($attribute->getIsFilterable() || $attribute->getIsFilterableInSearch());
-            $isFuzzy = (bool) $attribute->getIsFuzzinessEnabled();
+            $isSearchable = (bool) $attribute->getIsSearchable() && $attribute->getSearchWeight() > 0;
+            $isFilterable = $attribute->getIsFilterable() || $attribute->getIsFilterableInSearch();
+            $isFacet = (bool) ($isFilterable || $attribute->getIsUsedForPromoRules());
+            $isFuzzy = (bool) $attribute->getIsFuzzinessEnabled() && $isSearchable;
             $usedForSortBy = (bool) $attribute->getUsedForSortBy();
             $isAutocomplete = (bool) ($attribute->getIsUsedInAutocomplete() || $attribute->getIsDisplayedInAutocomplete());
 
@@ -108,7 +110,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
 
                     if ($multiTypeField) {
                         $fieldMapping = $this->_getStringMapping(
-                            $fieldName, $languageCode, $type, $usedForSortBy, $isFuzzy, $isFacet, $isAutocomplete
+                            $fieldName, $languageCode, $type, $usedForSortBy, $isFuzzy, $isFacet, $isAutocomplete, $isSearchable
                         );
                         $mapping = array_merge($mapping, $fieldMapping);
                     }
@@ -130,7 +132,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                     $languageCode = $this->_helper->getLanguageCodeByStore($store);
                     $fieldName = 'options' . '_' .  $attributeCode . '_' . $languageCode;
                     $fieldMapping = $this->_getStringMapping(
-                        $fieldName, $languageCode, 'string', $usedForSortBy, $isFuzzy, $isFacet, $isAutocomplete
+                        $fieldName, $languageCode, 'string', $usedForSortBy, $isFuzzy, $isFacet, $isAutocomplete, $isSearchable
                     );
                     $mapping = array_merge($mapping, $fieldMapping);
                 }
@@ -199,10 +201,10 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         if (is_null($storeId)) {
             $storeIds = array_keys($this->_stores);
             foreach ($storeIds as $storeId) {
-                $this->_rebuildStoreIndex($storeId, $ids);
+                $this->_rebuildStoreIndex((int) $storeId, $ids);
             }
         } else {
-            $this->_rebuildStoreIndex($storeId, $ids);
+            $this->_rebuildStoreIndex((int) $storeId, $ids);
         }
 
         $this->getCurrentIndex()->refresh();
@@ -242,6 +244,10 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
      */
     protected function _rebuildStoreIndex($storeId, $entityIds = null)
     {
+        if (is_array($entityIds)) {
+            $entityIds = array_map('intval', $entityIds);
+        }
+
         $store = Mage::app()->getStore($storeId);
         $websiteId = $store->getWebsiteId();
 
@@ -252,7 +258,7 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
 
         foreach ($attributesById as $attribute) {
             if ($this->_canIndexAttribute($attribute) && $attribute->getBackendType() != 'static') {
-                $dynamicFields[$attribute->getBackendTable()][] = $attribute->getAttributeId();
+                $dynamicFields[$attribute->getBackendTable()][] = (int) $attribute->getAttributeId();
             }
         }
 
@@ -355,12 +361,22 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
     {
         if ($this->_attributesById === null) {
             $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
+
             $attributes = Mage::getResourceModel($this->_attributeCollectionModel)
                 ->setEntityTypeFilter($entityType->getEntityTypeId());
 
-            if (method_exists($attributes, 'addToIndexFilter')) {
-                $attributes->addToIndexFilter(true);
-            }
+            $conditions = array(
+                'additional_table.is_searchable = 1',
+                'additional_table.is_visible_in_advanced_search = 1',
+                'additional_table.is_filterable > 0',
+                'additional_table.is_filterable_in_search = 1',
+                'additional_table.used_for_sort_by = 1',
+                'additional_table.is_used_for_promo_rules',
+                $this->getConnection()->quoteInto('main_table.attribute_code = ?', 'status'),
+                $this->getConnection()->quoteInto('main_table.attribute_code = ?', 'visibility'),
+            );
+
+            $attributes->getSelect()->where(sprintf('(%s)', implode(' OR ', $conditions)));
 
             $this->_attributesById = array();
 
@@ -592,7 +608,20 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
                 $storeIds = array(0, $storeId);
                 foreach ($storeIds as $storeId) {
                     $attribute->setStoreId($storeId);
-                    $allOptions = $attribute->getSource()->getAllOptions(false);
+
+                    if (($attribute->getFrontendInput() == "boolean")
+                        && ($attribute->getSourceModel() == 'eav/entity_attribute_source_boolean')
+                    ) {
+                        $allOptions = array(
+                            array(
+                                'value' => Mage_Eav_Model_Entity_Attribute_Source_Boolean::VALUE_YES,
+                                'label' => $attribute->getStoreLabel($storeId)
+                            )
+                        );
+                    } else {
+                        $allOptions = $attribute->getSource()->getAllOptions(false);
+                    }
+
                     foreach ($allOptions as $key => $value) {
                         if (is_array($value) && isset($value['value'])) {
                             $options[$value['value']] = $value['label'];
@@ -628,10 +657,13 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
         }
 
         if (!isset($this->_searchFields[$searchType . $analyzer])) {
-
+            $defaultSearchField = $this->_getDefaultSearchFieldBySearchType($languageCode, $searchType);
+            if ($analyzer) {
+                $defaultSearchField = sprintf('%s.%s', $defaultSearchField, $analyzer);
+            }
             $mapping = $this->getMappingProperties();
-            $this->_searchFields[$searchType . $analyzer] = $this->_getDefaultSearchFieldBySearchType($languageCode, $searchType);
-            $hasDefaultField = !empty($this->_searchFields[$searchType]);
+            $this->_searchFields[$searchType . $analyzer][] = $defaultSearchField;
+            $hasDefaultField = !empty($this->_searchFields[$searchType . $analyzer]);
 
             $entityType = Mage::getModel('eav/entity_type')->loadByCode($this->_entityType);
 

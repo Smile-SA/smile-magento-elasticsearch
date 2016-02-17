@@ -207,10 +207,29 @@
                             <show_in_store>1</show_in_store>
                             <depends><enable_phrase_match>1</enable_phrase_match></depends>
                         </phrase_match_boost_value>
+                        <advanced_relevance_heading translate="label">
+                            <label>Advanced relevance settings</label>
+                            <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </advanced_relevance_heading>
+                        <cutoff_frequency translate="label comment">
+                            <label>Cutoff frequency</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>41</sort_order>
+                            <validate>required-entry</validate>
+                            <frontend_class>validate-number validate-number-range number-range-0-1</frontend_class>
+                            <comment>A number between 0 and 1. Used as automatic stopwords detection threshold.</comment>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </cutoff_frequency>
                         <search_fuzziness_heading translate="label">
                             <label>Search fuzziness configuration</label>
                             <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
-                            <sort_order>40</sort_order>
+                            <sort_order>50</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
@@ -219,7 +238,7 @@
                             <label>Enable fuzziness</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>41</sort_order>
+                            <sort_order>51</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
@@ -227,7 +246,7 @@
                         <fuzziness_value translate="label comment">
                             <label>Fuzziness value</label>
                             <frontend_type>text</frontend_type>
-                            <sort_order>42</sort_order>
+                            <sort_order>52</sort_order>
                             <validate>required-entry</validate>
                             <frontend_class>validate-number validate-number-range number-range-0-1</frontend_class>
                             <show_in_default>1</show_in_default>
@@ -241,7 +260,7 @@
                         <fuzziness_prefix_length>
                             <label>Fuzziness prefix length</label>
                             <frontend_type>text</frontend_type>
-                            <sort_order>43</sort_order>
+                            <sort_order>53</sort_order>
                             <validate>required-entry</validate>
                             <frontend_class>validate-digits validate-digits-range validate-zero-or-greater</frontend_class>
                             <show_in_default>1</show_in_default>
@@ -255,7 +274,7 @@
                         <fuzziness_max_expansions>
                             <label>Fuzziness max. expansions</label>
                             <frontend_type>text</frontend_type>
-                            <sort_order>44</sort_order>
+                            <sort_order>54</sort_order>
                             <validate>required-entry</validate>
                             <frontend_class>validate-digits validate-digits-range validate-zero-or-greater</frontend_class>
                             <show_in_default>1</show_in_default>
@@ -269,7 +288,7 @@
                         <phonetic_search_heading translate="label">
                             <label>Phonetic search configuration</label>
                             <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
-                            <sort_order>50</sort_order>
+                            <sort_order>60</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
@@ -278,7 +297,7 @@
                             <label>Enable phonetic search</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>51</sort_order>
+                            <sort_order>61</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
@@ -290,7 +309,7 @@
                             <label>Enable phonetic fuzziness</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>52</sort_order>
+                            <sort_order>62</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
@@ -299,7 +318,7 @@
                         <phonetic_search_fuzziness_value>
                             <label>Phonetic fuzziness value</label>
                             <frontend_type>text</frontend_type>
-                            <sort_order>53</sort_order>
+                            <sort_order>63</sort_order>
                             <validate>required-entry</validate>
                             <frontend_class>validate-number validate-number-range number-range-0-1</frontend_class>
                             <show_in_default>1</show_in_default>
@@ -313,7 +332,7 @@
                         <phonetic_search_fuzziness_prefix_length>
                             <label>Phonetic fuzziness prefix length</label>
                             <frontend_type>text</frontend_type>
-                            <sort_order>54</sort_order>
+                            <sort_order>64</sort_order>
                             <validate>required-entry</validate>
                             <frontend_class>validate-digits validate-digits-range validate-zero-or-greater</frontend_class>
                             <show_in_default>1</show_in_default>
@@ -327,7 +346,7 @@
                         <phonetic_search_fuzziness_max_expansions>
                             <label>Phonetic fuzziness max. expansions</label>
                             <frontend_type>text</frontend_type>
-                            <sort_order>55</sort_order>
+                            <sort_order>65</sort_order>
                             <validate>required-entry</validate>
                             <frontend_class>validate-digits validate-digits-range validate-zero-or-greater</frontend_class>
                             <show_in_default>1</show_in_default>
@@ -341,7 +360,7 @@
                         <autocomplete_fuzziness_heading translate="label">
                             <label>Autocomplete fuzziness configuration</label>
                             <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
-                            <sort_order>60</sort_order>
+                            <sort_order>70</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
@@ -350,7 +369,7 @@
                             <label>Enable fuzziness in autocomplete</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>61</sort_order>
+                            <sort_order>71</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
@@ -358,7 +377,7 @@
                         <autocomplete_fuzziness_value translate="label comment">
                             <label>Autocomplete fuzziness value</label>
                             <frontend_type>text</frontend_type>
-                            <sort_order>62</sort_order>
+                            <sort_order>72</sort_order>
                             <validate>required-entry</validate>
                             <frontend_class>validate-number validate-number-range number-range-0-1</frontend_class>
                             <show_in_default>1</show_in_default>
@@ -372,7 +391,7 @@
                         <autocomplete_fuzziness_prefix_length>
                             <label>Autocomplete fuzziness prefix length</label>
                             <frontend_type>text</frontend_type>
-                            <sort_order>63</sort_order>
+                            <sort_order>73</sort_order>
                             <validate>required-entry</validate>
                             <frontend_class>validate-digits validate-digits-range validate-zero-or-greater</frontend_class>
                             <show_in_default>1</show_in_default>
@@ -386,7 +405,7 @@
                         <autocomplete_fuzziness_max_expansions>
                             <label>Autocomplete fuzziness max. expansions</label>
                             <frontend_type>text</frontend_type>
-                            <sort_order>64</sort_order>
+                            <sort_order>74</sort_order>
                             <validate>required-entry</validate>
                             <frontend_class>validate-digits validate-digits-range validate-zero-or-greater</frontend_class>
                             <show_in_default>1</show_in_default>

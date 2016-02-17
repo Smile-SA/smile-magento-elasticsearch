@@ -26,6 +26,24 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Terms extends
     protected $_suggestData = null;
 
     /**
+     * Constructor
+     * Set cache policy for this block
+     *
+     * @return Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Terms
+     */
+    protected function _construct()
+    {
+        $this->addData(
+            array(
+                'cache_lifetime' => Mage_Core_Model_Cache::DEFAULT_LIFETIME,
+                'cache_tags'     => array(Mage_CatalogSearch_Model_Query::CACHE_TAG),
+            )
+        );
+
+        parent::_construct();
+    }
+
+    /**
      * Block cache key
      *
      * @return string
@@ -33,26 +51,6 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Terms extends
     public function getCacheKey()
     {
         return __CLASS__ . md5($this->_getQuery()) . '_' . Mage::app()->getStore()->getId();
-    }
-
-    /**
-     * Block cache lifetime
-     *
-     * @return int
-     */
-    public function getCacheLifetime()
-    {
-        return Mage_Core_Model_Cache::DEFAULT_LIFETIME;
-    }
-
-    /**
-     * Block cache tags
-     *
-     * @return array
-     */
-    public function getCacheTags()
-    {
-        return array(Mage_CatalogSearch_Model_Query::CACHE_TAG);
     }
 
     /**
