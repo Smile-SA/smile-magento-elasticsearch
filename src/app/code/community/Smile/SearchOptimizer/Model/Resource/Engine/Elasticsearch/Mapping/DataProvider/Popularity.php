@@ -53,6 +53,9 @@ class Smile_SearchOptimizer_Model_Resource_Engine_Elasticsearch_Mapping_DataProv
                         $updateData = $this->_prepareBehavioralData($item);
                         foreach ($updateData as $sku => $productData) {
                             $entityId = array_search($sku, $productIds);
+                            if (!isset($result[$entityId])) {
+                                $result[$entityId] = array();
+                            }
                             $result[$entityId] = array_merge((array) $result[$entityId], $productData);
                         }
                     }
