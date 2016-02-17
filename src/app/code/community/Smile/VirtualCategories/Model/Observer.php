@@ -113,7 +113,7 @@ class Smile_VirtualCategories_Model_Observer
      *
      * @event catalogsearch_query_save_after
      *
-     * @return void Nothing
+     * @return Smile_VirtualCategories_Model_Observer
      */
     public function saveProductsPositions(Varien_Event_Observer $observer)
     {
@@ -131,6 +131,10 @@ class Smile_VirtualCategories_Model_Observer
         $resourceModel->saveProductsPositions($filteredPositions, $category);
 
         $productIdsToReindex = array_unique(array_merge($previousProducts, array_keys($filteredPositions)));
+
+        if (empty($productIdsToReindex)) {
+            return $this;
+        }
 
         // If Enterprise version, Mview index will handle editing, otherwise, process reindex
         if (!Mage::helper("smile_elasticsearch")->isEnterpriseSupportEnabled()) {
@@ -156,6 +160,7 @@ class Smile_VirtualCategories_Model_Observer
 
             }
         }
+        return $this;
     }
 
     /**
