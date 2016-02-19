@@ -1,0 +1,53 @@
+output {
+
+    if [@metadata][type] == "user" {
+        elasticsearch {
+            action             => "update"
+            index              => "%{[@metadata][index]}"
+            document_type      => "%{[@metadata][type]}"
+            document_id        => "%{[@metadata][upsert][user_id]}"
+            upsert             => "%{[@metadata][upsert]}"
+            # Template to define
+            template           => "SMILE_ELASTICSUITE_TRACKER_TEMPLATE"
+            # Host also to define
+            hosts              => [HOSTS]
+            template_name      => "finedata"
+            template_overwrite => true
+            flush_size         => 1000
+        }
+    }
+
+    if [@metadata][type] == "session" {
+        elasticsearch {
+            action             => "update"
+            index              => "%{[@metadata][index]}"
+            document_type      => "%{[@metadata][type]}"
+            document_id        => "%{[@metadata][upsert][session_id]}"
+            upsert             => "%{[@metadata][upsert]}"
+            # Template to define
+            template           => "SMILE_ELASTICSUITE_TRACKER_TEMPLATE"
+            # Host also to define
+            hosts              => [HOSTS]
+            template_name      => "finedata"
+            template_overwrite => true
+            flush_size         => 1000
+        }
+    }
+
+    if [@metadata][type] == "event" {
+        elasticsearch {
+            index              => "%{[@metadata][index]}"
+            document_type      => "%{[@metadata][type]}"
+            parent             => "%{session_id}"
+            # Template to define
+            template           => "SMILE_ELASTICSUITE_TRACKER_TEMPLATE"
+            # Host also to define
+            hosts              => [HOSTS]
+            template_name      => "finedata"
+            template_overwrite => true
+            flush_size         => 1000
+        }
+
+    }
+
+}

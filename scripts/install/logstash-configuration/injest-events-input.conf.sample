@@ -1,0 +1,8 @@
+input {
+    file {
+        # Change this to custom log file
+        # Eg. /var/log/smile_searchandising_suite/apache_raw_events/event.log
+        path => "SMILE_TRACKER_LOG_FILE"
+        start_position => "beginning"
+    }
+}

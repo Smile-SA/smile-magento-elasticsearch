@@ -1,0 +1,117 @@
+filter {
+
+    grok {
+        match => {
+            "message" => "%{IPORHOST:ip_address} %{USER} %{USER} \[%{DATA:time}\] \"(?:%{WORD} %{NOTSPACE:request}(?: HTTP/%{NUMBER})?|%{DATA})\" %{NUMBER} (?:%{NUMBER}|-) %{QS} %{QS:user_agent}"
+        }
+    }
+
+    if "_grokparsefailure" in [tags] {
+        drop {}
+    }
+
+    kv {
+        source => "request"
+        field_split => "&?"
+        target => "trackingParams"
+    }
+
+    if (![trackingParams][session.vid]) {
+        drop {}
+    }
+
+    date { match => ["time", "dd/MMM/yyyy:HH:mm:ss Z", "YYYY-MM-dd HH:mm:ss"] }
+    ruby {
+        code=>"event['time'] =  event.sprintf('%{+YYYY-MM-dd HH:mm:ss}')"
+    }
+
+    clone { clones => ["session", "event"] }
+
+    if ![type] {
+        mutate {
+            add_field => {
+                "[@metadata][index]"              => "finedata-customer"
+                "[@metadata][type]"               => "user"
+                "[@metadata][upsert][user_id]"    => "%{[trackingParams][session.vid]}"
+                "[@metadata][upsert][created_at]" => "%{@timestamp}"
+                "[@metadata][upsert][updated_at]" => "%{@timestamp}"
+                "updated_at"                      => "%{@timestamp}"
+            }
+       }
+
+    } else {
+
+        if [type] == "session" {
+
+            useragent { source => "user_agent" target => "user_agent_parsed" }
+
+            geoip { source => "ip_address" target => "geoip_parsed" }
+
+            mutate {
+                add_field => {
+                    "[@metadata][type]"                           => "session"
+                    "[@metadata][upsert][session_id]"             => "%{[trackingParams][session.uid]}"
+                    "[@metadata][upsert][user_id]"                => "%{[trackingParams][session.vid]}"
+                    "[@metadata][upsert][session_start]"          => "%{@timestamp}"
+                    "[@metadata][upsert][session_end]"            => "%{@timestamp}"
+                    "[@metadata][upsert][device][os_name]"        => "%{[user_agent_parsed][os]}"
+                    "[@metadata][upsert][device][browser_name]"   => "%{[user_agent_parsed][name]}"
+                    "session_end"                                 => "%{@timestamp}"
+                }
+                remove_field => "user_agent_parsed"
+            }
+            if ([geoip_parsed][country_code2]) {
+                mutate {
+                    add_field => {
+                        "[@metadata][upsert][location][country_code]" => "%{[geoip_parsed][country_code2]}"
+                        "[@metadata][upsert][location][coords]"       => "%{[geoip_parsed][location]}"
+                    }
+                    remove_field => "geoip_parsed"
+                }
+            }
+            mutate {
+               remove_field => "geoip_parsed"
+            }
+
+        } else {
+
+            if [trackingParams][page.type.identifier] in ["catalog_product_view", "catalog_category_view"] {
+
+                mutate { add_field => { "event_type" => "view" } }
+
+                if [trackingParams][page.type.identifier] == "catalog_product_view" {
+                    mutate { add_field => { "entity_type" => "product" "entity_id" => "%{[trackingParams][page.product.sku]}" } }
+                }
+
+                if [trackingParams][page.type.identifier] == "catalog_category_view" {
+                    mutate { add_field => { "entity_type" => "category" "entity_id" => "%{[trackingParams][page.category.id]}" } }
+                }
+
+            } else if [trackingParams][page.type.identifier] == "checkout_onepage_success" {
+
+                mutate { add_field => { "event_type" => "buy" "entity_type" => "product" } }
+                split  {field => "request" terminator => "&" }
+                grok   { match => { "request" => "page.order.items.%{INT}.sku=%{NOTSPACE:entity_id}" } }
+
+                if "_grokparsefailure" in [tags] {
+                    drop {}
+                }
+
+            } else {
+                drop {}
+            }
+
+            mutate {
+                add_field => { "session_id" => "%{[trackingParams][session.uid]}" "event_date" => "%{@timestamp}" "[@metadata][type]" => "event" }
+            }
+        }
+        ruby { code => "event['@metadata']['index'] = 'finedata-events-' + event['time'][0..9]" }
+    }
+
+    mutate {
+        "remove_field" => [
+            "message", "@version", "@timestamp", "host", "path", "type", "trackingParams", "ip_address", "time", "request", "user_agent"
+        ]
+    }
+
+}
