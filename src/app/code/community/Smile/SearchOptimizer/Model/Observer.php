@@ -19,23 +19,6 @@
 class Smile_SearchOptimizer_Model_Observer
 {
     /**
-     * Append popularity field to the mapping
-     *
-     * @param Varien_Event_Observer $observer Event data
-     *
-     * @return Modyf_Search_Model_Observer
-     */
-    public function addPopularityFieldToMapping($observer)
-    {
-        $mappingObject = $observer->getMapping();
-        $mapping = $mappingObject->getData();
-        $mapping['properties']['_optimizer_sale_count'] = array('type' => 'long', 'doc_values' => true);
-        $mapping['properties']['_optimizer_view_count'] = array('type' => 'long', 'doc_values' => true);
-        $mappingObject->setData($mapping);
-        return $this;
-    }
-
-    /**
      * Append optimize to queries.
      *
      * @param Varien_Event_Observer $observer Event to observe.

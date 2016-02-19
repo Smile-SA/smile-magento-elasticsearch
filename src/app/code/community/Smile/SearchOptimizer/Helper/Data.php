@@ -18,5 +18,18 @@
  */
 class Smile_SearchOptimizer_Helper_Data extends Mage_Core_Helper_Abstract
 {
+    /**
+     * Alias location in configuration
+     */
+    const POPULARITY_ALIAS_CONFIG_PATH = "elasticsearch_advanced_search_settings/behavioral_optimizers/popularity_index_alias";
 
+    /**
+     * Retrieve Popularity Index
+     *
+     * @return mixed
+     */
+    public function getPopularityIndex()
+    {
+        return Mage::getStoreConfig(self::POPULARITY_ALIAS_CONFIG_PATH);
+    }
 }
