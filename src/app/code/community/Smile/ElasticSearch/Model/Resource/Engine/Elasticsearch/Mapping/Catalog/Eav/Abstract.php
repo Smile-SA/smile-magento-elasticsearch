@@ -365,19 +365,21 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_C
             $attributes = Mage::getResourceModel($this->_attributeCollectionModel)
                 ->setEntityTypeFilter($entityType->getEntityTypeId());
 
-            $conditions = array(
-                'additional_table.is_searchable = 1',
-                'additional_table.is_visible_in_advanced_search = 1',
-                'additional_table.is_filterable > 0',
-                'additional_table.is_filterable_in_search = 1',
-                'additional_table.used_for_sort_by = 1',
-                'additional_table.is_used_for_promo_rules',
-                $this->getConnection()->quoteInto('main_table.attribute_code = ?', 'status'),
-                $this->getConnection()->quoteInto('main_table.attribute_code = ?', 'visibility'),
-            );
+            if (method_exists($attributes, 'addToIndexFilter')) {
+                $conditions = array(
+                    'additional_table.is_searchable = 1',
+                    'additional_table.is_visible_in_advanced_search = 1',
+                    'additional_table.is_filterable > 0',
+                    'additional_table.is_filterable_in_search = 1',
+                    'additional_table.used_for_sort_by = 1',
+                    'additional_table.is_used_for_promo_rules',
+                    $this->getConnection()->quoteInto('main_table.attribute_code = ?', 'status'),
+                    $this->getConnection()->quoteInto('main_table.attribute_code = ?', 'visibility'),
+                );
 
-            $attributes->getSelect()->where(sprintf('(%s)', implode(' OR ', $conditions)));
-
+                $attributes->getSelect()->where(sprintf('(%s)', implode(' OR ', $conditions)));
+            }
+            
             $this->_attributesById = array();
 
             foreach ($attributes as $attribute) {
