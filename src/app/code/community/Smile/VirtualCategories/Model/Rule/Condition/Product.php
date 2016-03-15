@@ -194,6 +194,9 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
             $template = $this->_queryTemplates['=='];
             $query = array();
             $values = is_array($value) ? $value : explode(',', $value);
+            if (strpos(current($values), ",") !== false) {
+                $values = explode(",", current($values));
+            }
             foreach ($values as $currentValue) {
                 $query[] = $this->_getSearchQuery($attribute, $currentValue, "==", $excludedCategories);
             }
