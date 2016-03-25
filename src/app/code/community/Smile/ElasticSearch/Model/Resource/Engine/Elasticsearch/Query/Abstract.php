@@ -262,7 +262,8 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
      */
     public function setFulltextQuery($query)
     {
-        $this->_fulltextQuery = $query;
+        $this->_fulltextQuery = $this->prepareFilterQueryText($query);
+
         return $this;
     }
 
@@ -344,11 +345,12 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Abs
     public function prepareFilterQueryText($text)
     {
         $words = explode(' ', $text);
+
         if (count($words) > 1) {
             $text = $this->_escapePhrase($text);
-        } else {
-            $text = $this->_escape($text);
         }
+
+        $text = $this->_escape($text);
 
         return $text;
     }
