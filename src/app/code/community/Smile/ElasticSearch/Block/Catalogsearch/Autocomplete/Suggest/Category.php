@@ -75,6 +75,9 @@ class Smile_ElasticSearch_Block_Catalogsearch_Autocomplete_Suggest_Category exte
             ->addSearchFilter($this->_getQuery())
             ->addUrlRewriteToResult();
 
+        $query = $collection->getSearchEngineQuery();
+        $query->addFilter('terms', array('is_active' => 1));
+
         return $collection;
     }
 

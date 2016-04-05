@@ -119,13 +119,14 @@ class Smile_ElasticSearch_Model_Observer
         } else {
             $category = $observer->getEvent()->getCategory();
             $productIds = $category->getAffectedProductIds();
-            if (empty($productIds)) {
-                return $this;
+            if (!empty($productIds)) {
+                $client = Mage::getModel('enterprise_mview/client');
+                $client->init('catalogsearch_fulltext');
+                $client->execute(
+                    'enterprise_catalogsearch/index_action_fulltext_refresh_row',
+                    array('value' => $productIds)
+                );
             }
-            $client = Mage::getModel('enterprise_mview/client');
-            $client->init('catalogsearch_fulltext');
-
-            $client->execute('enterprise_catalogsearch/index_action_fulltext_refresh_row', array('value' => $productIds));
         }
 
         if ($helper->isActiveEngine()) {
