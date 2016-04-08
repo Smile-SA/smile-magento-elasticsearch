@@ -378,8 +378,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
     {
         $fuzzyQuery = array();
 
-        $matchQuery = array('query' => $textQuery, 'type' => 'best_fields', 'minimum_should_match' => "100%");
-
+        $matchQuery = array('query' => $textQuery, 'type' => 'best_fields', 'operator' => 'and');
         $fuzzinessConfig = $this->_getFuzzinessConfig();
         if ($fuzzinessConfig !== false) {
             $fuzzyQuery['bool']['should'][] = array('multi_match' => array_merge($matchQuery, $fuzzinessConfig));
