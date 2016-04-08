@@ -320,17 +320,15 @@ abstract class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Mapping_A
         }
 
         if ($this->getCurrentIndex()->isPhoneticSupported($languageCode)) {
-            $analyzers[] = 'phonetic_' . $languageCode;
+            $analyzers[] = 'phonetic';
         }
 
         foreach ($analyzers as $analyzer) {
-            $mapping[$fieldName]['fields'][$analyzer] = array('type' => $type, 'analyzer' => $analyzer, 'store' => false);
-
-            if (isset($analyzersOptions[$analyzer])) {
-                $mapping[$fieldName]['fields'][$analyzer] = array_merge(
-                    $mapping[$fieldName]['fields'][$analyzer], $analyzersOptions[$analyzer]
-                );
+            $analyserOptions = array('type' => $type, 'analyzer' => $analyzer, 'store' => false);
+            if ($analyzer == 'phonetic') {
+                $analyserOptions['analyzer'] = $analyzer . '_' . $languageCode;
             }
+            $mapping[$fieldName]['fields'][$analyzer] = $analyserOptions;
         }
 
         if ($searchable) {
