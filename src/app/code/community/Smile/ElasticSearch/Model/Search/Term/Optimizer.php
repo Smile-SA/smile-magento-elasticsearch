@@ -28,7 +28,7 @@ class Smile_ElasticSearch_Model_Search_Term_Optimizer extends Varien_Object
      */
     public function applyCustomProductsPositions($query, $searchQuery)
     {
-        if (isset($query['body']['sort'])) {
+        if (isset($query['body']['sort']) && ($query['type'] == 'product')) {
 
             if ($this->hasCustomPositions($searchQuery)) {
 
