@@ -32,21 +32,6 @@ class Smile_VirtualCategories_Model_Indexer_VirtualCategories_Product_Position e
      * @var array
      */
     protected $_matchedEntities = array(
-        Mage_Catalog_Model_Product::ENTITY => array(
-            Mage_Index_Model_Event::TYPE_SAVE,
-            Mage_Index_Model_Event::TYPE_MASS_ACTION,
-            Mage_Index_Model_Event::TYPE_DELETE
-        ),
-        Mage_Core_Model_Store::ENTITY => array(
-            Mage_Index_Model_Event::TYPE_SAVE,
-            Mage_Index_Model_Event::TYPE_DELETE
-        ),
-        Mage_Core_Model_Store_Group::ENTITY => array(
-            Mage_Index_Model_Event::TYPE_SAVE
-        ),
-        Mage_Catalog_Model_Convert_Adapter_Product::ENTITY => array(
-            Mage_Index_Model_Event::TYPE_SAVE
-        ),
         Mage_Catalog_Model_Category::ENTITY => array(
             Mage_Index_Model_Event::TYPE_SAVE
         )
@@ -83,7 +68,9 @@ class Smile_VirtualCategories_Model_Indexer_VirtualCategories_Product_Position e
         $mapping      = $engine->getCurrentIndex()->getMapping('product');
         $dataprovider = $mapping->getDataProvider('virtual_categories_products_position');
 
-        $dataprovider->updateAllData($category->getStoreId(), $category->getVirtualProductIds());
+        if ($category->getVirtualProductIds() && (count($category->getVirtualProductIds()))) {
+            $dataprovider->updateAllData($category->getStoreId(), $category->getVirtualProductIds());
+        }
     }
 
     /**
