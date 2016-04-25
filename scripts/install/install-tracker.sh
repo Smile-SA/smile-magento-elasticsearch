@@ -33,6 +33,7 @@ mkdir -p /var/log/smile_searchandising_suite/apache_raw_events/
 setfacl -Rm u:logstash:rX /var/log/apache2
 setfacl -m u:logstash:rX /var/log/smile_searchandising_suite/apache_raw_events/
 setfacl -m u:logstash:r $TRACKER_LOG_FILE
+usermod -a -G adm logstash
 
 # Start Logstash and ensure it starts with the system
 service logstash restart
