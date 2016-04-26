@@ -169,7 +169,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Index extends Mage_CatalogSearch
 
             // All categories are now parent category => can be added into 'categories' without particular check
             $result[$productId]['categories'][] = $categoryId;
-            $result[$productId]['position'][] = array('category_id' => $categoryId, 'position' => (int) $row['position']);
+            $result[$productId]['category_position'][] = array('category_id' => $categoryId, 'position' => (int) $row['position']);
 
             // Filling the "show_in_categories" field from the path
             // Possible since all categories are have is_anchor set to true
