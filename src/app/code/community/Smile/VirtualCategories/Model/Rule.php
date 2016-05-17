@@ -151,6 +151,12 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
                 $query = implode(' OR ', array_merge(array($query), $childrenQueries));
             }
 
+            // Append the root category query string if needed
+            if ($rootCategory = Mage::helper('smile_virtualcategories')->getVirtualRootCategory($category)) {
+                $rootCategoryQuery = $this->_getVirtualRule($rootCategory)->getSearchQuery($category->getId());
+                $query = implode(' AND ', array_filter(array_merge(array($query), array("(" . $rootCategoryQuery . ")"))));
+            }
+
             if (empty($excludedCategories)) {
                 $this->cacheQuery($category->getId() . $category->getStoreId(), array($query, $this->_usedCategories));
             }
@@ -177,6 +183,7 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
         $queries = array();
 
         $rootCategory = $this->getCategory();
+
         $categories = Mage::getResourceModel('smile_virtualcategories/catalog_virtualCategory_collection')
             ->setStore($rootCategory->getStoreId())
             ->addIsActiveFilter()
@@ -194,9 +201,16 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
         foreach ($categories as $currentCategory) {
             if ($currentCategory->getIsVirtual() || ($onlyVirtual == false)) {
                 $virtualRule = $currentCategory->getVirtualRule();
-                $virtualRule->setStoreId($rootCategory->getStoreId());
+                $virtualRule->setStoreId($this->getCategory()->getStoreId());
                 $query = $virtualRule->getSearchQuery($excludedCategories);
                 if ($query) {
+
+                    // Append the root category query string if needed
+                    if ($rootCategory = Mage::helper('smile_virtualcategories')->getVirtualRootCategory($currentCategory)) {
+                        $rootCategoryQuery = $this->_getVirtualRule($rootCategory)->getSearchQuery($currentCategory->getId());
+                        $query = implode(' AND ', array_filter(array_merge(array($query), array("(" . $rootCategoryQuery . ")" ))));
+                    }
+
                     $queries[$currentCategory->getId()] = '(' . $query . ')';
                     $this->addUsedCategoryIds($virtualRule->getUsedCategoryIds());
                 }
@@ -264,5 +278,17 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
     public function getStoreId()
     {
         return $this->getStore()->getId();
+    }
+
+    /**
+     * Force the virtual rule to be loaded for a category.
+     *
+     * @param Mage_Catalog_Model_Category $category The category.
+     *
+     * @return Smile_VirtualCategories_Model_Rule
+     */
+    protected function _getVirtualRule($category)
+    {
+        return Mage::helper('smile_virtualcategories')->getVirtualRule($category);
     }
 }

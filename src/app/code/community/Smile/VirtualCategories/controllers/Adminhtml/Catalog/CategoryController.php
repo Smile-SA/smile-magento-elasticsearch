@@ -31,6 +31,10 @@ class Smile_VirtualCategories_Adminhtml_Catalog_CategoryController
             $model      = Mage::getModel('catalog/category')->load($categoryId);
             $storeId    = $this->getRequest()->getParam('store', false);
 
+            if ($data = $this->getRequest()->getPost()) {
+                $model->addData($data['general']);
+            }
+
             if ($storeId) {
                 $model->setStoreId($storeId);
             }

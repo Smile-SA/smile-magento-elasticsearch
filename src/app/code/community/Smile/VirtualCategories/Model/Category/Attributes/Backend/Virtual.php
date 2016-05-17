@@ -32,6 +32,8 @@ class Smile_VirtualCategories_Model_Category_Attributes_Backend_Virtual extends 
         $savedValue = $this->_defaultValue;
 
         $savedValue['is_virtual'] = (bool) $object->getIsVirtual();
+        $savedValue['use_custom_root_category'] = (bool) $object->getUseCustomRootCategory();
+        $savedValue['custom_root_category'] = $object->getCustomRootCategory();
 
         if ($object->getVirtualCategoryRule()) {
             $savedValue['rule_serialized'] = $object->getVirtualCategoryRule()->getConditions()->asArray();
@@ -74,6 +76,8 @@ class Smile_VirtualCategories_Model_Category_Attributes_Backend_Virtual extends 
         $virtualCategoryRule->setCategory($object);
 
         $object->setData('is_virtual', $data['is_virtual']);
+        $object->setData('use_custom_root_category', isset($data['use_custom_root_category']) ? $data['use_custom_root_category'] : false);
+        $object->setData('custom_root_category', isset($data['custom_root_category']) ? $data['custom_root_category'] : null);
         $object->setData('virtual_rule', $virtualCategoryRule);
 
         return $this;

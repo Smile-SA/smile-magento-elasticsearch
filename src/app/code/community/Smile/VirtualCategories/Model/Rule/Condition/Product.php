@@ -94,6 +94,10 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
      */
     protected function _getCategoriesSearchQuery($value, $not = false, $excludedCategories = array())
     {
+        if (!is_array($excludedCategories)) {
+            $excludedCategories = array($excludedCategories);
+        }
+
         if ($this->getRule()->getCategory() && $this->getRule()->getCategory()->getId()) {
             $excludedCategories[] = $this->getRule()->getCategory()->getId();
         }

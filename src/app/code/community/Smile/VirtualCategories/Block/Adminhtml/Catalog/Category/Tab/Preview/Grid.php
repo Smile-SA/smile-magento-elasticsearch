@@ -280,6 +280,16 @@ JAVASCRIPT;
         $rule->getConditions()->setRule($rule);
         $queryString = $rule->getConditions()->getSearchQuery();
 
+        // Append the root category query string if needed
+        if ($rootCategory = $this->_getVirtualRootCategory($this->getCategory())) {
+            $rootCategoryQuery = $this->_getVirtualRule($rootCategory)->getSearchQuery($this->getCategory()->getId());
+            if ($queryString) {
+                $queryString = "(" . $queryString . " AND (" . $rootCategoryQuery . "))";
+            } else {
+                $queryString = "(" . $rootCategoryQuery . ")";
+            }
+        }
+
         return $queryString;
     }
 
@@ -297,6 +307,7 @@ JAVASCRIPT;
             $client = Mage::helper('catalogsearch')->getEngine()->getClient();
 
             $response = $client->search($query);
+
             foreach ($response['hits']['hits'] as $hit) {
                 $currentId = $hit['fields']['entity_id'];
                 if (is_array($currentId)) {
@@ -308,5 +319,29 @@ JAVASCRIPT;
         }
 
         return $this->_productIds;
+    }
+
+    /**
+     * Get the virtual "root category" to apply for a virtual category, if any.
+     *
+     * @param Mage_Catalog_Model_Category $category The category.
+     *
+     * @return Mage_Catalog_Model_Category|null
+     */
+    protected function _getVirtualRootCategory($category)
+    {
+        return Mage::helper('smile_virtualcategories')->getVirtualRootCategory($category);
+    }
+
+    /**
+     * Force the virtual rule to be loaded for a category.
+     *
+     * @param Mage_Catalog_Model_Category $category The category.
+     *
+     * @return Smile_VirtualCategories_Model_Rule
+     */
+    protected function _getVirtualRule($category)
+    {
+        return Mage::helper('smile_virtualcategories')->getVirtualRule($category);
     }
 }
