@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!--
+ /**
+ * Layout for elasticsearch features
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_VirtualAttributes
+ * @author    Romain Ruaud <romain.ruaud@smile.fr>
+ * @copyright 2016 Smile
+ * @license   Apache License Version 2.0
+ */
+ -->
+<layout version="0.1.0">
+
+    <adminhtml_catalog_product_attribute_edit>
+
+        <reference name="head">
+            <action method="setCanLoadRulesJs"><flag>1</flag></action>
+        </reference>
+
+        <reference name="attribute_edit_tabs">
+            <block type="smile_virtualattributes/adminhtml_catalog_product_attribute_edit_tab_rule" name="attribute_edit_virtual_rule_tab" />
+            <action method="addTabAfter"><name>rule_tab</name><block>attribute_edit_virtual_rule_tab</block><after>labels</after></action>
+        </reference>
+
+    </adminhtml_catalog_product_attribute_edit>
+
+</layout>

@@ -38,7 +38,7 @@
             <active>true</active>
             <codePool>community</codePool>
         </Smile_SearchandisingSuite>
-        
+
         <Smile_Tracker>
             <active>true</active>
             <codePool>community</codePool>
@@ -46,7 +46,7 @@
                 <Smile_SearchandisingSuite />
             </depends>
         </Smile_Tracker>
-        
+
         <Smile_ElasticSearch>
             <active>true</active>
             <codePool>community</codePool>
@@ -55,7 +55,7 @@
                 <Smile_SearchandisingSuite />
             </depends>
         </Smile_ElasticSearch>
-        
+
         <Smile_VirtualCategories>
             <active>true</active>
             <codePool>community</codePool>
@@ -71,6 +71,14 @@
                 <Smile_VirtualCategories />
             </depends>
         </Smile_SearchOptimizer>
+
+        <Smile_VirtualAttributes>
+            <active>true</active>
+            <codePool>community</codePool>
+            <depends>
+                <Smile_VirtualCategories />
+            </depends>
+        </Smile_VirtualAttributes>
 
     </modules>
 </config>

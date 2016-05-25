@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Layout for Smile Virtual Attributes features
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade Smile Searchandising Suite to newer
+ * versions in the future.
+ *
+ * @category  Smile
+ * @package   Smile_VirtualAttributes
+ * @author    Romain Ruaud <romain.ruaud@smile.fr>
+ * @copyright 2016 Smile
+ * @license   Apache License Version 2.0
+ */
+ -->
+<layout version="0.1.0">
+
+    <catalog_category_layered>
+        <reference name="left">
+            <remove name="catalog.leftnav"/>
+            <remove name="smile.elaticsearch.leftnav"/>
+            <block type="smile_virtualattributes/catalog_layer_view" name="smile.elaticsearch.leftnav.virtualattributes" before="-" template="catalog/layer/view.phtml">
+                <block type="core/text_list" name="catalog.leftnav.state.renderers" as="state_renderers" />
+                <action method="addFilterTemplate"><filterName>price</filterName><template>smile/elasticsearch/catalog/layer/filter/price.phtml</template></action>
+                <action method="addFilterTemplate"><filterName>rating_filter</filterName><template>smile/elasticsearch/catalog/layer/filter/rating.phtml</template></action>
+            </block>
+        </reference>
+    </catalog_category_layered>
+
+    <catalogsearch_result_index>
+        <reference name="left">
+            <remove name="catalogsearch.leftnav"/>
+            <remove name="smile.elaticsearch.leftnav"/>
+            <block type="smile_virtualattributes/catalogsearch_layer" name="smile.elaticsearch.leftnav.virtualattributes" before="-" template="catalog/layer/view.phtml">
+                <block type="core/text_list" name="catalog.leftnav.state.renderers" as="state_renderers" />
+                <action method="addFilterTemplate"><filterName>price</filterName><template>smile/elasticsearch/catalog/layer/filter/price.phtml</template></action>
+                <action method="addFilterTemplate"><filterName>rating_filter</filterName><template>smile/elasticsearch/catalog/layer/filter/rating.phtml</template></action>
+            </block>
+        </reference>
+
+    </catalogsearch_result_index>
+
+</layout>

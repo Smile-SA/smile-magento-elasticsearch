@@ -92,6 +92,12 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product_Attribute
             }
 
             $productAttributes->getSelect()->where(sprintf('(%s)', implode(' OR ', $conditions)));
+
+            Mage::dispatchEvent(
+                "smile_elasticsearch_prepare_virtual_categories_attributes",
+                array('select' => $productAttributes->getSelect())
+            );
+
             $productAttributes = $productAttributes->getItems();
 
             $attributes = array();

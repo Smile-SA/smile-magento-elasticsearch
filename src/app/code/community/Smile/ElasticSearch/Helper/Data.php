@@ -170,4 +170,22 @@ class Smile_ElasticSearch_Helper_Data extends Mage_Core_Helper_Abstract
     {
         return Mage::helper('core')->isModuleEnabled('Enterprise_CatalogSearch');
     }
+
+    /**
+     * Retrieve attributes that can be set to "is_filterable" by their frontend input
+     *
+     * @return array
+     */
+    public function getSearchableAttributesFrontendInputs()
+    {
+        $frontendInputs = array('select', 'multiselect', 'price', 'text');
+
+        $eventData = new Varien_Object(array('frontend_inputs' => $frontendInputs));
+
+        Mage::dispatchEvent('smile_elasticsearch_get_searchable_attributes_frontend_inputs', array('attribute_data' => $eventData));
+
+        $frontendInputs = $eventData->getFrontendInputs();
+
+        return $frontendInputs;
+    }
 }
