@@ -11,3 +11,7 @@
 "Custom products positions in Virtual Categories","Positions des produits dans les catégories virtuelles"
 "Computes custom positions for products in virtual categories.","Indexe les positions des produits dans les catégories virtuelles."
 "Virtual Categories products positions Index","Index des positions des produits dans les catégories virtuelles"
+"Use Custom root category","Utiliser une catégorie racine personnalisée"
+"Custom root category","Catégorie racine personnalisée"
+"Select category ...","Choisissez une catégorie ..."
+"Category filter will be displayed related to this category", "La facette de catégories sera affichée par rapport à cette catégorie. Elle proposera les catégories filles de cette catégorie, auxquelles appartiennent les produits de la catégorie virtuelle."

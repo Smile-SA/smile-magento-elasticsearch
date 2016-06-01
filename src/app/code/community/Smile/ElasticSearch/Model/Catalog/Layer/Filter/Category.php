@@ -29,7 +29,6 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
     {
         $this->setCategory($category);
 
-
         Mage::dispatchEvent('category_filter_add_filter_to_collection_before', array('filter' => $this, 'category' => $category));
 
         if (!$this->getProductCollectionFilterSet()) {
@@ -108,9 +107,8 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
             ->load($filter);
 
         if ($this->_isValidCategory($this->_appliedCategory)) {
-            $this->getLayer()->getState()->addFilter(
-                $this->_createItem($this->_appliedCategory->getName(), $this->_appliedCategory->getId())
-            );
+            $filter = $this->_createItem($this->_appliedCategory->getName(), $this->_appliedCategory->getId());
+            $this->getLayer()->getState()->addFilter($filter);
         }
 
         return $this;
@@ -145,7 +143,8 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
         $data = $layer->getCacheData($key);
 
         if ($data === null) {
-            $categories = $this->getCategory()->getChildrenCategories();
+
+            $categories = $this->getChildrenCategories();
 
             /** @var $productCollection Smile_ElasticSearch_Model_Resource_Catalog_Product_Collection */
             $productCollection = $layer->getProductCollection();
@@ -251,5 +250,55 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Category extends Mage_Catal
         }
         $this->_items = $items;
         return $this;
+    }
+
+    /**
+     * Retrieve childrens of the current category
+     *
+     * @return array
+     */
+    public function getChildrenCategories()
+    {
+        $childrenCategories = $this->getCategory()->getChildrenCategories();
+
+        Mage::dispatchEvent(
+            'category_filter_get_children_categories',
+            array(
+                'filter' => $this,
+                'category' => $this->getLayer()->getCurrentCategory(),
+                'children_categories' => $childrenCategories
+            )
+        );
+
+        return $childrenCategories;
+    }
+
+    /**
+     * Get filter value for reset current filter state
+     *
+     * @return mixed
+     */
+    public function getResetValue()
+    {
+        if ($this->_appliedCategory) {
+            $eventObject = new Varien_Object(array("reset_value" => null));
+
+            Mage::dispatchEvent(
+                'category_filter_prepare_reset_value',
+                array(
+                    'filter'   => $this,
+                    'category' => $this->getLayer()->getCurrentCategory(),
+                    'applied_category' => $this->_appliedCategory,
+                    'event_data' => $eventObject
+                )
+            );
+
+            if (!$this->getResetValueSet()) {
+                return parent::getResetValue();
+            }
+
+            return $eventObject->getResetValue();
+        }
+        return null;
     }
 }

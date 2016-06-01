@@ -79,6 +79,8 @@ class Smile_VirtualCategories_Block_Adminhtml_Catalog_Category_Tab_Product exten
 
         $typeSelector = $fieldset->addField('is_virtual', 'select', $typeSelectorFieldConfiguration);
 
+        $this->_prepareRootCategorySelector($fieldset);
+
         $this->setSelectorHtmlId($typeSelector->getHtmlId());
 
         return $this;
@@ -170,5 +172,42 @@ class Smile_VirtualCategories_Block_Adminhtml_Catalog_Category_Tab_Product exten
             'smile_virtualcategories/adminhtml_catalog_category_tab_preview_grid',
             'virtual.category.product.grid'
         );
+    }
+
+    /**
+     * Append Virtual category Root category field selector
+     *
+     * @param \Varien_Data_Form_Element_Fieldset $fieldset The fieldset
+     */
+    private function _prepareRootCategorySelector(Varien_Data_Form_Element_Fieldset $fieldset)
+    {
+        $virtualCategoryRootRendererBlock = 'smile_virtualcategories/adminhtml_catalog_category_tab_product_renderer_rootCategory';
+
+        $useCustomCategoryRootFieldConfiguraton = array(
+            'name' => 'use_custom_root_category',
+            'label' => $this->__('Use Custom root category'),
+            'title' => $this->__('Use Custom root category'),
+            'required' => true,
+            'options' => array('0' => $this->__('No'), '1' => $this->__('Yes'))
+        );
+
+        $fieldset->addField('use_custom_root_category', 'select', $useCustomCategoryRootFieldConfiguraton);
+
+        $fieldset->addField(
+            'custom_root_category',
+            'hidden',
+            array(
+                'name'    => 'custom_root_category',
+                'label'   => $this->__("Custom root category"),
+                'title'   => $this->__("Custom root category"),
+                'unique'  =>'true',
+                'comment' => '<p class="note"><span>'.
+                    $this->__('Category filter will be displayed related to this category').
+                    '</span></p>',
+            ),
+            'use_custom_root_category'
+        )->setRenderer(Mage::getBlockSingleton($virtualCategoryRootRendererBlock));
+
+        $fieldset->getForm()->getElement('custom_root_category')->setFieldsetId($fieldset->getId());
     }
 }

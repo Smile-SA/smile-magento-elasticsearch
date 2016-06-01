@@ -27,6 +27,13 @@ class Smile_VirtualCategories_Helper_Data extends Mage_Core_Helper_Data
     protected $_categoryRulesCache = array();
 
     /**
+     * Local cache for virtual categories root categories.
+     *
+     * @var array
+     */
+    protected $_virtualCategoriesRootCache = array();
+
+    /**
      * Force the virtual rule to be loaded for a category.
      *
      * @param Mage_Catalog_Model_Category $category The category.
@@ -55,5 +62,40 @@ class Smile_VirtualCategories_Helper_Data extends Mage_Core_Helper_Data
         }
 
         return $virtualRule;
+    }
+
+    /**
+     * Get the virtual "root category" to apply for a virtual category, if any.
+     *
+     * @param Mage_Catalog_Model_Category $category The category.
+     *
+     * @return Mage_Catalog_Model_Category|null
+     */
+    public function getVirtualRootCategory($category)
+    {
+        $useVirtualRootCategory = $category->getUseCustomRootCategory();
+        $rootCategory           = null;
+
+        $cacheKey = $category->getId();
+
+        if ($category->getStoreId()) {
+            $cacheKey = $cacheKey . '_' . $category->getStoreId();
+        }
+
+        if (!isset($this->_virtualCategoriesRootCache[$cacheKey])) {
+            if ($useVirtualRootCategory) {
+                $value = explode('/', $category->getCustomRootCategory());
+                $categoryId = false;
+                if (isset($value[0]) && isset($value[1]) && $value[0] == 'category') {
+                    $categoryId = $value[1];
+                }
+                if ($categoryId) {
+                    $rootCategory = Mage::getModel("catalog/category")->load($categoryId);
+                }
+            }
+            $this->_virtualCategoriesRootCache[$cacheKey] = $rootCategory;
+        }
+
+        return $this->_virtualCategoriesRootCache[$cacheKey];
     }
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- 
+<!--
 /**
  * Module configuration
  *
@@ -16,7 +16,7 @@
  * @author    Aurelien FOUCRET <aurelien.foucret@smile.fr>
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
- */ 
+ */
  -->
 <config>
     <modules>
@@ -174,6 +174,22 @@
                     </smile_virtualcategories>
                 </observers>
             </category_filter_add_facet_to_collection_before>
+            <category_filter_get_children_categories>
+                <observers>
+                    <smile_virtualcategories>
+                        <class>smile_virtualcategories/observer</class>
+                        <method>appendRootCategoryChildrens</method>
+                    </smile_virtualcategories>
+                </observers>
+            </category_filter_get_children_categories>
+            <category_filter_prepare_reset_value>
+                <observers>
+                    <smile_virtualcategories>
+                        <class>smile_virtualcategories/observer</class>
+                        <method>prepareResetValue</method>
+                    </smile_virtualcategories>
+                </observers>
+            </category_filter_prepare_reset_value>
         </events>
     </frontend>
     <default>

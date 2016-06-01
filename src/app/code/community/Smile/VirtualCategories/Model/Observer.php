@@ -54,6 +54,7 @@ class Smile_VirtualCategories_Model_Observer
         // Retrieve filter and category from event
         $filter   = $observer->getFilter();
         $category = $observer->getCategory();
+        $parentCategory = $filter->getLayer()->getCurrentCategory();
 
         // Retrieve query associated with the filter
         /** @var Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext $query */
@@ -61,6 +62,13 @@ class Smile_VirtualCategories_Model_Observer
 
         // Append the query string for the virtual categories
         $queryString = $this->_getVirtualRule($category)->getSearchQuery();
+
+        if ($parentCategory->getId() !== $category->getId()) {
+            $parentCategoryQuery = $this->_getVirtualRule($parentCategory)->getSearchQuery($category->getId());
+            $queryString = implode(' AND ', array_filter(array_merge(array($queryString), array("(" . $parentCategoryQuery . ")" ))));
+            $observer->getFilter()->setUseUrlRewrites(false);
+        }
+
         $query->addFilter('query', array('query_string' => $queryString));
 
         // Mark filter as installed (avoid default filter behavior)
@@ -82,11 +90,17 @@ class Smile_VirtualCategories_Model_Observer
         $filter   = $observer->getFilter();
         $category = $observer->getCategory();
 
+        if ($rootCategory = $this->_getVirtualRootCategory($category)) {
+            $category = $rootCategory;
+            $observer->getFilter()->setUseUrlRewrites(false);
+        }
+
         // Retrieve query associated with the filter
         $query = $filter->getLayer()->getProductCollection()->getSearchEngineQuery();
 
         // Prepare facet query group
-        $queries = $this->_getVirtualRule($category)->getChildrenCategoryQueries(array(), false, 1);
+        $queries = $this->_getVirtualRule($category)->getChildrenCategoryQueries($observer->getCategory()->getId(), false, 1);
+
         $options = array('queries' => $queries, 'prefix' => 'categories_');
         $query->addFacet('categories', 'queryGroup', $options);
         $filter->setProductCollectionFacetSet(true);
@@ -188,6 +202,82 @@ class Smile_VirtualCategories_Model_Observer
         }
 
         return $this;
+    }
+
+    /**
+     * Get the virtual "root category" to apply for a virtual category, if any.
+     *
+     * @param Mage_Catalog_Model_Category $category The category.
+     *
+     * @return Mage_Catalog_Model_Category|null
+     */
+    protected function _getVirtualRootCategory($category)
+    {
+        return Mage::helper('smile_virtualcategories')->getVirtualRootCategory($category);
+    }
+
+    /**
+     * Append "root category" childrens to category facet for a virtual category.
+     *
+     * @param Varien_Event_Observer $observer The observer
+     *
+     * @event category_filter_get_children_categories
+     *
+     * @return Smile_VirtualCategories_Model_Observer self reference
+     */
+    public function appendRootCategoryChildrens(Varien_Event_Observer $observer)
+    {
+        $currentCategory = $observer->getCategory();
+
+        if ($rootCategory = $this->_getVirtualRootCategory($currentCategory)) {
+            $categories   = $rootCategory->getChildrenCategories();
+
+            if (count($categories) > 0) {
+                foreach ($categories as $category) {
+                    // Do not add current category as a facet of itself.
+                    if (
+                        (!$observer->getChildrenCategories()->getItemById($category->getId()))
+                        && ($currentCategory->getId() !== $category->getId())
+                    ) {
+                        $observer->getChildrenCategories()->addItem($category);
+                    }
+                }
+
+                $observer->getFilter()->setUseUrlRewrites(false);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Prepare "reset value" for category filter of a virtual category if it is using a custom "root category".
+     *
+     * @param Varien_Event_Observer $observer The observer
+     *
+     * @event category_filter_prepare_reset_value
+     *
+     * @return Smile_VirtualCategories_Model_Observer self reference
+     */
+    public function prepareResetValue(Varien_Event_Observer $observer)
+    {
+        $currentCategory = $observer->getCategory();
+        $appliedCategory = $observer->getAppliedCategory();
+
+        if ($rootCategory = $this->_getVirtualRootCategory($currentCategory)) {
+            $observer->getEventData()->setResetValue(null);
+
+            // Only set a reset value when not equal to "root" category of the virtual category
+            $pathIds = array_reverse($appliedCategory->getPathIds());
+            if (isset($pathIds[1])
+                && $pathIds[1] != $currentCategory->getId()
+                && $pathIds[1] != $rootCategory->getId()
+            ) {
+                $observer->getEventData()->setResetValue($pathIds[1]);
+            }
+
+            $observer->getFilter()->setResetValueSet(true);
+        }
     }
 }
 
