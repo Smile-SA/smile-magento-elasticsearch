@@ -68,7 +68,8 @@ function bindAttributeInputType()
     checkOptionsPanelVisibility();
     switchDefaultValueField();
     checkIsConfigurableVisibility();
-    if($('frontend_input') && ($('frontend_input').value=='select' || $('frontend_input').value=='multiselect' || $('frontend_input').value=='price' || $('frontend_input').value=='text')){
+    var searchableAttributes = ['<?php echo implode("','", Mage::helper("smile_elasticsearch")->getSearchableAttributesFrontendInputs()); ?>'];
+    if($('frontend_input') && (searchableAttributes.indexOf($('frontend_input').value) !== -1)) {
         if($('is_filterable') && !$('is_filterable').getAttribute('readonly')){
             $('is_filterable').disabled = false;
         }
