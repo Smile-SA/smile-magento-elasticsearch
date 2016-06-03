@@ -16,7 +16,7 @@ Documentation :
 ===============
 
 * [Installing the module](doc/install.md)
-* [User documentation](doc/user-documentation.md)
+* [User documentation](doc/user-documentation.md) (PDF version : [User documentation](doc/User Guide-Magento Elastic Suite for Magento 1.pdf))
 * [Developper documentation](doc/developper-documentation.md)
 * [Behavorial search documentation](doc/behavorial-search.md) (Not yet released OpenSource)
 * [Indexing custom content](doc/indexing.md)
@@ -24,7 +24,7 @@ Documentation :
 FAQ
 ===
 
-Why choosing ElaticSearch instead of extending the SolR implementation shipped with Magento EE ?
+Why choosing ElasticSearch instead of extending the SolR implementation shipped with Magento EE ?
 ------------------------------------------------------------------------------------------------
 First, ElasticSearch contains a lot more useful features needed to achieve some features of the project :
 
