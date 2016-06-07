@@ -21,7 +21,7 @@
 <config>
     <modules>
         <Smile_ElasticSearch>
-            <version>1.3.0</version>
+            <version>1.4.0</version>
         </Smile_ElasticSearch>
     </modules>
     <global>
