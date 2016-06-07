@@ -163,11 +163,11 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
                 $this->_isSpellChecked = true;
             }
 
-            if (!isset(self::$_assembledQueries[$this->_fulltextQuery])) {
-                self::$_assembledQueries[$this->_fulltextQuery] = $this->_buildFulltextQuery($this->_fulltextQuery, $spellingType);
+            if (!isset(self::$_assembledQueries[$this->getType()][$this->_fulltextQuery])) {
+                self::$_assembledQueries[$this->getType()][$this->_fulltextQuery] = $this->_buildFulltextQuery($this->_fulltextQuery, $spellingType);
             }
 
-            $query = self::$_assembledQueries[$this->_fulltextQuery];
+            $query = self::$_assembledQueries[$this->getType()][$this->_fulltextQuery];
         }
 
         return $query;
@@ -407,7 +407,7 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
      */
     protected function _analyzeSpelling($textQuery)
     {
-        if (!isset(self::$_analyzedQueries[$textQuery])) {
+        if (!isset(self::$_analyzedQueries[$this->getType()][$textQuery])) {
             $queryTermStats = $this->_getQueryTermStats($textQuery);
 
             $spellingType = self::SPELLING_TYPE_FUZZY;
@@ -423,10 +423,10 @@ class Smile_ElasticSearch_Model_Resource_Engine_Elasticsearch_Query_Fulltext
 
             $spellingType = $this->_fixSpellingType($textQuery, $spellingType);
 
-            self::$_analyzedQueries[$textQuery] = $spellingType;
+            self::$_analyzedQueries[$this->getType()][$textQuery] = $spellingType;
         }
 
-        return self::$_analyzedQueries[$textQuery];
+        return self::$_analyzedQueries[$this->getType()][$textQuery];
     }
 
     /**
