@@ -12,7 +12,7 @@
  * @copyright 2013 Smile
  * @license   Apache License Version 2.0
  */
- 
+
 Es = {};
 
 Es.searchForm = Class.create(Varien.searchForm, {
@@ -133,10 +133,10 @@ Es.rangeSlider = function(config) {
     validButton.observe('click', function() {
         var values     = {min : parseInt(slider.values[0]), max: parseInt(slider.values[1])};
         var template   = config.filterTemplate;
-    
+
         var urlToken   = template.evaluate(values);
         var addedParams = false;
-    
+
         var search = window.location.search.substring(1).split('&').map(function(part) {
             part = part.split('=');
             if (part[0] == config.requestVar) {
@@ -146,11 +146,11 @@ Es.rangeSlider = function(config) {
                 return part.join('=');
             }
         }).join('&');
-        
+
         if (addedParams == false) {
             search = search.length == 0 ? template.evaluate(values) : search + "&" + template.evaluate(values);
         }
-    
+
         window.location.search = '?' + search;
     })
 
@@ -208,7 +208,7 @@ Es.facetAutocomplete = function(rootNodeId) {
             if ($(rootNodeId + '-suggest-data')) {
                 $(rootNodeId + '-suggest-data').remove();
             }
-            $(rootNodeId).insert(response.responseText); 
+            $(rootNodeId).insert(response.responseText);
             if ($(rootNodeId + '-complete-data')) {
                 $(rootNodeId + '-complete-data').addClassName('no-display')
             }
@@ -218,7 +218,7 @@ Es.facetAutocomplete = function(rootNodeId) {
             if ($(rootNodeId + '-suggest-data')) {
                 $(rootNodeId + '-suggest-data').remove();
             }
-            
+
             if ($(rootNodeId + '-complete-data') && $(rootNodeId + '-complete-data').hasClassName('current')) {
                 showMoreValues();
             } else {
@@ -230,7 +230,7 @@ Es.facetAutocomplete = function(rootNodeId) {
     {
         if (textInput.value.trim().length == 0) {
             textInput.value = '';
-            
+
             if ($(rootNodeId + '-suggest-data')) {
                 $(rootNodeId + '-suggest-data').remove();
             }
@@ -251,11 +251,11 @@ Es.facetAutocomplete = function(rootNodeId) {
         });
     }
     var onTextChange = function() {
-        
+
         if (timeout) {
             clearTimeout(timeout);
         }
-        
+
         if (textInput && textInput.value.length) {
             deleteLink.removeClassName('no-display');
         }
@@ -292,7 +292,7 @@ Es.facetAutocomplete = function(rootNodeId) {
             $(rootNodeId + '-show-less-link').addEventListener('click', showLessValues);
             showMoreValues();
         }});
-        
+
     };
     var showMoreValues = function() {
         if ($(rootNodeId + '-complete-data')) {
@@ -317,7 +317,7 @@ Es.facetAutocomplete = function(rootNodeId) {
             ev.preventDefault();
             this.blur();
         }
-        
+
     });
     textInput.addEventListener('keyup', function(ev) {
         onTextChange();
@@ -330,4 +330,16 @@ Es.facetAutocomplete = function(rootNodeId) {
     if ($(rootNodeId + '-show-more-link')) {
         $(rootNodeId + '-show-more-link').addEventListener('click', showMoreValues);
     }
+}
+
+// Polyfill from http://stackoverflow.com/questions/2308134/trim-in-javascript-not-working-in-ie
+if(typeof String.prototype.trim !== 'function') {
+    String.prototype.trim = function() {
+        return this.replace(/^\s+|\s+$/g, '');
+    }
+}
+
+// Polyfill for Math.trunc not working on IE
+Math.trunc = Math.trunc || function(x) {
+    return x < 0 ? Math.ceil(x) : Math.floor(x);
 }
