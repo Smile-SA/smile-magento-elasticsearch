@@ -50,6 +50,11 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     const TERM_STAT_AGGREGATOR = 'mean';
 
     /**
+     * @var int
+     */
+    const DEFAULT_FACET_MAX_SIZE = 1000;
+
+    /**
      * List of filter in raw form.
      *
      * @var array()
@@ -236,7 +241,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     {
         /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
         $attribute = $this->getAttributeModel()->getData();
-        return $attribute['facets_max_size'];
+        return isset($attribute['facets_max_size']) ? $attribute['facets_max_size'] : self::DEFAULT_FACET_MAX_SIZE;
     }
 
     /**
@@ -248,7 +253,7 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     {
         /** @var $attribute Mage_Catalog_Model_Resource_Eav_Attribute */
         $attribute = $this->getAttributeModel()->getData();
-        return $attribute['facets_sort_order'];
+        return isset($attribute['facets_sort_order']) ? $attribute['facets_sort_order'] : self::SORT_ORDER_COUNT;
     }
 
     /**
@@ -393,5 +398,26 @@ class Smile_ElasticSearch_Model_Catalog_Layer_Filter_Attribute extends Mage_Cata
     public function hasOthers()
     {
         return $this->_getFacet()->hasOthers() && count($this->_getFacet()->getItems()) < $this->_getSuggestMaxSize();
+    }
+
+    /**
+     * Retrieve attribute model.
+     * Overridden to enforce loading by using the additional table if needed,
+     * because data from catalog_eav_attribute can be missing when attribute
+     * has been previously loaded via the configuration cache.
+     * This is especially happening when using text attributes like "name" as facets.
+     *
+     * @return Mage_Catalog_Model_Resource_Eav_Attribute
+     */
+    public function getAttributeModel()
+    {
+        $attribute = parent::getAttributeModel();
+        $attributeData = $attribute->getData();
+
+        if (!isset($attributeData["facets_max_size"]) || !isset($attributeData["facets_sort_order"])) {
+            $attribute->load($attribute->getId());
+        }
+
+        return $attribute;
     }
 }
