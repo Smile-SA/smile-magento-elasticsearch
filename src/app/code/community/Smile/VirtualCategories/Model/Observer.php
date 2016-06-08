@@ -65,7 +65,9 @@ class Smile_VirtualCategories_Model_Observer
 
         if ($parentCategory->getId() !== $category->getId()) {
             $parentCategoryQuery = $this->_getVirtualRule($parentCategory)->getSearchQuery($category->getId());
-            $queryString = implode(' AND ', array_filter(array_merge(array($queryString), array("(" . $parentCategoryQuery . ")" ))));
+            if ($parentCategoryQuery) {
+                $queryString = implode(' AND ', array_filter(array_merge(array($queryString), array("(" . $parentCategoryQuery . ")"))));
+            }
             $observer->getFilter()->setUseUrlRewrites(false);
         }
 
