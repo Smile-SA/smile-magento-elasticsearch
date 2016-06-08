@@ -19,6 +19,16 @@
 class Smile_VirtualCategories_Model_Rule_Condition_Combine extends Mage_CatalogRule_Model_Rule_Condition_Combine
 {
     /**
+     * Class constructor
+     * Set proper type to prevent overriding by parent class
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->setType('smile_virtualcategories/rule_condition_combine');
+    }
+
+    /**
      * List all available rules under a combine.
      *
      * @return array
@@ -60,12 +70,11 @@ class Smile_VirtualCategories_Model_Rule_Condition_Combine extends Mage_CatalogR
      */
     public function getSearchQuery($excludedCategories = array())
     {
-        $operator = 'must';
-
         $ruleOperator = $this->getAggregator();
         $ruleValue    = $this->getValue();
 
         $conditions   = array();
+
         foreach ($this->getConditions() as $condition) {
             $condition->setRule($this->getRule());
             $conditions[] = $condition->getSearchQuery($excludedCategories);
