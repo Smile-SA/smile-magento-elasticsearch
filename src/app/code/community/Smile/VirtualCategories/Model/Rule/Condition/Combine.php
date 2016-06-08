@@ -77,11 +77,11 @@ class Smile_VirtualCategories_Model_Rule_Condition_Combine extends Mage_CatalogR
         if (!empty($conditions)) {
             if ($ruleOperator == 'any' && $ruleValue == '1') {
                 $query = implode(' OR ', $conditions);
-            } elseif ($ruleOperator == 'any' && $ruleValue = '0') {
+            } elseif ($ruleOperator == 'any' && $ruleValue == '0') {
                 $query = '-(' . implode(' AND ', $conditions) . ')';
-            } elseif ($ruleOperator == 'all' && $ruleValue = '1') {
+            } elseif ($ruleOperator == 'all' && $ruleValue == '1') {
                 $query = implode(' AND ', $conditions);
-            } elseif ($ruleOperator == 'all' && $ruleValue = '0') {
+            } elseif ($ruleOperator == 'all' && $ruleValue == '0') {
                 $query = '-(' . implode(' OR ', $conditions) . ')';
             }
         }
