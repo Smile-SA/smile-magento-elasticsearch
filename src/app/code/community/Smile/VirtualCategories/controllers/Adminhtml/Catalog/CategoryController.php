@@ -32,7 +32,9 @@ class Smile_VirtualCategories_Adminhtml_Catalog_CategoryController
             $storeId    = $this->getRequest()->getParam('store', false);
 
             if ($data = $this->getRequest()->getPost()) {
-                $model->addData($data['general']);
+                if (isset($data['general']) && (is_array($data['general']))) {
+                    $model->addData($data['general']);
+                }
             }
 
             if ($storeId) {
