@@ -113,6 +113,7 @@ class Smile_VirtualCategories_Model_Rule_Condition_Product extends Mage_CatalogR
                     $query[] = $subQuery;
                 }
             }
+            $query = array_filter($query);
             if (!empty($query)) {
                 $query = '(' . implode(' OR ', $query) . ')';
                 $query = $not == true ? '-' . $query : $query;
