@@ -78,23 +78,58 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
     }
 
     /**
+     * @param string $cacheKey The cache key
+     * @param array  $data     The data to cache
+     *
+     * @return $this
+     */
+    public function addToStaticCacheInstance($cacheKey, $data)
+    {
+        $this->_queryCache[$cacheKey] = $data;
+
+        return $this;
+    }
+
+    /**
+     * @param string $cacheKey The cache key
+     *
+     * @return bool|array
+     */
+    public function getFromStaticCacheInstance($cacheKey)
+    {
+        $data = false;
+
+        if (isset($this->_queryCache[$cacheKey]) && ($this->_queryCache[$cacheKey] !== null)) {
+            $data = $this->_queryCache[$cacheKey];
+        }
+
+        return $data;
+    }
+
+    /**
      * Local caching of queries. Used when a category query is retrieved several times during the same request.
      *
-     * @param int $categoryId Id of the category.
+     * @param int   $categoryId  Id of the category.
+     * @param array $excludedIds Excluded category ids, if any.
      *
      * @return NULL|string
      */
-    public function getQueryFromCache($categoryId)
+    public function getQueryFromCache($categoryId, $excludedIds = array())
     {
+        /** @var Smile_VirtualCategories_Model_Rule $cacheInstance */
         $cacheInstance = Mage::getSingleton('smile_virtualcategories/rule');
-        $data = false;
+        $cacheKey      = $this->forgeCacheKey($categoryId, $excludedIds);
+        $data          = false;
 
-        if (isset($cacheInstance->_queryCache[$categoryId])) {
-            $data = $cacheInstance->_queryCache[$categoryId];
+        //Mage::log("CACHE READ : " . $cacheKey, null, "rule-cache.log");
+        if ($cacheInstance->getFromStaticCacheInstance($cacheKey)) {
+            $data = $cacheInstance->getFromStaticCacheInstance($cacheKey);
+            //Mage::log("CACHE FOUND [STATIC]", null, "rule-cache.log");
         }
 
-        if ($data === false && $cacheData = Mage::app()->loadCache(self::CACHE_KEY_PREFIX . '_' .$categoryId)) {
+        if ($data === false && $cacheData = Mage::app()->loadCache($cacheKey)) {
             $data = unserialize($cacheData);
+            //Mage::log("CACHE FOUND [BACKEND]", null, "rule-cache.log");
         }
 
         return $data;
@@ -103,24 +138,27 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
     /**
      * Store category query into the local cache.
      *
-     * @param int    $categoryId Id of the category.
-     * @param string $data       Data to cache [query, used_categories].
+     * @param int    $categoryId  Id of the category.
+     * @param string $data        Data to cache [query, used_categories].
+     * @param array  $excludedIds Excluded category ids, if any.
      *
      * @return Smile_VirtualCategories_Model_Rule
      */
-    public function cacheQuery($categoryId, $data)
+    public function cacheQuery($categoryId, $data, $excludedIds = array())
     {
+        $cacheKey = $this->forgeCacheKey($categoryId, $excludedIds);
+
+        /** @var Smile_VirtualCategories_Model_Rule $cacheInstance */
         $cacheInstance = Mage::getSingleton('smile_virtualcategories/rule');
-        $cacheInstance->_queryCache[$categoryId] = $data;
+        $cacheInstance->addToStaticCacheInstance($cacheKey, $data);
 
         $cacheTags = array();
         foreach ($data[1] as $usedCategoryId) {
             $cacheTags[] = Mage_Catalog_Model_Category::CACHE_TAG . '_' . $usedCategoryId;
         }
 
-        $cacheId = self::CACHE_KEY_PREFIX . '_' .$categoryId;
-
-        Mage::app()->saveCache(serialize($data), $cacheId, $cacheTags, Mage_Core_Model_Cache::DEFAULT_LIFETIME);
+        //Mage::log("CACHE WRITE : " . $cacheKey, null, "rule-cache.log");
+        Mage::app()->saveCache(serialize($data), $cacheKey, $cacheTags, Mage_Core_Model_Cache::DEFAULT_LIFETIME);
 
         return $this;
     }
@@ -136,10 +174,10 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
     {
         $category = $this->getCategory();
 
-        $cacheData = $this->getQueryFromCache($category->getId() . $category->getStoreId());
+        $cacheData = $this->getQueryFromCache($category->getId() . "_" . $category->getStoreId(), $excludedCategories);
         $query = '';
 
-        if (!$cacheData || (!empty($excludedCategories))) {
+        if (!$cacheData) {
 
             $this->addUsedCategoryIds($category->getId());
             if ($category->getIsVirtual()) {
@@ -162,9 +200,8 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
                 }
             }
 
-            if (empty($excludedCategories)) {
-                $this->cacheQuery($category->getId() . $category->getStoreId(), array($query, $this->_usedCategories));
-            }
+            $this->cacheQuery($category->getId() . "_" . $category->getStoreId(), array($query, $this->_usedCategories), $excludedCategories);
+
         } else {
             list($query, $this->_usedCategories) = $cacheData;
         }
@@ -301,5 +338,33 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
     protected function _getVirtualRule($category)
     {
         return Mage::helper('smile_virtualcategories')->getVirtualRule($category);
+    }
+
+    /**
+     * Retrieve proper cache key for a given string
+     *
+     * @param string $identifier The object identifier to forge cache key for
+     * @param array  $additional An additional array of object ids to add to the cache key.
+     *
+     * @return string
+     */
+    private function forgeCacheKey($identifier, $additional = array())
+    {
+        $cacheKey = (string) $identifier;
+        $cacheKey = self::CACHE_KEY_PREFIX . "_" . $cacheKey;
+
+        if (!is_array($additional)) {
+            $additional = array($additional);
+        }
+
+        $additional = array_filter($additional);
+
+        if (!empty($additional)) {
+            $additional = array_unique($additional);
+            sort($additional);
+            $cacheKey .= "_" . implode("|", $additional);
+        }
+
+        return $cacheKey;
     }
 }
