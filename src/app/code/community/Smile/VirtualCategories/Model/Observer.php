@@ -63,9 +63,12 @@ class Smile_VirtualCategories_Model_Observer
         // Append the query string for the virtual categories
         $queryString = $this->_getVirtualRule($category)->getSearchQuery();
 
+        // Append the query string for the parent category : ie the current one.
         if ($parentCategory->getId() !== $category->getId()) {
-            $parentCategoryQuery = $this->_getVirtualRule($parentCategory)->getSearchQuery($category->getId());
-            $queryString = implode(' AND ', array_filter(array_merge(array($queryString), array("(" . $parentCategoryQuery . ")" ))));
+            $parentCategoryQuery = $this->_getVirtualRule($parentCategory)->getSearchQuery();
+            if ($parentCategoryQuery) {
+                $queryString = implode(' AND ', array_filter(array_merge(array("(" .$queryString . ")"), array("(" . $parentCategoryQuery . ")"))));
+            }
             $observer->getFilter()->setUseUrlRewrites(false);
         }
 
@@ -102,6 +105,7 @@ class Smile_VirtualCategories_Model_Observer
         $queries = $this->_getVirtualRule($category)->getChildrenCategoryQueries($observer->getCategory()->getId(), false, 1);
 
         $options = array('queries' => $queries, 'prefix' => 'categories_');
+
         $query->addFacet('categories', 'queryGroup', $options);
         $filter->setProductCollectionFacetSet(true);
 

@@ -91,6 +91,9 @@ class Smile_VirtualCategories_Helper_Data extends Mage_Core_Helper_Data
                 }
                 if ($categoryId) {
                     $rootCategory = Mage::getModel("catalog/category")->load($categoryId);
+                    if (!$rootCategory->getId()) {
+                        $rootCategory = null;
+                    }
                 }
             }
             $this->_virtualCategoriesRootCache[$cacheKey] = $rootCategory;
