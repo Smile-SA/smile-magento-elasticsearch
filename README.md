@@ -1,3 +1,10 @@
+Magento 2.x support :
+=====================
+
+The repo for Magento 2 version of our module is available in the new repository of the module : [https://github.com/Smile-SA/elasticsuite](https://github.com/Smile-SA/elasticsuite).
+
+Enjoy !!!
+
 About this module :
 ===================
 This module provides an integration of ElasticSearch into Magento developed by the R&D to address a lot of shortcomings met with the native SolR integration shipped with Magento EE :
