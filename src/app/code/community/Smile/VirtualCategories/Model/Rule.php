@@ -121,21 +121,14 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
         $cacheKey      = $this->forgeCacheKey($categoryId, $excludedIds);
         $data          = false;
 
-        Mage::log("CACHE READ : " . $cacheKey, null, "rule-cache.log");
         if ($cacheInstance->getFromStaticCacheInstance($cacheKey)) {
             $data = $cacheInstance->getFromStaticCacheInstance($cacheKey);
             $this->cacheQuery($categoryId, $data, $excludedIds);
-            Mage::log("CACHE FOUND [STATIC]", null, "rule-cache.log");
         }
 
         if ($data === false && $cacheData = Mage::app()->loadCache($cacheKey)) {
             $data = unserialize($cacheData);
             $cacheInstance->addToStaticCacheInstance($cacheKey, $data);
-            Mage::log("CACHE FOUND [BACKEND]", null, "rule-cache.log");
-        }
-
-        if ($data == false) {
-            Mage::log("CACHE NOT FOUND ", null, "rule-cache.log");
         }
 
         return $data;
@@ -163,7 +156,6 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
             $cacheTags[] = Mage_Catalog_Model_Category::CACHE_TAG . '_' . $usedCategoryId;
         }
 
-        Mage::log("CACHE WRITE : " . $cacheKey, null, "rule-cache.log");
         Mage::app()->saveCache(serialize($data), $cacheKey, $cacheTags, Mage_Core_Model_Cache::DEFAULT_LIFETIME);
 
         return $this;

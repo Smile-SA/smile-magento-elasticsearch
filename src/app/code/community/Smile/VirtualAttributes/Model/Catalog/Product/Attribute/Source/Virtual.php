@@ -85,8 +85,6 @@ class Smile_VirtualAttributes_Model_Catalog_Product_Attribute_Source_Virtual
             return $values;
         }
 
-        Mage::log($options);
-
         foreach ($options as $item) {
             if ($item['value'] == $value) {
                 return $item['label'];
