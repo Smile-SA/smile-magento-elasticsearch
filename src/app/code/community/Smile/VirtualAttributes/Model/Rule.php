@@ -68,6 +68,55 @@ class Smile_VirtualAttributes_Model_Rule extends Smile_VirtualCategories_Model_R
     }
 
     /**
+     * Store attribute query into the local cache.
+     *
+     * @param int    $cacheId Cache key for a given pair of attribute and option.
+     * @param string $data    Data to cache [query, used_attributes].
+     *
+     * @return Smile_VirtualAttributes_Model_Rule
+     */
+    public function cacheQuery($cacheId, $data)
+    {
+        $cacheInstance = Mage::getSingleton('smile_virtualattributes/rule');
+        $cacheInstance->_queryCache[$cacheId] = $data;
+
+        $cacheTags = array(Mage_Eav_Model_Entity_Attribute::CACHE_TAG);
+
+        foreach ($data[1] as $usedAttributeId) {
+            $cacheTags[] = Mage_Eav_Model_Attribute::CACHE_TAG . '_' . $usedAttributeId;
+        }
+
+        $cacheId = self::CACHE_KEY_PREFIX . '_' .$cacheId;
+
+        Mage::app()->saveCache(serialize($data), $cacheId, $cacheTags, Mage_Core_Model_Cache::DEFAULT_LIFETIME);
+
+        return $this;
+    }
+
+    /**
+     * Local caching of queries. Used when a category query is retrieved several times during the same request.
+     *
+     * @param int $cacheId Cache key for a given pair of attribute and option.
+     *
+     * @return NULL|string
+     */
+    public function getQueryFromCache($cacheId)
+    {
+        $cacheInstance = Mage::getSingleton('smile_virtualattributes/rule');
+        $data = false;
+
+        if (isset($cacheInstance->_queryCache[$cacheId])) {
+            $data = $cacheInstance->_queryCache[$cacheId];
+        }
+
+        if ($data === false && $cacheData = Mage::app()->loadCache(self::CACHE_KEY_PREFIX . '_' . $cacheId)) {
+            $data = unserialize($cacheData);
+        }
+
+        return $data;
+    }
+
+    /**
      * Retrieve an array of queries for each attribute option
      *
      * @return array

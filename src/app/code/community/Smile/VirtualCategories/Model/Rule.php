@@ -78,57 +78,23 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
     }
 
     /**
-     * @param string $cacheKey The cache key
-     * @param array  $data     The data to cache
-     *
-     * @return $this
-     */
-    public function addToStaticCacheInstance($cacheKey, $data)
-    {
-        $this->_queryCache[$cacheKey] = $data;
-
-        return $this;
-    }
-
-    /**
-     * @param string $cacheKey The cache key
-     *
-     * @return bool|array
-     */
-    public function getFromStaticCacheInstance($cacheKey)
-    {
-        $data = false;
-
-        if (isset($this->_queryCache[$cacheKey]) && ($this->_queryCache[$cacheKey] !== null)) {
-            $data = $this->_queryCache[$cacheKey];
-        }
-
-        return $data;
-    }
-
-    /**
      * Local caching of queries. Used when a category query is retrieved several times during the same request.
      *
-     * @param int   $categoryId  Id of the category.
-     * @param array $excludedIds Excluded category ids, if any.
+     * @param int $categoryId Id of the category.
      *
      * @return NULL|string
      */
-    public function getQueryFromCache($categoryId, $excludedIds = array())
+    public function getQueryFromCache($categoryId)
     {
-        /** @var Smile_VirtualCategories_Model_Rule $cacheInstance */
         $cacheInstance = Mage::getSingleton('smile_virtualcategories/rule');
-        $cacheKey      = $this->forgeCacheKey($categoryId, $excludedIds);
-        $data          = false;
+        $data = false;
 
-        if ($cacheInstance->getFromStaticCacheInstance($cacheKey)) {
-            $data = $cacheInstance->getFromStaticCacheInstance($cacheKey);
-            $this->cacheQuery($categoryId, $data, $excludedIds);
+        if (isset($cacheInstance->_queryCache[$categoryId])) {
+            $data = $cacheInstance->_queryCache[$categoryId];
         }
 
-        if ($data === false && $cacheData = Mage::app()->loadCache($cacheKey)) {
+        if ($data === false && $cacheData = Mage::app()->loadCache(self::CACHE_KEY_PREFIX . '_' .$categoryId)) {
             $data = unserialize($cacheData);
-            $cacheInstance->addToStaticCacheInstance($cacheKey, $data);
         }
 
         return $data;
@@ -137,26 +103,24 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
     /**
      * Store category query into the local cache.
      *
-     * @param int    $categoryId  Id of the category.
-     * @param string $data        Data to cache [query, used_categories].
-     * @param array  $excludedIds Excluded category ids, if any.
+     * @param int    $categoryId Id of the category.
+     * @param string $data       Data to cache [query, used_categories].
      *
      * @return Smile_VirtualCategories_Model_Rule
      */
-    public function cacheQuery($categoryId, $data, $excludedIds = array())
+    public function cacheQuery($categoryId, $data)
     {
-        $cacheKey = $this->forgeCacheKey($categoryId, $excludedIds);
-
-        /** @var Smile_VirtualCategories_Model_Rule $cacheInstance */
         $cacheInstance = Mage::getSingleton('smile_virtualcategories/rule');
-        $cacheInstance->addToStaticCacheInstance($cacheKey, $data);
+        $cacheInstance->_queryCache[$categoryId] = $data;
 
         $cacheTags = array();
         foreach ($data[1] as $usedCategoryId) {
             $cacheTags[] = Mage_Catalog_Model_Category::CACHE_TAG . '_' . $usedCategoryId;
         }
 
-        Mage::app()->saveCache(serialize($data), $cacheKey, $cacheTags, Mage_Core_Model_Cache::DEFAULT_LIFETIME);
+        $cacheId = self::CACHE_KEY_PREFIX . '_' .$categoryId;
+
+        Mage::app()->saveCache(serialize($data), $cacheId, $cacheTags, Mage_Core_Model_Cache::DEFAULT_LIFETIME);
 
         return $this;
     }
@@ -172,13 +136,11 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
     {
         $category = $this->getCategory();
 
-        $cacheData = $this->getQueryFromCache($category->getId() . "_" . $category->getStoreId(), $excludedCategories);
-        $query = '';
+        $cacheData = $this->getQueryFromCache($category->getId() . $category->getStoreId());
 
-        if (!$cacheData) {
+        if (!$cacheData || (!empty($excludedCategories))) {
 
             $this->addUsedCategoryIds($category->getId());
-
             if ($category->getIsVirtual()) {
                 $this->getConditions()->setRule($this);
                 $query = $this->getConditions()->getSearchQuery($excludedCategories);
@@ -188,8 +150,20 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
                 $query = implode(' OR ', array_merge(array($query), $childrenQueries));
             }
 
-            $this->cacheQuery($category->getId() . "_" . $category->getStoreId(), array($query, $this->_usedCategories), $excludedCategories);
+            // Append the root category query string if needed
+            if ($rootCategory = Mage::helper('smile_virtualcategories')->getVirtualRootCategory($category)) {
+                if (!in_array($rootCategory->getId(), Mage::getSingleton("smile_virtualcategories/rule")->getUsedCategoryIds())) {
+                    Mage::getSingleton("smile_virtualcategories/rule")->addUsedCategoryIds($rootCategory->getId());
+                    $rootCategoryQuery = $this->_getVirtualRule($rootCategory)->getSearchQuery($category->getId());
+                    if ($rootCategoryQuery) {
+                        $query = implode(' AND ', array_filter(array_merge(array($query), array("(" . $rootCategoryQuery . ")"))));
+                    }
+                }
+            }
 
+            if (empty($excludedCategories)) {
+                $this->cacheQuery($category->getId() . $category->getStoreId(), array($query, $this->_usedCategories));
+            }
         } else {
             list($query, $this->_usedCategories) = $cacheData;
         }
@@ -219,7 +193,7 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
             ->setStore($rootCategory->getStoreId())
             ->addIsActiveFilter()
             ->addFieldToFilter('path', array('like' => $rootCategory->getPath() . '/%'))
-            ->addAttributeToSelect(array('virtual_category', 'name'));
+            ->addAttributeToSelect('virtual_category');
 
         if (!empty($excludedCategories)) {
             $categories->addFieldToFilter('entity_id', array('nin' => $excludedCategories));
@@ -237,6 +211,18 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
                 $query = $virtualRule->getSearchQuery($excludedCategories);
 
                 if ($query) {
+
+                    // Append the root category query string if needed
+                    if ($rootCategory = Mage::helper('smile_virtualcategories')->getVirtualRootCategory($currentCategory)) {
+                        if (!in_array($rootCategory->getId(), Mage::getSingleton("smile_virtualcategories/rule")->getUsedCategoryIds())) {
+                            Mage::getSingleton("smile_virtualcategories/rule")->addUsedCategoryIds($rootCategory->getId());
+                            $rootCategoryQuery = $this->_getVirtualRule($rootCategory)->getSearchQuery($currentCategory->getId());
+                            if ($rootCategoryQuery) {
+                                $query = implode(' AND ', array_filter(array_merge(array($query), array("(" . $rootCategoryQuery . ")"))));
+                            }
+                        }
+                    }
+
                     $queries[$currentCategory->getId()] = '(' . $query . ')';
                     $this->addUsedCategoryIds($virtualRule->getUsedCategoryIds());
                 }
@@ -316,33 +302,5 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
     protected function _getVirtualRule($category)
     {
         return Mage::helper('smile_virtualcategories')->getVirtualRule($category);
-    }
-
-    /**
-     * Retrieve proper cache key for a given string
-     *
-     * @param string $identifier The object identifier to forge cache key for
-     * @param array  $additional An additional array of object ids to add to the cache key.
-     *
-     * @return string
-     */
-    private function forgeCacheKey($identifier, $additional = array())
-    {
-        $cacheKey = (string) $identifier;
-        $cacheKey = self::CACHE_KEY_PREFIX . "_" . $cacheKey;
-
-        if (!is_array($additional)) {
-            $additional = array($additional);
-        }
-
-        $additional = array_filter($additional);
-
-        if (!empty($additional)) {
-            $additional = array_unique($additional);
-            sort($additional);
-            $cacheKey .= "_" . implode("|", $additional);
-        }
-
-        return $cacheKey;
     }
 }
