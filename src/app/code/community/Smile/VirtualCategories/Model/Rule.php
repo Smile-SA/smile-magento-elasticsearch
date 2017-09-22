@@ -135,11 +135,9 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
     public function getSearchQuery($excludedCategories = array())
     {
         $category = $this->getCategory();
+        $cacheData = $this->getQueryFromCache($category->getId() . "_" . $category->getStoreId(), $excludedCategories);
 
-        $cacheData = $this->getQueryFromCache($category->getId() . $category->getStoreId());
-
-        if (!$cacheData || (!empty($excludedCategories))) {
-
+        if (!$cacheData) {
             $this->addUsedCategoryIds($category->getId());
             if ($category->getIsVirtual()) {
                 $this->getConditions()->setRule($this);
@@ -149,21 +147,7 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
                 $childrenQueries = $this->getChildrenCategoryQueries($excludedCategories, true);
                 $query = implode(' OR ', array_merge(array($query), $childrenQueries));
             }
-
-            // Append the root category query string if needed
-            if ($rootCategory = Mage::helper('smile_virtualcategories')->getVirtualRootCategory($category)) {
-                if (!in_array($rootCategory->getId(), Mage::getSingleton("smile_virtualcategories/rule")->getUsedCategoryIds())) {
-                    Mage::getSingleton("smile_virtualcategories/rule")->addUsedCategoryIds($rootCategory->getId());
-                    $rootCategoryQuery = $this->_getVirtualRule($rootCategory)->getSearchQuery($category->getId());
-                    if ($rootCategoryQuery) {
-                        $query = implode(' AND ', array_filter(array_merge(array($query), array("(" . $rootCategoryQuery . ")"))));
-                    }
-                }
-            }
-
-            if (empty($excludedCategories)) {
-                $this->cacheQuery($category->getId() . $category->getStoreId(), array($query, $this->_usedCategories));
-            }
+            $this->cacheQuery($category->getId() . "_" . $category->getStoreId(), array($query, $this->_usedCategories), $excludedCategories);
         } else {
             list($query, $this->_usedCategories) = $cacheData;
         }
@@ -205,24 +189,10 @@ class Smile_VirtualCategories_Model_Rule extends Mage_Rule_Model_Rule
 
         foreach ($categories as $currentCategory) {
             if ($currentCategory->getIsVirtual() || ($onlyVirtual == false)) {
-
                 $virtualRule = $currentCategory->getVirtualRule();
                 $virtualRule->setStoreId($this->getCategory()->getStoreId());
                 $query = $virtualRule->getSearchQuery($excludedCategories);
-
                 if ($query) {
-
-                    // Append the root category query string if needed
-                    if ($rootCategory = Mage::helper('smile_virtualcategories')->getVirtualRootCategory($currentCategory)) {
-                        if (!in_array($rootCategory->getId(), Mage::getSingleton("smile_virtualcategories/rule")->getUsedCategoryIds())) {
-                            Mage::getSingleton("smile_virtualcategories/rule")->addUsedCategoryIds($rootCategory->getId());
-                            $rootCategoryQuery = $this->_getVirtualRule($rootCategory)->getSearchQuery($currentCategory->getId());
-                            if ($rootCategoryQuery) {
-                                $query = implode(' AND ', array_filter(array_merge(array($query), array("(" . $rootCategoryQuery . ")"))));
-                            }
-                        }
-                    }
-
                     $queries[$currentCategory->getId()] = '(' . $query . ')';
                     $this->addUsedCategoryIds($virtualRule->getUsedCategoryIds());
                 }
